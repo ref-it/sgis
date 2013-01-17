@@ -1,0 +1,16 @@
+.editmldialog label { min-width: 200px; display: inline-block; }
+.editmldialog input[type=text] { min-width: 600px; display: inline-block; }
+.editgremiumdialog label { min-width: 200px; display: inline-block; }
+.editgremiumdialog input[type=text] { min-width: 600px; display: inline-block; }
+.editpersonrole label, .editpersonrole span.label { min-width: 200px; display: inline-block; }
+.editpersonrole input[type=text], .editpersonrole textarea { min-width: 600px; display: inline-block; vertical-align:top; }
+.msg { display: block; border: thin red solid; margin: 5px; font-size: xx-large; text-align: center; }
+select.gremienauswahl { font-size: x-small; }
+ul.pageselect li { display: inline-block; }
+ul.pageselect li:before { content: ' \2022 '; }
+ul.pageselect li:first-child:before { content: ''; }
+span.rolle_gremienname {  white-space:nowrap; }
+td { vertical-align: top; }
+div.kommentar { display: inline-block; vertical-align: top; }
+.personinactive, .gremiuminactive { background-color: silver; }
+

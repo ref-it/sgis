@@ -1,0 +1,3 @@
+Currently, the library only offers basic write support and its main usage would be to export huge data to spreadsheets.
+See the example.php file for a basic way of using it.
+Try the pgsql2ods.php to run a query on your PostgreSQL server and export the results to a OpenDocument spreadsheet.
