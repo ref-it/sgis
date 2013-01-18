@@ -89,6 +89,7 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_core_Auth_UserPassBase {
 		$query->execute(Array($user["id"]));
 
 		$grps[] = "sgis";
+		$grps[] = "user";
                 $attributes["groups"] = array_unique($grps);
 
 		return $attributes;
