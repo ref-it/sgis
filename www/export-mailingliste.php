@@ -14,7 +14,6 @@ if (isset($_REQUEST["captcha"])) {
 }
 
 if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0 && $validcaptcha) {
-  $dummy = Array();
   $alle_mailinglisten = getMailinglisten();
   foreach ($alle_mailinglisten as $mailingliste) {
     $list = $mailingliste["address"];
@@ -30,7 +29,7 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["send_notifications_to_list_owner"] = 1; # send notify
       $postFields["subscribees"] = join("\n", $_POST["addmember"][$list])."\n";
       $postFields["invitation"] = "";
-      fetchMembersParsePage($url."/add", $postFields, $getFields, $dummy, $dummy, $dummy);
+      commitMembersParsePage($url."/add", $postFields, $getFields);
     }
     if (isset($_POST["delmember"][$list])) {
       $getFields = Array();
@@ -39,7 +38,7 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["send_unsub_ack_to_this_batch"] = 1; # tell unsubscriber
       $postFields["send_unsub_notifications_to_list_owner"] = 1; # tell owner
       $postFields["unsubscribees"] = join("\n", $_POST["delmember"][$list])."\n";
-      fetchMembersParsePage($url."/remove", $postFields, $getFields, $dummy, $dummy, $dummy);
+      commitMembersParsePage($url."/remove", $postFields, $getFields);
     }
   }
 } elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0) {
@@ -52,25 +51,40 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
 
 function fetchMembers($url, $password) {
   $url = str_replace("mailman/listinfo", "mailman/admin", $url)."/members";
-  $members = Array(); $dummy = Array(); $letters = Array();
+  $members = Array(); $dummy = Array(); $letters = Array(); $number = -1;
 
-  fetchMembersParsePage($url, Array("adminpw" => $password), Array(), $members, $letters, $dummy);
+  fetchMembersParsePage($url, Array("adminpw" => $password), Array(), $members, $letters, $dummy, $number);
   foreach ($letters as $letter) {
     $chunks = Array();
-    fetchMembersParsePage($url, Array("adminpw" => $password), Array("letter" => $letter), $members, $dummy, $chunks);
+    fetchMembersParsePage($url, Array("adminpw" => $password), Array("letter" => $letter), $members, $dummy, $chunks, $dummy);
     foreach($chunks as $chunk) {
-      fetchMembersParsePage($url, Array("adminpw" => $password), Array("letter" => $letter, "chunk" => $chunk), $members, $dummy, $dummy);
+      fetchMembersParsePage($url, Array("adminpw" => $password), Array("letter" => $letter, "chunk" => $chunk), $members, $dummy, $dummy, $dummy);
     }
   }
 
   $members = array_unique($members);
   sort($members);
+  if (count($members) != $number) die("Fehler bei $url : $number Mitglieder erwartet, aber nur ".count($members)." gefunden.");
 
   return $members;
 
 }
 
-function fetchMembersParsePage($url, $postFields, $getFields, &$members, &$letters, &$chunks) {
+function commitMembersParsePage($url, $postFields, $getFields) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url.'?'.http_build_query($getFields));
+	curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS,  $postFields);
+        curl_exec($ch);
+        curl_close($ch);     
+
+        // password ok check
+        if (strpos($output, '<INPUT TYPE="password" NAME="adminpw" SIZE="30">') !== FALSE)
+          die("Fehler beim Abruf von $url - falsches Passwort.");
+}
+
+function fetchMembersParsePage($url, $postFields, $getFields, &$members, &$letters, &$chunks, &$numMember) {
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url.'?'.http_build_query($getFields));
@@ -86,21 +100,27 @@ function fetchMembersParsePage($url, $postFields, $getFields, &$members, &$lette
 		$members[] = urldecode($member);
 	}
 
+        // password ok check
+        if (strpos($output, '<INPUT TYPE="password" NAME="adminpw" SIZE="30">') !== FALSE)
+          die("Fehler beim Abruf von $url - falsches Passwort.");
+
 	// letters required
-	$match = preg_quote("a href=\"$url?letter=","/")."([a-z])".preg_quote("\"","/");
+	$match = preg_quote("a href=\"$url?letter=","/")."(.)".preg_quote("\"","/");
 	$matches = Array();
 	preg_match_all( "/$match/", $output, $matches);
 	$letters = $matches[1];
 
 	// chunks required
-	$match = preg_quote("a href=\"$url?letter=.&chunk=","/")."([0-9]*)".preg_quote("\"","/");
+	$match = preg_quote("a href=\"$url?letter=","/").".".preg_quote("&chunk=","/")."([0-9]*)".preg_quote("\"","/");
 	$matches = Array();
 	preg_match_all( "/$match/", $output, $matches);
 	$chunks = $matches[1];
 
-        // password ok check
-        if (strpos($output, '<INPUT TYPE="password" NAME="adminpw" SIZE="30">') !== FALSE)
-          die("Fehler beim Abruf von $url - falsches Passwort.");
+	// num total member
+	$match = preg_quote("<td COLSPAN=\"11\" BGCOLOR=\"#dddddd\"><center><em>","/")."([0-9]*) Mitglieder insgesamt(, [0-9]* werden angezeigt)?".preg_quote("</em></center></td>","/");
+	if (!(preg_match( "/$match/", $output, $matches) === 1)) { die("Fehler beim Abruf von $url - keine Mitgliederanzahl - falsche Sprache?"); }
+	$numMember = $matches[1];
+
 }
 
 $captchaId = Securimage::getCaptchaId();

@@ -316,7 +316,7 @@ function dbPersonDeleteRolle($id) {
 
 function dbPersonDisableRolle($id, $bis = NULL) {
   global $pdo, $DB_PREFIX;
-  if ($bis === NULL) $bis = date("Y-m-d", strtotime("yesterday"));
+  if (empty($bis)) $bis = date("Y-m-d", strtotime("yesterday"));
   $query = $pdo->prepare("UPDATE ${DB_PREFIX}rel_mitgliedschaft SET bis = STR_TO_DATE(?, '%Y-%m-%d') WHERE id = ? AND (bis IS NULL OR bis > STR_TO_DATE(?, '%Y-%m-%d'))");
   return $query->execute(Array($bis,$id,$bis)) or die(print_r($query->errorInfo(),true));
 }
