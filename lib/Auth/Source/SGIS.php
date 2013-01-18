@@ -60,9 +60,15 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_core_Auth_UserPassBase {
 			throw new SimpleSAML_Error_Error('WRONGUSERPASS');
 		}
 		$user = $query->fetch(PDO::FETCH_ASSOC);
+
+		$query = $this->pdo->prepare("SELECT DISTINCT g.name FROM sgis_gruppe g INNER JOIN sgis_rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN sgis_rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
+		$query->execute(array($user["id"]));
+		$grps = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
+
 		$canLogin = (bool) $user["canLogin"];
-		if (!$canLogin)
+		if (($canLogin && in_array("cannotLogin", $grps)) || (!$canLogin && !in_array("canLogin", $grps)))
 			throw new SimpleSAML_Error_Error('WRONGUSERPASS');
+
 		$passwordHash = $user["password"];
 		if (empty($passwordHash))
 			throw new SimpleSAML_Error_Error('WRONGUSERPASS');
@@ -82,10 +88,8 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_core_Auth_UserPassBase {
 		$query = $this->pdo->prepare("UPDATE sgis_person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
 		$query->execute(Array($user["id"]));
 
-		$query = $this->pdo->prepare("SELECT g.name FROM sgis_gruppe g INNER JOIN sgis_rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN sgis_rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
-		$query->execute(array($user["id"]));
-		$attributes["groups"] = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
-		$attributes["groups"][] = "sgis";
+		$grps[] = "sgis";
+                $attributes["groups"] = array_unique($grps);
 
 		return $attributes;
 	}

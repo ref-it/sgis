@@ -59,7 +59,7 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                 $valid = false;
                 if (count($user) > 0) {
                   $user = $user[0];
-                  $valid = (bool) $user["canLogin"];
+                  $valid = true;
                 } else { // new user
                   $query = $this->pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM sgis_person p WHERE p.email = ?");
                   $query->execute(array($mail));
@@ -69,9 +69,17 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                     if (empty($user["unirzlogin"])) {
                       $query = $this->pdo->prepare("UPDATE sgis_person SET unirzlogin = ? WHERE id = ?");
                       $query->execute(Array($unirzlogin, $user["id"]));
-                      $valid = (bool) $user["canLogin"];
+                      $valid = true;
                     }
                   }
+                }
+                if ($valid) {
+                  $query = $this->pdo->prepare("SELECT g.name FROM sgis_gruppe g INNER JOIN sgis_rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN sgis_rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
+                  $query->execute(array($user["id"]));
+                  $grps = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
+                  $grps[] = "sgis";
+                  $valid = (bool) $user["canLogin"];
+                  $valid = (($valid && !in_array("cannotLogin",$grps)) || (!$valid && in_array("canLogin",$grps)));
                 }
                 if ($valid) {
                   if (!empty($user["username"])) {
@@ -82,10 +90,6 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                   }
                   $query = $this->pdo->prepare("UPDATE sgis_person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
                   $query->execute(Array($user["id"]));
-                  $query = $this->pdo->prepare("SELECT g.name FROM sgis_gruppe g INNER JOIN sgis_rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN sgis_rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
-                  $query->execute(array($user["id"]));
-                  $grps = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
-                  $grps[] = "sgis";
                   $attributes["groups"] = array_unique(array_merge($attributes["groups"], $grps));
                 }
                 if (!isset($attributes["displayName"])) {
