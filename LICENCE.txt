@@ -1,0 +1,2 @@
+ * @copyright  2012,2013 Michael Braun <michael-dev@fami-braun.de>
+ * @license    http://www.opensource.org/licenses/mit-license.html  MIT License
