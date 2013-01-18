@@ -437,5 +437,12 @@ function getAllMitgliedschaft() {
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function getMailinglistePerson($mlId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT p.email FROM ${DB_PREFIX}person p INNER JOIN ${DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN ${DB_PREFIX}rel_rolle_mailingliste rrm ON rm.rolle_id = rrm.rolle_id AND rrm.mailingliste_id = ? ORDER BY p.email");
+  $query->execute(Array($mlId)) or die(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_COLUMN);
+}
+
 # vim: set expandtab tabstop=8 shiftwidth=8 :
 

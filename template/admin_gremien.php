@@ -259,8 +259,8 @@ foreach ($current_personen as $person):
 ?>
       <tr class="<?=($person["active"] ? "personactive" : "personinactive");?> forrole<?=$rolle["rolle_id"];?>">
        <td>
-        <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>P<?=$person["id"];?>').dialog('open'); return false;" titel="Personen-Rollenzuordnung entfernen" >[X]</a>
-        <div id="deleteR<?=$rolle["rolle_id"];?>P<?=$person["id"];?>" title="Personen-Rollenzuordnung entfernen">
+        <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('open'); return false;" titel="Personen-Rollenzuordnung entfernen" >[X]</a>
+        <div id="deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>" title="Personen-Rollenzuordnung entfernen">
          <noscript><h4>Personen-Rollenzuordnung entfernen</h4></noscript>
          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
           <ul>
@@ -286,13 +286,13 @@ foreach ($current_personen as $person):
           <input type="hidden" name="id" value="<?php echo $person["rel_id"];?>"/>
           <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
           <input type="submit" name="submit" value="Personen-Rollenzuordnung entfernen"/>
-          <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>P<?=$person["id"];?>').dialog('close');"/>
+          <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('close');"/>
          </form>
      
         </div>
-        <?php $script[] = "\$('#deleteR{$rolle['rolle_id']}P{$person['id']}').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
-        <a href="#" onClick="$('#editR<?=$rolle["rolle_id"];?>P<?=$person["id"];?>').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten" >[E]</a>
-        <div id="editR<?=$rolle["rolle_id"];?>P<?=$person["id"];?>" title="Rollenzuordnung bearbeiten" class="editpersonrole">
+        <?php $script[] = "\$('#deleteR{$rolle['rolle_id']}P{$person['rel_id']}').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
+        <a href="#" onClick="$('#editR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten" >[E]</a>
+        <div id="editR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>" title="Rollenzuordnung bearbeiten" class="editpersonrole">
          <noscript><h4>Rollenzuordnung bearbeiten</h4></noscript>
          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
           <ul>
@@ -313,10 +313,10 @@ foreach ($current_personen as $person):
           <input type="hidden" name="action" value="rolle_person.update"/>
           <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
           <input type="submit" name="submit" value="Zuordnung bearbeiten"/>
-          <input type="reset" name="reset" value="Abbrechen" onClick="$('#editR<?=$rolle["rolle_id"];?>P<?=$person["id"];?>').dialog('close');"/>
+          <input type="reset" name="reset" value="Abbrechen" onClick="$('#editR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('close');"/>
          </form>
         </div>
-        <?php $script[]="\$('#editR{$rolle['rolle_id']}P{$person["id"]}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
+        <?php $script[]="\$('#editR{$rolle['rolle_id']}P{$person["rel_id"]}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
        </td>
        <td><?php echo htmlspecialchars($person["email"]);?></td>
        <td><?php echo htmlspecialchars($person["name"]);?></td>
@@ -346,6 +346,8 @@ endif;
        <noscript><h4>Rollenzuordnung hinzufügen (Mehrfacheintragung)</h4></noscript>
        <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
         <ul>
+         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
+         <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
          <li><label for="email">eMail-Adressen (zeilenweise):</label><textarea name="email"></textarea></li>
          <li><label for="von">von:</label> <input type="text" name="von" value="<?=date("Y-m-d");?>" class="datepicker"/></li>
          <li><label for="bis">bis:</label> <input type="text" name="bis" value="" class="datepicker"/></li>
@@ -369,6 +371,8 @@ endif;
        <noscript><h4>Rollenzuordnung entfernen (Mehrfachaustragung)</h4></noscript>
        <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
         <ul>
+         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
+         <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
          <li><label for="email">eMail-Adressen (zeilenweise):</label><textarea name="email"></textarea></li>
          <li><label for="bis">bis:</label> <input type="text" name="bis" value="" class="datepicker"/></li>
          <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>

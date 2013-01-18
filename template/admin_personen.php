@@ -186,8 +186,8 @@ foreach($gremien as $gremium):
 ?>
      <tr class="<?=($gremium["active"] ? "gremiumactive" : "gremiuminactive");?> forperson<?=$person["id"];?>">
       <td>
-   <a href="#" onClick="$('#deleteP<?=$person["id"];?>R<?=$gremium["rolle_id"];?>').dialog('open'); return false;" titel="Rollenzuordnung aufheben" >[X]</a>
-   <div id="deleteP<?=$person["id"];?>R<?=$gremium["rolle_id"];?>" title="Rollenzuordnung aufheben" class="editpersonrole">
+   <a href="#" onClick="$('#deleteP<?=$person["id"];?>R<?=$gremium["id"];?>').dialog('open'); return false;" titel="Rollenzuordnung aufheben" >[X]</a>
+   <div id="deleteP<?=$person["id"];?>R<?=$gremium["id"];?>" title="Rollenzuordnung aufheben" class="editpersonrole">
      <noscript><h4>Rollenzuordnung aufheben</h4></noscript>
      <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST">
      <ul>
@@ -213,12 +213,12 @@ if (empty($gremium["von"]) && empty($gremium["bis"])) {
      <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
      <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
      <input type="submit" name="submit" value="Zuordnung aufheben"/>
-     <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteP<?=$person["id"];?>R<?=$gremium["rolle_id"];?>').dialog('close');"/>
+     <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteP<?=$person["id"];?>R<?=$gremium["id"];?>').dialog('close');"/>
      </form>
    </div>
-   <?php $script[] = "\$('#deleteP{$person["id"]}R{$gremium["rolle_id"]}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editP{$person["id"]}') } });"; ?>
-   <a href="#" onClick="$('#editP<?=$person["id"];?>R<?=$gremium["rolle_id"];?>').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten" >[E]</a>
-   <div id="editP<?=$person["id"];?>R<?=$gremium["rolle_id"];?>" title="Rollenzuordnung bearbeiten" class="editpersonrole">
+   <?php $script[] = "\$('#deleteP{$person["id"]}R{$gremium["id"]}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editP{$person["id"]}') } });"; ?>
+   <a href="#" onClick="$('#editP<?=$person["id"];?>R<?=$gremium["id"];?>').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten" >[E]</a>
+   <div id="editP<?=$person["id"];?>R<?=$gremium["id"];?>" title="Rollenzuordnung bearbeiten" class="editpersonrole">
      <noscript><h4>Rollenzuordnung bearbeiten</h4></noscript>
      <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST">
      <ul>
@@ -239,10 +239,10 @@ if (empty($gremium["von"]) && empty($gremium["bis"])) {
      <input type="hidden" name="action" value="rolle_person.update"/>
      <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
      <input type="submit" name="submit" value="Zuordnung eintragen"/>
-     <input type="reset" name="reset" value="Abbrechen" onClick="$('#editP<?=$person["id"];?>R<?=$gremium["rolle_id"];?>').dialog('close');"/>
+     <input type="reset" name="reset" value="Abbrechen" onClick="$('#editP<?=$person["id"];?>R<?=$gremium["id"];?>').dialog('close');"/>
      </form>
    </div>
-   <?php $script[]="\$('#editP{$person['id']}R{$gremium["rolle_id"]}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editP{$person['id']}') } });"; ?>
+   <?php $script[]="\$('#editP{$person['id']}R{$gremium["id"]}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editP{$person['id']}') } });"; ?>
       </td>
       <td><?php echo htmlspecialchars($gremium["id"]);?></td>
       <td><?php echo htmlspecialchars($gremium["rolle_name"]);?></td>

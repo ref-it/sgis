@@ -13,29 +13,31 @@ require_once "../template/header.tpl";
 
 function fetchMembers($url, $password) {
   $url = str_replace("mailman/listinfo", "mailman/admin", $url)."/members";
-  $members = Array();
+  $members = Array(); $dummy = Array(); $letters = Array();
 
-echo "$password<br>\n";
-  #$new_members = fetchMembersParsePage($url, Array("adminpw" => $password, "letter" => "a", "chunk" => 0), $members);
-  $new_members = fetchMembersParsePage($url, Array("adminpw" => $password), $members);
+  fetchMembersParsePage($url, Array("adminpw" => $password), Array(), $members, $letters, $dummy);
+  foreach ($letters as $letter) {
+    $chunks = Array();
+    fetchMembersParsePage($url, Array("adminpw" => $password), Array("letter" => $letter), $members, $dummy, $chunks);
+    foreach($chunks as $chunk) {
+      fetchMembersParsePage($url, Array("adminpw" => $password), Array("letter" => $letter, "chunk" => $chunk), $members, $dummy, $dummy);
+    }
+  }
+
+  $members = array_unique($members);
+  sort($members);
 
   return $members;
 
 }
 
-function fetchMembersParsePage($url, $fields, &$members) {
-
-	$encoded = '';
-	foreach($fields as $name => $value) {
-		$encoded .= urlencode($name).'='.urlencode($value).'&';
-	}
-	if (strlen($encoded) > 0) { $encoded = substr($encoded, 0, strlen($encoded)-1); }
+function fetchMembersParsePage($url, $postFields, $getFields, &$members, &$letters, &$chunks) {
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS,  $encoded);
+        curl_setopt($ch, CURLOPT_URL, $url.'?'.http_build_query($getFields));
 	curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS,  $postFields);
         $output = curl_exec($ch);
         curl_close($ch);     
 
@@ -44,31 +46,55 @@ function fetchMembersParsePage($url, $fields, &$members) {
 	foreach ($matches[1] as $member) {
 		$members[] = urldecode($member);
 	}
-	// letters required
-#	$match = preg_quote("a href=\"$url?letter=","/")."([a-z])".preg_quote("\"","/");
-	$match = preg_quote("a href=");
-	$matches = Array();
-echo htmlspecialchars("/$match/")."<br>\n";
-	preg_match_all( "/$match/", $output, $matches);
-echo count($matches[0]);
-#	var_dump($matches);
-echo "<pre>";
-echo htmlspecialchars($output);
-echo "</pre>";
 
+	// letters required
+	$match = preg_quote("a href=\"$url?letter=","/")."([a-z])".preg_quote("\"","/");
+	$matches = Array();
+	preg_match_all( "/$match/", $output, $matches);
+	$letters = $matches[1];
+
+	// chunks required
+	$match = preg_quote("a href=\"$url?letter=.&chunk=","/")."([0-9]*)".preg_quote("\"","/");
+	$matches = Array();
+	preg_match_all( "/$match/", $output, $matches);
+	$chunks = $matches[1];
 }
 
 $alle_mailinglisten = getMailinglisten();
 foreach ($alle_mailinglisten as $mailingliste):
-if ($mailingliste["address"] != "stud-gewaehlt@tu-ilmenau.de") continue;
   echo "<h3>".htmlspecialchars($mailingliste["address"])."</h3>\n";
   $members = fetchMembers($mailingliste["url"], $mailingliste["password"]);
+  $dbmembers = getMailinglistePerson($mailingliste["id"]);
+  $addmembers = array_diff($dbmembers, $members);
+  $delmembers = array_diff($members, $dbmembers);
+  echo "<!-- <h4>Ist-Mitglieder</h4>\n";
   echo "<ul>";
 foreach ($members as $member):
   echo "<li>$member</li>";
 endforeach;
   echo "</ul>";
-  
+  echo "<h4>Soll-Mitglieder</h4>\n";
+  echo "<ul>";
+foreach ($dbmembers as $member):
+  echo "<li>$member</li>";
+endforeach;
+  echo "</ul> -->";
+if (count($addmembers) > 0):
+  echo "<h4>Einfügen</h4>\n";
+  echo "<ul>";
+foreach ($addmembers as $member):
+  echo "<li>$member</li>";
+endforeach;
+  echo "</ul>";
+endif;
+if (count($delmembers) > 0):
+  echo "<h4>Entfernen</h4>\n";
+  echo "<ul>";
+foreach ($delmembers as $member):
+  echo "<li>$member</li>";
+endforeach;
+  echo "</ul>";
+endif;
 
 endforeach;
 
