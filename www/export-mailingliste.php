@@ -28,7 +28,7 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["subscribe_or_invite"] = 0; # abbonieren
       $postFields["send_welcome_msg_to_this_batch"] = 1; # send welcome
       $postFields["send_notifications_to_list_owner"] = 1; # send notify
-      $postFields["subscribees"] = join("\n", $_POST["addmember"][$list]);
+      $postFields["subscribees"] = join("\n", $_POST["addmember"][$list])."\n";
       $postFields["invitation"] = "";
       fetchMembersParsePage($url."/add", $postFields, $getFields, $dummy, $dummy, $dummy);
     }
@@ -38,7 +38,7 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["adminpw"] = $password;
       $postFields["send_unsub_ack_to_this_batch"] = 1; # tell unsubscriber
       $postFields["send_unsub_notifications_to_list_owner"] = 1; # tell owner
-      $postFields["unsubscribees"] = join("\n", $_POST["delmember"][$list]);
+      $postFields["unsubscribees"] = join("\n", $_POST["delmember"][$list])."\n";
       fetchMembersParsePage($url."/remove", $postFields, $getFields, $dummy, $dummy, $dummy);
     }
   }

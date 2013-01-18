@@ -71,6 +71,9 @@ $( "#tabs" ).tabs();
    <td><?php echo htmlspecialchars($person["canLogin"] ? "ja" : "nein"); ?></td>
  </tr>
 </table>
+
+Angehörige der TU Ilmenau können E-Mail-Weiterleitungen auf <a href="https://webmail.tu-ilmenau.de/smartsieve/">Webmail der TU Ilmenau</a> konfigurieren.
+
 </div>
 
 <div id="gremium">
