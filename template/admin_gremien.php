@@ -19,7 +19,7 @@
          (Bachelor oder Master, leer lassen falls Gremium alle Abschlüsse abdeckt)</li>
      <li><label for="wiki_members">Wiki-Seite mit Mitgliederliste:</label><input type="text" name="wiki_members" value=""/><br/>
          (beispw. :gremium:mitglieder:stura:%LEGISLATUR%)</li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="action" value="gremium.insert"/>
      <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
@@ -115,7 +115,7 @@ foreach ($struct_gremien as $i => $gremium):
      <li><label for="studiengang">Studiengang:</label><input type="text" name="studiengang" value="<?php echo htmlspecialchars($gremium["studiengang"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="studiengangabschluss">Stg-Abschluss:</label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="wiki_members">Wiki-Seite für Mitglieder:</label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" readonly="readonly"/></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
     </ul>
     <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
     <input type="hidden" name="action" value="gremium.delete"/>
@@ -155,7 +155,7 @@ endif;
      <li><label for="studiengang">Studiengang:</label><input type="text" name="studiengang" value="<?php echo htmlspecialchars($gremium["studiengang"],ENT_QUOTES);?>" /></li>
      <li><label for="studiengangabschluss">Stg-Abschluss:</label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" /></li>
      <li><label for="wiki_members">Wiki-Seite für Mitglieder:</label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" /></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
     </ul>
     <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
     <input type="hidden" name="action" value="gremium.update"/>
@@ -175,7 +175,7 @@ endif;
        <ul>
         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
         <li>Rolle: <input type="text" name="name" value=""/></li>
-        <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+        <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
        </ul>
        <input type="hidden" name="gremium_id" value="<?php echo $gremium["id"];?>"/>
        <input type="hidden" name="action" value="rolle_gremium.insert"/>
@@ -187,12 +187,13 @@ endif;
      <?php $script[] = "\$('#insertG{$gremium['id']}R').dialog({ autoOpen: false, width: 700, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}') } });"; ?>
     </th>
     <th>Rolle</th>
+    <th>Personen</th>
    </tr>
 <?php
 $rollen = $gremium["rollen"];
 if (count($rollen) == 0):
 ?>
-   <tr><td colspan="1"><i>Keine Rollen.</i></td></tr>
+   <tr><td colspan="2"><i>Keine Rollen.</i></td></tr>
 <?php
 else:
 foreach($rollen as $rolle):
@@ -206,7 +207,7 @@ foreach($rollen as $rolle):
        <ul>
         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
         <li>Rolle: <input type="text" name="name" value="<?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?>"/></li>
-        <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+        <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
        </ul>
        <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
        <input type="hidden" name="action" value="rolle_gremium.update"/>
@@ -236,7 +237,7 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
            <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
            <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
            <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
-           <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+           <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_person.insert"/>
@@ -281,7 +282,7 @@ foreach ($current_personen as $person):
            <li><span class="label">Beschluss:</span> <?php echo htmlspecialchars($person["beschlussAm"])." ".htmlspecialchars($person["beschlussDurch"]); ?></li>
            <li><span class="label">Kommentar:</span> <div class="kommentar"><?=str_replace("\n","<br/>",htmlspecialchars($person["kommentar"]));?></div></li>
            <li><label for="action">Aktion:</label><select name="action" size="1"><option value="rolle_person.disable" selected="selected">Zuordnung terminieren</option><option value="rolle_person.delete">Datensatz löschen</option></select></li>
-           <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+           <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="id" value="<?php echo $person["rel_id"];?>"/>
           <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
@@ -305,7 +306,7 @@ foreach ($current_personen as $person):
            <li><label for="beschlussAm"   >beschlossen am:</label> <input type="text" name="beschlussAm" value="<?=htmlspecialchars($person["beschlussAm"]);?>"/></li>
            <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value="<?=htmlspecialchars($person["beschlussDurch"]);?>"/></li>
            <li><label for="kommentar"     >Kommentar:</label> <textarea name="kommentar"><?=htmlspecialchars($person["kommentar"]);?></textarea></li>
-           <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+           <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="id" value="<?php echo $person["rel_id"];?>"/>
           <input type="hidden" name="person_id" value="<?php echo $person["id"];?>"/>
@@ -356,7 +357,7 @@ endif;
          <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
          <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
          <li><label for="duplicate">Bei bestehender aktiver Zuordnung:</label> <select name="duplicate" size="1"><option selected="selected" value="skip">Person nicht hinzufügen</option><option value="ignore">Person dennoch hinzufügen</option></select></li>
-         <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+         <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
         </ul>
         <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
         <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
@@ -376,7 +377,7 @@ endif;
          <li><label for="email">eMail-Adressen (zeilenweise):</label><textarea name="email"></textarea></li>
          <li><label for="bis">bis:</label> <input type="text" name="bis" value="" class="datepicker"/></li>
          <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
-         <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+         <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
         </ul>
         <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
         <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
@@ -398,7 +399,7 @@ endif;
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
            <li>Gruppe: <select name="gruppe_id" size="1"><?php foreach ($alle_gruppen as $gruppe):?><option value="<?php echo $gruppe["id"];?>"><?php echo htmlspecialchars($gruppe["name"]);?></option><? endforeach; ?></select></li>
-           <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+           <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_gruppe.insert"/>
@@ -430,7 +431,7 @@ foreach ($current_gruppen as $gruppe):
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
           <li>Gruppe: <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?></li>
-          <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+          <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="gruppe_id" value="<?php echo $gruppe["id"];?>"/>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
@@ -462,7 +463,7 @@ endif;
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
           <li>Mailingliste: <select name="mailingliste_id" size="1"><?php foreach ($alle_mailinglisten as $mailingliste):?><option value="<?php echo $mailingliste["id"];?>"><?php echo htmlspecialchars($mailingliste["address"]);?></option><? endforeach; ?></select></li>
-          <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+          <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_mailingliste.insert"/>
@@ -492,7 +493,7 @@ foreach ($current_mailinglisten as $mailingliste):
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
           <li>Mailingliste: <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?></li>
-          <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+          <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="mailingliste_id" value="<?php echo $mailingliste["id"];?>"/>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
@@ -523,7 +524,7 @@ endif;
      <ul>
      <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
      <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
      <input type="hidden" name="action" value="rolle_gremium.delete"/>
@@ -536,6 +537,10 @@ endif;
   <?php $script[] = "\$('#deleteG{$gremium['id']}R{$rolle['rolle_id']}').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}') } });"; ?>
       </td>
       <td><?php echo htmlspecialchars($rolle["rolle_name"]);?></td>
+      <td><?php 
+          $current_personen = getRollePersonen($rolle["rolle_id"]);
+          $liste = Array(); foreach ($current_personen as $person) { if ($person["active"]) { $liste[] = $person["email"]; } }
+          echo htmlspecialchars(implode(", ", $liste));?></td>
      </tr>
 <?php
 endforeach;

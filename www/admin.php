@@ -20,10 +20,29 @@ if (isset($_GET["msgs"])) {
  $msgs = Array();
 }
 
+$validcaptcha = false;
+if (isset($_REQUEST["captcha"])) {
+ if (empty($_REQUEST["captchaId"])) { die("empty captcha id supplied"); }
+ $validcaptcha = Securimage::checkByCaptchaId($_REQUEST["captchaId"], $_REQUEST["captcha"]);
+}
+
+$captchaId = Securimage::getCaptchaId();
+$options = array('captchaId'  => $captchaId, 'no_session' => true, 'no_exit' => true, 'send_headers' => false);
+$captcha = new Securimage($options);
+ob_start();   // start the output buffer
+$captcha->show();
+$imgBinary = ob_get_contents(); // get contents of the buffer
+ob_end_clean(); // turn off buffering and clear the buffer
+if ($validcaptcha) {
+  $captcha = $captcha->getCode();
+  $captcha = $captcha["code_disp"];
+} else {
+  $captcha = "";
+}
+
 if (isset($_POST["action"])) {
- if (empty($_POST["captchaId"])) { die("empty captcha id supplied"); }
  $ret = false;
- if (Securimage::checkByCaptchaId($_POST["captchaId"], $_POST["captcha"]) != true) {
+ if (!$validcaptcha) {
   $msgs[] = "Falsches Captcha!";
  } else {
   switch ($_POST["action"]):
@@ -167,7 +186,7 @@ if (isset($_POST["action"])) {
   endswitch;
  }
  if ($ret) {
-  $query = "";
+  $query = "captchaId=".urlencode($captchaId)."&captcha=".urlencode($captcha);
   foreach ($msgs as $msg) {
    $query .= "&msgs[]=".urlencode($msg);
   }
@@ -179,14 +198,6 @@ if (isset($_POST["action"])) {
 foreach ($msgs as $msg):
   echo "<b class=\"msg\">".htmlspecialchars($msg)."</b>\n";
 endforeach;
-
-$captchaId = Securimage::getCaptchaId();
-$options = array('captchaId'  => $captchaId, 'no_session' => true, 'no_exit' => true, 'send_headers' => false);
-$captcha = new Securimage($options);
-ob_start();   // start the output buffer
-$captcha->show();
-$imgBinary = ob_get_contents(); // get contents of the buffer
-ob_end_clean(); // turn off buffering and clear the buffer
 
 $script[] = '$( "#tabs" ).tabs();';
 
