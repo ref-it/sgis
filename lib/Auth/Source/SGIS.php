@@ -53,7 +53,7 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_core_Auth_UserPassBase {
 	// This function receives the username and password the user entered, and is expected to return the attributes of that user. If the username or password is incorrect, it should throw an error saying so.
 	function login($username, $password) {
 
-		$query = $this->pdo->prepare("SELECT id, canLogin, password, email, username FROM sgis_person WHERE username = ?");
+		$query = $this->pdo->prepare("SELECT id, canLogin, password, email, username, name FROM sgis_person WHERE username = ?");
 		if (!$query->execute(Array($username))) throw new SimpleSAML_Error_Exception($this->authId . ': database error.');
 		if ($query->rowCount() != 1) {
 			// no such user
@@ -82,7 +82,7 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_core_Auth_UserPassBase {
 		$query = $this->pdo->prepare("UPDATE sgis_person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
 		$query->execute(Array($user["id"]));
 
-		$query = $this->pdo->prepare("SELECT g.name FROM sgis_gruppe g INNER JOIN sgis_rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN sgis_rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id WHERE rrm.person_id = ?");
+		$query = $this->pdo->prepare("SELECT g.name FROM sgis_gruppe g INNER JOIN sgis_rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN sgis_rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
 		$query->execute(array($user["id"]));
 		$attributes["groups"] = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
 		$attributes["groups"][] = "sgis";
