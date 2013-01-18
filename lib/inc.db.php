@@ -19,6 +19,7 @@ if ($r === false) {
                 canLogin BOOLEAN NOT NULL DEFAULT 1,
                 UNIQUE (email),
                 UNIQUE (username),
+                UNIQUE (unirzlogin),
                 PRIMARY KEY (id)
                ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or die(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.person.php';

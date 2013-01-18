@@ -18,8 +18,8 @@
      <li><label for="unirzlogin">UniRZ-Login:           </label><input type="text" name="unirzlogin" value=""/><br/>
          (optional, wird ggf. automatisch ergänzt)</li>
      <li><label for="canlogin"  >Login erlaubt?:        </label>
-         <select name="canlogin" size="1"><option value="1" selected="selected">erlaubt</option><option value="0">nicht erlaubt</option></select><br/>
-	 (nicht erlaubt für Dummy-eMail-Adressen auf Mailinglisten nutzen)</li>
+         <select name="canlogin" size="1"><option value="1" selected="selected">erlaubt, außer während zur Gruppe cannotLogin zugehörig</option><option value="0">nicht erlaubt, außer während zur Gruppe canLogin zugehörig</option></select><br/>
+	 (nicht erlaubt für Dummy-eMail-Adressen auf Mailinglisten und sonstige Ausnahmen nutzen)</li>
      <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
      </ul>
      <input type="hidden" name="action" value="person.insert"/>
@@ -116,7 +116,7 @@ endif;
      <li><label for="username"  >Benutzername:          </label><input type="text" name="username"   value="<?php echo htmlspecialchars($person["username"],ENT_QUOTES);?>" /></li>
      <li><label for="password"  >Passwort:              </label><input type="text" name="password"   value=""/></li>
      <li><label for="canlogin"  >Login erlaubt?:        </label>
-         <select name="canlogin" size="1"><option value="1" <? if ($person["canLogin"]) echo "selected=\"selected\""; ?>>erlaubt</option><option value="0" <? if (!$person["canLogin"]) echo "selected=\"selected\""; ?>>nicht erlaubt</option></select>
+         <select name="canlogin" size="1"><option value="1" <? if ($person["canLogin"]) echo "selected=\"selected\""; ?>>erlaubt, außer während zur Gruppe cannotLogin zugehörig</option><option value="0" <? if (!$person["canLogin"]) echo "selected=\"selected\""; ?>>nicht erlaubt, außer während zur Gruppe canLogin zugehörig</option></select>
      </li>
      <li>letztes Login: <?php echo $person["lastLogin"];?></li>
      <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
