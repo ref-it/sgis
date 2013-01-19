@@ -11,7 +11,8 @@ $c->authenticate_hook = array(
     'dsn' => "",
     'username' => '',
     'password' => '',
-    'prefix'   => 'sgis_',
+    'prefix'   => 'sgis_', # DB Prefix
+    'group'   => 'sgis',
   )
 );
 $c->authenticate_hook['optional'] = true;
