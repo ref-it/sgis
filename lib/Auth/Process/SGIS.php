@@ -16,6 +16,13 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
         private $pdo;
 
         /**
+        * The database prefix.
+         *
+         * @var prefix
+         */
+        private $prefix;
+
+        /**
          * Initialize this filter, parse configuration
          *
          * @param array $config  Configuration information about this filter.
@@ -35,8 +42,12 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                 if (!isset($config['password'])) {
                         throw new SimpleSAML_Error_Exception($this->authId . ': Missing required \'password\' option.');
                 }
+                if (!isset($config['prefix'])) {
+                        throw new SimpleSAML_Error_Exception($this->authId . ': Missing required \'prefix\' option.');
+                }
 
                 $this->pdo = new PDO((string) $config["dsn"], (string) $config["username"], (string) $config["password"]);
+		$this->prefix = $config['prefix'];
         }
 
 
@@ -52,8 +63,9 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                 $attributes = &$request['Attributes'];
                 $mail = $attributes["mail"][0];
                 $unirzlogin = $attributes["eduPersonPrincipalName"][0];
+		$prefix = $this->prefix;
                 
-                $query = $this->pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM sgis_person p WHERE p.unirzlogin = ?");
+                $query = $this->pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM {$prefix}person p WHERE p.unirzlogin = ?");
                 $query->execute(array($unirzlogin));
                 $user = $query->fetchAll(PDO::FETCH_ASSOC);
                 $valid = false;
@@ -61,20 +73,20 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                   $user = $user[0];
                   $valid = true;
                 } else { // new user
-                  $query = $this->pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM sgis_person p WHERE p.email = ?");
+                  $query = $this->pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM {$prefix}person p WHERE p.email = ?");
                   $query->execute(array($mail));
                   $user = $query->fetchAll(PDO::FETCH_ASSOC);
                   if (count($user) > 0) {
                     $user = $user[0];
                     if (empty($user["unirzlogin"])) {
-                      $query = $this->pdo->prepare("UPDATE sgis_person SET unirzlogin = ? WHERE id = ?");
+                      $query = $this->pdo->prepare("UPDATE {$prefix}person SET unirzlogin = ? WHERE id = ?");
                       $query->execute(Array($unirzlogin, $user["id"]));
                       $valid = true;
                     }
                   }
                 }
                 if ($valid) {
-                  $query = $this->pdo->prepare("SELECT g.name FROM sgis_gruppe g INNER JOIN sgis_rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN sgis_rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
+                  $query = $this->pdo->prepare("SELECT g.name FROM {$prefix}gruppe g INNER JOIN {$prefix}rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN {$prefix}rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
                   $query->execute(array($user["id"]));
                   $grps = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
                   $grps[] = "sgis";
@@ -88,7 +100,7 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                   if (!empty($user["name"])) {
                     $attributes["displayName"] = Array($user["name"]);
                   }
-                  $query = $this->pdo->prepare("UPDATE sgis_person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
+                  $query = $this->pdo->prepare("UPDATE {$prefix}person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
                   $query->execute(Array($user["id"]));
                   $attributes["groups"] = array_unique(array_merge($attributes["groups"], $grps));
                 }
