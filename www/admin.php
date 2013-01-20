@@ -284,7 +284,11 @@ if (!isset($_REQUEST["tab"])) {
 }
 
 global $scripting, $captcha, $captchaId;
-$scripting = true;
+if (isset($_REQUEST["javascript"])) {
+  setcookie("javascript",$_REQUEST["javascript"]);
+  $_COOKIE["javascript"] = $_REQUEST["javascript"];
+}
+$scripting = (isset($_COOKIE["javascript"]) && ($_COOKIE["javascript"] == 1));
 
 function addTabHead($name, $titel) {
  global $scripting, $captcha, $captchaId;
@@ -315,6 +319,14 @@ if (isset($_REQUEST["tab"])) {
 <?
   exit;
 }
+
+if (!$scripting) {
+?><script type="text/javascript">
+   self.location.replace("<?=$_SERVER["PHP_SELF"];?>?javascript=1");
+  </script>
+<?
+}
+
 
 ?>
 
@@ -374,6 +386,16 @@ if (!$scripting) {
 <hr/>
 <a href="<?php echo $logoutUrl; ?>">Logout</a> &bull;
 <a href="index.php">Selbstauskunft</a>
+
+<?php
+if ($scripting):
+?>
+<noscript>
+  &bull; <a href="<?=$_SERVER["PHP_SELF"];?>?javascript=0">JavaScript deaktivieren.</a>
+</noscript>
+<?
+endif;
+?>
 
 <?php
 require "../template/footer.tpl";
