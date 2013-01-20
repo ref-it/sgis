@@ -6,7 +6,9 @@ ob_start('ob_gzhandler');
 require_once "../lib/inc.all.php";
 requireGroup($ADMINGROUP);
 
-require "../template/header.tpl";
+if (!isset($_REQUEST["tab"])) {
+  require "../template/header.tpl";
+}
 
 $alle_mailinglisten = getMailinglisten();
 $alle_gremien = getAlleRolle();
@@ -201,34 +203,60 @@ endforeach;
 
 $script[] = '$( "#tabs" ).tabs();';
 
+global $scripting;
+$scripting = true;
+
+function addTabHead($name, $titel) {
+ global $scripting;
+ ?> <li aria-controls="<?=htmlspecialchars($name);?>"><a href="<?=htmlspecialchars($scripting ? $_SERVER["PHP_SELF"]."?tab=".urlencode($name) : "#$name"); ?>"><?=htmlspecialchars($titel);?></a></li> <?
+}
+
+if (isset($_REQUEST["tab"])) {
+  switch($_REQUEST["tab"]) {
+  case "person":
+  require "../template/admin_personen.php";
+  break;
+  case "gremium":
+  require "../template/admin_gremien.php";
+  break;
+  case "gruppe":
+  require "../template/admin_gruppen.php";
+  break;
+  case "mailingliste":
+  require "../template/admin_mailinglisten.php";
+  break;
+  default:
+  die("invalid tab name");
+  }
+?>
+  <script type="text/javascript">
+    <? echo implode("\n", array_unique($script)); ?>
+  </script>
+<?
+  exit;
+}
+
 ?>
 
 <h2>Verwaltung studentisches Gremieninformationssystem (sGIS)</h2>
 
 <div id="tabs">
  <ul>
-  <li><a href="#person">Personen</a></li>
-  <li><a href="#gremium">Gremien und Rollen</a></li>
-  <li><a href="#gruppe">Gruppen</a></li>
-  <li><a href="#mailingliste">Mailinglisten</a></li>
+  <? addTabHead("person", "Personen"); ?>
+  <? addTabHead("gremium", "Gremien und Rollen"); ?>
+  <? addTabHead("gruppe", "Gruppen"); ?>
+  <? addTabHead("mailingliste", "Mailinglisten"); ?>
   <li><a href="#export">Export</a></li>
   <li><a href="#hilfe">Hilfe</a></li>
  </ul>
 
 <?php
-require "../template/admin_personen.php";
-?>
-
-<?php
-require "../template/admin_gremien.php";
-?>
-
-<?php
-require "../template/admin_gruppen.php";
-?>
-
-<?php
-require "../template/admin_mailinglisten.php";
+if (!$scripting) {
+  require "../template/admin_personen.php";
+  require "../template/admin_gremien.php";
+  require "../template/admin_gruppen.php";
+  require "../template/admin_mailinglisten.php";
+}
 ?>
 
 <div id="export">
@@ -244,7 +272,7 @@ require "../template/admin_mailinglisten.php";
 </ul>
 </div>
 
-<div id="hilfe"<
+<div id="hilfe">
 <a name="hilfe"></a>
 <noscript><h3>Hilfe</h3></noscript>
 
