@@ -186,7 +186,7 @@ endforeach;
 
 ?></table>
 
-<img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value=""/>
+<img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value=""/>
 <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
 
 <a href="#" onClick="$('.mls').attr('checked',true); return false;">alle auswählen</a>

@@ -16,7 +16,7 @@
          Listen-Administratorpasswort</li>
      <li><label for="url">Webseite (listinfo):</label><input type="text" name="url" value=""/><br/>
          Beispiel: https://listen.stura.tu-ilmenau.de/mailman/listinfo/ref-xxx</li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
+     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="action" value="mailingliste.insert"/>
      <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
@@ -44,7 +44,7 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
      <li><label for="address">Adresse:</label><input type="text" name="address" value="<?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="password">Passwort:</label><input type="text" name="password" value="<?php echo htmlspecialchars($mailingliste["password"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="url">Webseite (listinfo):</label><input type="text" name="url" value="<?php echo htmlspecialchars($mailingliste["url"],ENT_QUOTES);?>" readonly="readonly"/></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
+     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $mailingliste["id"];?>"/>
      <input type="hidden" name="action" value="mailingliste.delete"/>
@@ -62,7 +62,7 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
      <li><label for="address">Adresse:</label><input type="text" name="address" value="<?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?>"/></li>
      <li><label for="password">Passwort:</label><input type="text" name="password" value="<?php echo htmlspecialchars($mailingliste["password"],ENT_QUOTES);?>"/></li>
      <li><label for="url">Webseite (listinfo):</label><input type="text" name="url" value="<?php echo htmlspecialchars($mailingliste["url"],ENT_QUOTES);?>"/></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
+     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $mailingliste["id"];?>"/>
      <input type="hidden" name="action" value="mailingliste.update"/>
@@ -100,7 +100,7 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
 ?>
          </select>
        <br/><span></span></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
+     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="mailingliste_id" value="<?php echo $mailingliste["id"];?>"/>
      <input type="hidden" name="action" value="rolle_mailingliste.insert"/>
@@ -129,7 +129,7 @@ foreach($gremien as $gremium):
      <ul>
      <li>Mailingliste: <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?></li>
      <li>Gremium/Rolle: <?php echo htmlspecialchars($gremium["rolle_name"]." ".$gremium["gremium_name"]." ".$gremium["gremium_fakultaet"]." ".$gremium["gremium_studiengang"]." ".$gremium["gremium_studiengangabschluss"],ENT_QUOTES);?></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
+     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="mailingliste_id" value="<?php echo $mailingliste["id"];?>"/>
      <input type="hidden" name="rolle_id" value="<?php echo $gremium["rolle_id"];?>"/>

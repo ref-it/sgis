@@ -178,7 +178,7 @@ Bitte geben deine neuen Zugangsdaten für das sGIS ein:
  </li>
  <li> <label for="password"  style="width:225px; display: inline-block;">Passwort</label> <input type="password" name="password" value=""/> </li>
  <li> <label for="password2" style="width:225px; display: inline-block;">Passwort (Wiederholung)</label> <input type="password" name="password2" value=""/> </li>
- <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
+ <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
 </ul>
 
 <input type="hidden" name="action" value="pwchange"/>
