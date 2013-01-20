@@ -1,0 +1,20 @@
+{
+	"yes": {
+		"de": "Ja, Zugangsdaten einrichten"
+	},
+	"no": {
+		"de": "Nein, Zugangsdaten jetzt nicht einrichten"
+	},
+	"sgis_header": {
+		"de": "Zugangsdaten für SGIS einrichten"
+	},
+	"sgis_accept": {
+		"de": "Hallo NAME (EMAIL),<br/><br/>hier kannst du deine SGIS Zugangsdaten einrichten, welche auch für den Kalender, OwnCloud usw. gültig sind."
+	},
+	"sgis_error_header_fieldmissing" : {
+		"de": "Ein Feld wurde nicht ausgefüllt"
+        },
+	"sgis_error_desc_fieldmissing": {
+		"de": "Ein Feld wurde leergelassen. Bitte fülle alle Felder aus."
+	}
+}

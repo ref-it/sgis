@@ -1,0 +1,20 @@
+{
+	"yes": {
+		"en": "Yes, save credentials."
+	},
+	"no": {
+		"en": "No, skip this."
+	},
+	"sgis_header": {
+		"en": "Set login credentials for SGIS"
+	},
+	"sgis_accept": {
+		"en": "Hi NAME (EMAIL),<br/><br/>choose your username and password for use with SGIS."
+	},
+	"sgis_error_header_fieldmissing": {
+		"en": "Field is empty"
+	},
+	"sgis_error_desc_fieldmissing": {
+		"en": "A field was empty. You have to fill all fields."
+	}
+}

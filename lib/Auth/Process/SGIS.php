@@ -48,6 +48,7 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
 
                 $this->pdo = new PDO((string) $config["dsn"], (string) $config["username"], (string) $config["password"]);
 		$this->prefix = $config['prefix'];
+		$this->config = $config;
         }
 
 
@@ -107,6 +108,16 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                 if (!isset($attributes["displayName"])) {
                   $attributes["displayName"] = $attributes["eduPersonPrincipalName"];
                 }
+		# if sgis user and no username/password is set, we ask the user to do it now
+		if ($valid && empty($user["username"]) && (! (isset($request['isPassive']) && $request['isPassive'] == true))) {
+			// Save state and redirect
+			$request['sgis:person_id'] = $user["id"];
+			$request['sgis:config'] = $this->config;
+			$id  = SimpleSAML_Auth_State::saveState($request, 'sgis:requestusernamepassword');
+			$url = SimpleSAML_Module::getModuleURL('sgis/getusernamepassword.php');
+			SimpleSAML_Utilities::redirect($url, array('StateId' => $id));
+		}
+
         }
 
 }
