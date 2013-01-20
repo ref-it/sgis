@@ -19,6 +19,7 @@ class SGIS_AuthPluginDavical {
   private $groupQuery;
   private $group;
   private $config;
+  private $adminGroup = "admin";
 
   public function __construct($c) {
     $this->c = $c;
@@ -35,6 +36,13 @@ class SGIS_AuthPluginDavical {
     }
   }
 
+
+  /** return principal if username, password are sGIS-ok
+    * if sgis is unreachable, return false.
+    * periodically update all sgis users
+    * if correct old password is provided clear davical password cache
+    * if correct new password is provided update davical password cache
+    */
   public function auth($username, $password) {
     if ($this->pdo === NULL) { return false; }
     $username = strtolower($username);
@@ -109,6 +117,7 @@ class SGIS_AuthPluginDavical {
     return new Principal('username',$username);
   }
 
+  /* check given password against stored password hash in user */
   private function checkPassword($user, $password) {
     $passwordHash = $user["password"];
     if (empty($passwordHash)) {
@@ -119,6 +128,7 @@ class SGIS_AuthPluginDavical {
     return $pwObj->verifyPasswordHash($password, $passwordHash);
   }
 
+  /* cleanup daily */
   private function periodic_cleanup() {
     $sgis_principal = new Principal('username', $this->group);
     if (!$sgis_principal->Exists()) { 
@@ -127,7 +137,7 @@ class SGIS_AuthPluginDavical {
     }
 
     $db_modified = strtotime($sgis_principal->modified);
-    $timeout = strtotime("-1 hour"); # day
+    $timeout = strtotime("-1 day"); # day
     if ($timeout <= $db_modified) {
       return; # data is fresh
     }
@@ -148,6 +158,7 @@ class SGIS_AuthPluginDavical {
     $sgis_principal->Update();
   }
 
+  /* return groups as stored in sgis (+ sgis-group), returns Array('sgis') for non-existing users */
   private function get_sgis_groups(&$principal) {
     $username = $principal->username();
     $this->userQuery->execute(Array($username)) or die(print_r($this->userQuery->errorInfo(),true));
@@ -162,6 +173,7 @@ class SGIS_AuthPluginDavical {
     return $grps;
   }
 
+  /* return sgis user row, update canLogin by group membership state */
   private function get_sgis_user_details($username) {
     $this->userQuery->execute(Array($username)) or die(print_r($this->userQuery->errorInfo(),true));
     if ($this->userQuery->rowCount() == 0) {
@@ -180,6 +192,7 @@ class SGIS_AuthPluginDavical {
     return $userRow;
   }
 
+  /* check existing davical user (that is in sgis group (check this before calling this method)) if it is still is sgis and update its details */
   private function check_and_update_sgis_principal(&$principal) {
     $username = $principal->username();
 
@@ -204,6 +217,7 @@ class SGIS_AuthPluginDavical {
     }
   }
 
+  /* get davical groups */
   private function sgis_get_principal_groups(&$principal) {
     $username = $principal->username();
   
@@ -216,7 +230,8 @@ class SGIS_AuthPluginDavical {
   
     return $db_groups;
   }
-  
+ 
+  /* update davical principal groups + admin role */ 
   private function sgis_update_groups(&$principal, $grps) {
     $username = $principal->username();
   
@@ -258,20 +273,20 @@ class SGIS_AuthPluginDavical {
     $qry->Exec('SGIS_GRP_SYNC',__LINE__,__FILE__);
     $row = $qry->Fetch() or die("DB Fehler ".__LINE__);
     $isAdmin = ($row->admins > 0);
-    if ($isAdmin && !in_array("admin", $grps)) {
+    if ($isAdmin && !in_array($this->adminGroup, $grps)) {
       # is davical admin but should not be
       $qry = new AwlQuery( "DELETE FROM role_member WHERE user_no = :user_no AND role_no = :role_no",  Array(":user_no" => $principal->user_no(), ":role_no" => $admin_role_no));
       $qry->Exec('SGIS_GRP_SYNC',__LINE__,__FILE__);
       Principal::cacheDelete('username', $username);
-    } elseif (!$isAdmin && in_array("admin", $grps)) {
+    } elseif (!$isAdmin && in_array($this->adminGroup, $grps)) {
       # is not davical admin but should be
       $qry = new AwlQuery( "INSERT INTO role_member (user_no, role_no) VALUES (:user_no, :role_no)",  Array(":user_no" => $principal->user_no(), ":role_no" => $admin_role_no));
       $qry->Exec('SGIS_GRP_SYNC',__LINE__,__FILE__);
       Principal::cacheDelete('username', $username);
     }
-  
   }
-  
+
+  /* return a random ascii string */  
   private static function randomstring($length = 8) {
     $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
     srand((double)microtime()*1000000);
