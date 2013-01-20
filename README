@@ -1,3 +1,2 @@
 1. include-Path erweitern auf diesen Ordner
 2. davical-config.php in davical/config/config.php integrieren
-3. Principal mit Id=1 (admin) auf Typ=Gruppe und Username=admin ändern

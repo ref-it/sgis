@@ -64,6 +64,14 @@ function SGIS_Check($username, $password ){
   if (!$pwObj->verifyPasswordHash($password, $passwordHash)) {
     if ($isSGIS) {
       dbg_error_log( "SGIS", "User %s has wrong password provided.", $username );
+      if (session_validate_password($password,$principal->password)) {
+        # changing the sGIS password should prevent somebody knowing the old password from accessing the data even if the owner did not login into davical again.
+        # here the agent provided the correct old password, but not the new sGIS password
+        # having fallback authentication set, davical would just let him in
+        # so this principal gets disabled here
+        
+       $principal->Update( array('user_active' => 'f'));
+      }
     }
     return false;
   }
@@ -152,7 +160,6 @@ function sgis_update_groups($principal, $grps) {
   foreach ($db_groups as $grp) {
     if (in_array($grp, $grps) && !in_array($username, $db_group_members[$grp])) {
       # principal should be member but is not
-      $c->messages[] = "Nutzer $username zur Gruppe $grp hinzugefügt.";
       $qry = new AwlQuery( "INSERT INTO group_member SELECT g.principal_id AS group_id,u.principal_id AS member_id FROM dav_principal g, dav_principal u WHERE g.username=:group AND u.username=:member",array (':group'=>$grp,':member'=>$username) );
       $qry->Exec('SGIS_GRP_SYNC',__LINE__,__FILE__);
       Principal::cacheDelete('username', $username);
@@ -163,6 +170,30 @@ function sgis_update_groups($principal, $grps) {
       Principal::cacheDelete('username', $username);
     }
   }
+
+  # Admin?
+  $qry = new AwlQuery( "SELECT role_no FROM roles WHERE role_name='Admin'" );
+  $qry->Exec('SGIS_GRP_SYNC',__LINE__,__FILE__);
+  $row = $qry->Fetch();
+  $admin_role_no = $row->role_no;
+
+  $qry = new AwlQuery( "SELECT count(*) AS admins FROM role_member WHERE user_no = :user_no AND role_no := role_no", Array(":user_no" => $principal->user_no(), ":role_no" => $admin_role_no));
+  $qry->Exec('SGIS_GRP_SYNC',__LINE__,__FILE__);
+  $row = $qry->Fetch();
+  $isAdmin = ($row->admins > 0);
+
+  if ($isAdmin && !in_array("admin", $grps)) {
+    # is davical admin but should not be
+    $qry = new AwlQuery( "DELETE FROM role_member WHERE user_no = :user_no AND role_no = :role_no",  Array(":user_no" => $principal->user_no(), ":role_no" => $admin_role_no));
+    $qry->Exec('SGIS_GRP_SYNC',__LINE__,__FILE__);
+    Principal::cacheDelete('username', $username);
+  } elseif (!$isAdmin && in_array("admin", $grps)) {
+    # is not davical admin but should be
+    $qry = new AwlQuery( "INSERT INTO role_member (user_no, role_no) VALUES (:user_no, :role_no)",  Array(":user_no" => $principal->user_no(), ":role_no" => $admin_role_no));
+    $qry->Exec('SGIS_GRP_SYNC',__LINE__,__FILE__);
+    Principal::cacheDelete('username', $username);
+  }
+
 }
 
 function randomstring($length = 8) {
