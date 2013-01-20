@@ -19,5 +19,8 @@
 	},
 	"remember_password": {
 		"de": "Dauerhaft einloggen"
+	},
+	"remember_source": {
+		"de": "Auswahl speichern"
 	}
 }

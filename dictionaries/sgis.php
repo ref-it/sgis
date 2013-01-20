@@ -37,7 +37,11 @@ $lang = array(
 	'remember_password' => array (
 		'en' => 'Remember my login',
 		'de' => 'Dauerhaft einloggen',
-	},
+	),
+	'remember_source' => array (
+		'en' => 'Remember my choice',
+		'de' => 'Auswahl speichern',
+	),
 
 );
 

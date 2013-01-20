@@ -19,5 +19,8 @@
 	},
 	"remember_password": {
 		"en": "Remember my login"
+	},
+	"remember_source": {
+		"en": "Remember my choice"
 	}
 }
