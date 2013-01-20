@@ -1,7 +1,8 @@
 <?php
 
-define(SGISBASE, dirname(dirname(dirname(dirname(__FILE__)))));
+define("SGISBASE", dirname(dirname(dirname(dirname(__FILE__)))));
 require_once SGISBASE.'/externals/password-lib/lib/PasswordLib/PasswordLib.php';
+require_once SGISBASE.'/lib/Auth/UserPassBaseCookie.php';
 
 /**
  * Verify SGIS password and add SGIS attributes into reply.
@@ -9,7 +10,7 @@ require_once SGISBASE.'/externals/password-lib/lib/PasswordLib/PasswordLib.php';
  * @package stura-sgis
  * @version $Id$
  */
-class sspmod_sgis_Auth_Source_SGIS extends sspmod_core_Auth_UserPassBase {
+class sspmod_sgis_Auth_Source_SGIS extends sspmod_sgis_Auth_UserPassBaseCookie {
 
         /**
          * The database object.

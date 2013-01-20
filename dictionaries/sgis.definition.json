@@ -16,5 +16,8 @@
 	},
 	"sgis_error_desc_fieldmissing": {
 		"en": "A field was empty. You have to fill all fields."
+	},
+	"remember_password": {
+		"en": "Remember my login"
 	}
 }

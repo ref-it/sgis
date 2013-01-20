@@ -34,6 +34,10 @@ $lang = array(
 		'en' => 'A field was empty. You have to fill all fields.',
 		'de' => 'Ein Feld wurde leergelassen. Bitte fülle alle Felder aus.',
 	),
+	'remember_password' => array (
+		'en' => 'Remember my login',
+		'de' => 'Dauerhaft einloggen',
+	},
 
 );
 

@@ -16,5 +16,8 @@
         },
 	"sgis_error_desc_fieldmissing": {
 		"de": "Ein Feld wurde leergelassen. Bitte fülle alle Felder aus."
+	},
+	"remember_password": {
+		"de": "Dauerhaft einloggen"
 	}
 }
