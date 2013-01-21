@@ -384,7 +384,19 @@ function dbGremiumDelete($id) {
   $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}gremium WHERE id = ?");
   return $query->execute(Array($id)) or die(print_r($query->errorInfo(),true));
 }
-  
+ 
+function dbGremiumDisable($id) {
+  global $pdo, $DB_PREFIX;
+  $pdo->beginTransaction() or die(print_r($pdo->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET active = 0 WHERE id = ?");
+  $ret1 = $query->execute(Array($id)) or die(print_r($query->errorInfo(),true));
+  # terminate memberships
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = subdate(current_date, 1) WHERE gremium_id = ? AND (bis IS NULL OR bis >= CURRENT_DATE)");
+  $ret2 = $query->execute(Array($id)) or die(print_r($query->errorInfo(),true));
+  $ret3 = $pdo->commit() or die(print_r($pdo->errorInfo(),true));
+  return $ret1 && $ret2 && $ret3;
+}
+ 
 function dbGremiumInsertRolle($gremium_id, $name, $active) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name, active) VALUES ( ?, ?, ?)");
@@ -403,6 +415,18 @@ function dbGremiumDeleteRolle($id) {
   return $query->execute(Array($id)) or die(print_r($query->errorInfo(),true));
 }
 
+function dbGremiumDisableRolle($id) {
+  global $pdo, $DB_PREFIX;
+  $pdo->beginTransaction() or die(print_r($pdo->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rolle SET active = 0 WHERE id = ?");
+  $ret1 = $query->execute(Array($id)) or die(print_r($query->errorInfo(),true));
+  # terminate memberships
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = subdate(current_date, 1) WHERE rolle_id = ? AND (bis IS NULL OR bis >= CURRENT_DATE)");
+  $ret2 = $query->execute(Array($id)) or die(print_r($query->errorInfo(),true));
+  $ret3 = $pdo->commit() or die(print_r($pdo->errorInfo(),true));
+  return $ret1 && $ret2 && $ret3;
+}
+ 
 function getRolleMailinglisten($rolleId) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("SELECT DISTINCT m.* FROM {$DB_PREFIX}mailingliste m INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rm ON rm.mailingliste_id = m.id WHERE rm.rolle_id = ? ORDER BY RIGHT(m.address, LENGTH(m.address) - POSITION( '@' in m.address)), LEFT(m.address, POSITION( '@' in m.address))");

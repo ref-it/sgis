@@ -139,6 +139,10 @@ if (isset($_POST["action"])) {
    $ret = dbGremiumDelete($_POST["id"]);
    $msgs[] = "Gremium wurde entfernt.";
   break;
+  case "gremium.disable":
+   $ret = dbGremiumDisable($_POST["id"]);
+   $msgs[] = "Gremium wurde deaktiviert.";
+  break;
   case "rolle_gremium.insert":
    $ret = dbGremiumInsertRolle($_POST["gremium_id"],$_POST["name"],$_POST["active"]);
    $msgs[] = "Rolle wurde angelegt.";
@@ -150,6 +154,10 @@ if (isset($_POST["action"])) {
   case "rolle_gremium.delete":
    $ret = dbGremiumDeleteRolle($_POST["id"]);
    $msgs[] = "Rolle wurde entfernt.";
+  break;
+  case "rolle_gremium.disable":
+   $ret = dbGremiumDisableRolle($_POST["id"]);
+   $msgs[] = "Rolle wurde deaktiviert.";
   break;
   case "rolle_person.bulkinsert":
    $emails = explode("\n", $_REQUEST["email"]);

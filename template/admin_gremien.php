@@ -116,10 +116,10 @@ foreach ($struct_gremien as $i => $gremium):
      <li><label for="studiengangabschluss">Stg-Abschluss:             </label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="wiki_members"        >Wiki-Seite für Mitglieder: </label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="active"              >Gremium existent/aktiv?:   </label><? if ($gremium["active"]): ?>Ja<? else: ?>Nein<? endif; ?></li>
+     <li><label for="action"              >Aktion:                    </label><select name="action" size="1"><option value="gremium.disable" selected="selected">Gremium deaktivieren</option><option value="gremium.delete">Gremium löschen</option></select></li>
      <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
     </ul>
     <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
-    <input type="hidden" name="action" value="gremium.delete"/>
     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
     <input type="submit" name="submit" value="Löschen"/>
     <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteG<?=$gremium["id"];?>').dialog('close');"/>
@@ -540,10 +540,10 @@ endif;
      <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
      <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
      <li>Gremium existent/aktiv?: <? if ($rolle["rolle_active"]): ?>Ja<? else: ?>Nein<? endif; ?></li>
+     <li>Aktion: <select name="action" size="1"><option value="rolle_gremium.disable" selected="selected">Rolle deaktivieren</option><option value="rolle_gremium.delete">Rolle löschen</option></select></li>
      <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
-     <input type="hidden" name="action" value="rolle_gremium.delete"/>
      <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
      <input type="submit" name="submit" value="Rolle löschen"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('close');"/>
