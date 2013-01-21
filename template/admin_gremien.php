@@ -19,6 +19,9 @@
          (Bachelor oder Master, leer lassen falls Gremium alle Abschlüsse abdeckt)</li>
      <li><label for="wiki_members">Wiki-Seite mit Mitgliederliste:</label><input type="text" name="wiki_members" value=""/><br/>
          (beispw. :gremium:mitglieder:stura:%LEGISLATUR%)</li>
+     <li><label for="active"  >Gremium existent/aktiv?:        </label>
+         <select name="active" size="1" selected="selected"><option value="1" >Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
+     </li>
      <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="action" value="gremium.insert"/>
@@ -29,7 +32,7 @@
   </div>
   <?php $script[] = "\$('#insertG').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: $('#rowGhead') } });"; ?>
  </div>
- <div class="th">Gremium</div><div class="th">Fakultät</div><div class="th" colspan="2">Studiengang</div>
+ <div class="th">Gremium</div><div class="th">Fakultät</div><div class="th">Studiengang</div><div class="th">Aktiv</div>
 </div>
 <?php
 $struct_gremien = Array();
@@ -39,6 +42,7 @@ $filter["name"] = Array();
 $filter["fakultaet"] = Array();
 $filter["studiengang"] = Array();
 $filter["studiengangabschluss"] = Array();
+$filter["active"] = Array(1);
 $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
 
 foreach ($alle_gremien as $i => $gremium):
@@ -46,6 +50,7 @@ foreach ($alle_gremien as $i => $gremium):
  if (count($activefilter["fakultaet"]) > 0 && !in_array($gremium["gremium_fakultaet"], $activefilter["fakultaet"])) continue;
  if (count($activefilter["studiengang"]) > 0 && !in_array($gremium["gremium_studiengang"], $activefilter["studiengang"])) continue;
  if (count($activefilter["studiengangabschluss"]) > 0 && !in_array($gremium["gremium_studiengangabschluss"], $activefilter["studiengangabschluss"])) continue;
+ if (count($activefilter["active"]) > 0 && !in_array($gremium["gremium_active"], $activefilter["active"])) continue;
   if ($last_gremium_id != $gremium["gremium_id"]) {
     $last_gremium_id = $gremium["gremium_id"];
     $last_struct_id++;
@@ -55,10 +60,11 @@ foreach ($alle_gremien as $i => $gremium):
   $struct_gremien[$last_struct_id]["fakultaet"] = $gremium["gremium_fakultaet"];
   $struct_gremien[$last_struct_id]["studiengang"] = $gremium["gremium_studiengang"];
   $struct_gremien[$last_struct_id]["studiengangabschluss"] = $gremium["gremium_studiengangabschluss"];
+  $struct_gremien[$last_struct_id]["active"] = (int) $gremium["gremium_active"];
   $struct_gremien[$last_struct_id]["display_name"] = $gremium["gremium_name"]." ".$gremium["gremium_fakultaet"]." ".$gremium["gremium_studiengang"]." ".$gremium["gremium_studiengangabschluss"];
   $struct_gremien[$last_struct_id]["wiki_members"] = $gremium["gremium_wiki_members"];
   if ($gremium["rolle_id"] !== NULL)
-    $struct_gremien[$last_struct_id]["rollen"][] = Array("rolle_name" => $gremium["rolle_name"], "rolle_id" => $gremium["rolle_id"]);
+    $struct_gremien[$last_struct_id]["rollen"][] = Array("rolle_name" => $gremium["rolle_name"], "rolle_id" => $gremium["rolle_id"], "rolle_active" => (int) $gremium["rolle_active"]);
   else
     $struct_gremien[$last_struct_id]["rollen"] = Array();
   $filter["name"][] = $gremium["gremium_name"];
@@ -75,17 +81,20 @@ $filter["studiengang"] = array_unique($filter["studiengang"]);
 sort($filter["studiengang"]);
 $filter["studiengangabschluss"] = array_unique($filter["studiengangabschluss"]);
 sort($filter["studiengangabschluss"]);
+$filter["active"] = Array(0 => "Nein", 1 => "Ja");
+asort($filter["active"]);
 
 ?>
 <form class="tr" style="background-color: lightyellow;" action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
  <div class="td">Filter: <input type="submit" name="submit" value="filtern"/>
              <input type="submit" name="submit" value="zurücksetzen"/>
-     <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_gremien_name=&filter_gremien_fakultaet=&filter_gremien_studiengang=&filter_gremien_studiengangabschluss=#gremium');?>">kein Filter</a>
+     <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_gremien_name=&filter_gremien_fakultaet=&filter_gremien_studiengang=&filter_gremien_studiengangabschluss=&filter_gremien_active=#gremium');?>">kein Filter</a>
  </div>
  <div class="td"><select name="filter_gremien_name[]" multiple="multiple"><?php foreach ($filter["name"] as $name): ?><option <?if (in_array($name, $activefilter["name"])):?> selected="selected"<? endif;?>><?=$name;?></option><?php endforeach;?></select></div>
  <div class="td"><select name="filter_gremien_fakultaet[]" multiple="multiple"><?php foreach ($filter["fakultaet"] as $fakultaet): ?><option <?if (in_array($fakultaet, $activefilter["fakultaet"])):?> selected="selected"<? endif;?>><?=$fakultaet;?></option><?php endforeach;?></select></div>
- <div class="td"><select name="filter_gremien_studiengang[]" multiple="multiple"><?php foreach ($filter["studiengang"] as $studiengang): ?><option <?if (in_array($studiengang, $activefilter["studiengang"])):?> selected="selected"<? endif;?>><?=$studiengang;?></option><?php endforeach;?></select></div>
- <div class="td"><select name="filter_gremien_studiengangabschluss[]" multiple="multiple"><?php foreach ($filter["studiengangabschluss"] as $studiengangabschluss): ?><option <?if (in_array($studiengangabschluss, $activefilter["studiengangabschluss"])):?> selected="selected"<? endif;?>><?=$studiengangabschluss;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_studiengang[]" multiple="multiple"><?php foreach ($filter["studiengang"] as $studiengang): ?><option <?if (in_array($studiengang, $activefilter["studiengang"])):?> selected="selected"<? endif;?>><?=$studiengang;?></option><?php endforeach;?></select>
+ <select name="filter_gremien_studiengangabschluss[]" multiple="multiple"><?php foreach ($filter["studiengangabschluss"] as $studiengangabschluss): ?><option <?if (in_array($studiengangabschluss, $activefilter["studiengangabschluss"])):?> selected="selected"<? endif;?>><?=$studiengangabschluss;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_active[]" multiple="multiple"><?php foreach ($filter["active"] as $v => $active): ?><option value="<?=htmlspecialchars($v);?>" <?if (in_array($v, $activefilter["active"])):?> selected="selected"<? endif;?>><?=$active;?></option><?php endforeach;?></select></div>
 </form>
 <?php
 foreach ($struct_gremien as $i => $gremium):
@@ -101,11 +110,12 @@ foreach ($struct_gremien as $i => $gremium):
    <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
     <ul>
      <li>ID: <?php echo $gremium["id"];?></li>
-     <li><label for="name">Name:</label><input type="text" name="name" value="<?php echo htmlspecialchars($gremium["name"],ENT_QUOTES);?>" readonly="readonly"/></li>
-     <li><label for="fakultaet">Fakultät:</label><input type="text" name="fakultaet" value="<?php echo htmlspecialchars($gremium["fakultaet"],ENT_QUOTES);?>" readonly="readonly"/></li>
-     <li><label for="studiengang">Studiengang:</label><input type="text" name="studiengang" value="<?php echo htmlspecialchars($gremium["studiengang"],ENT_QUOTES);?>" readonly="readonly"/></li>
-     <li><label for="studiengangabschluss">Stg-Abschluss:</label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" readonly="readonly"/></li>
-     <li><label for="wiki_members">Wiki-Seite für Mitglieder:</label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" readonly="readonly"/></li>
+     <li><label for="name"                >Name:                      </label><input type="text" name="name" value="<?php echo htmlspecialchars($gremium["name"],ENT_QUOTES);?>" readonly="readonly"/></li>
+     <li><label for="fakultaet"           >Fakultät:                  </label><input type="text" name="fakultaet" value="<?php echo htmlspecialchars($gremium["fakultaet"],ENT_QUOTES);?>" readonly="readonly"/></li>
+     <li><label for="studiengang"         >Studiengang:               </label><input type="text" name="studiengang" value="<?php echo htmlspecialchars($gremium["studiengang"],ENT_QUOTES);?>" readonly="readonly"/></li>
+     <li><label for="studiengangabschluss">Stg-Abschluss:             </label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" readonly="readonly"/></li>
+     <li><label for="wiki_members"        >Wiki-Seite für Mitglieder: </label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" readonly="readonly"/></li>
+     <li><label for="active"              >Gremium existent/aktiv?:   </label><? if ($gremium["active"]): ?>Ja<? else: ?>Nein<? endif; ?></li>
      <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
     </ul>
     <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
@@ -116,7 +126,7 @@ foreach ($struct_gremien as $i => $gremium):
    </form>
    <h4>Rollen</h4>
    <div class="table">
-   <div class="tr"><div class="th">Rolle</div></div>
+   <div class="tr"><div class="th">Rolle</div><div class="th">Aktiv</th></div></div>
 <?php
 $rollen = $gremium["rollen"];
 if (count($rollen) == 0):
@@ -128,6 +138,7 @@ foreach($rollen as $rolle):
 ?>
    <div class="tr">
     <div class="td"><?php echo htmlspecialchars($rolle["rolle_name"]);?></div>
+    <div class="td"><?php if (htmlspecialchars($rolle["rolle_active"])) { echo "ja"; } else { echo "nein"; } ;?></div>
    </div>
 <?php
 endforeach;
@@ -146,6 +157,9 @@ endif;
      <li><label for="studiengang">Studiengang:</label><input type="text" name="studiengang" value="<?php echo htmlspecialchars($gremium["studiengang"],ENT_QUOTES);?>" /></li>
      <li><label for="studiengangabschluss">Stg-Abschluss:</label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" /></li>
      <li><label for="wiki_members">Wiki-Seite für Mitglieder:</label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" /></li>
+     <li><label for="active"  >Gremium existent/aktiv?:        </label>
+         <select name="active" size="1"><option value="1" <? if ($gremium["active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <? if (!$gremium["active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
+     </li>
      <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
     </ul>
     <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
@@ -178,13 +192,14 @@ endif;
      <?php $script[] = "\$('#insertG{$gremium['id']}R').dialog({ autoOpen: false, width: 700, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}') } });"; ?>
     </div>
     <div class="th">Rolle</div>
+    <div class="th">Aktiv</div>
     <div class="th">Personen</div>
    </div>
 <?php
 $rollen = $gremium["rollen"];
 if (count($rollen) == 0):
 ?>
-   <div class="tr"><div class="td" colspan="2"><i>Keine Rollen.</i></div></div>
+   <div class="tr"><div class="td" colspan="3"><i>Keine Rollen.</i></div></div>
 <?php
 else:
 foreach($rollen as $rolle):
@@ -198,6 +213,9 @@ foreach($rollen as $rolle):
        <ul>
         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
         <li>Rolle: <input type="text" name="name" value="<?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?>"/></li>
+        <li><label for="active"  >Rolle existent/aktiv?:        </label>
+           <select name="active" size="1"><option value="1" <? if ($rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <? if (!$rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
+        </li>
         <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
        </ul>
        <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
@@ -228,6 +246,9 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
            <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
            <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
            <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
+           <li><label for="active"  >Rolle existent/aktiv?:        </label>
+               <select name="active" size="1"><option value="1" selected="selected">Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
+           </li>
            <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
@@ -515,6 +536,7 @@ endif;
      <ul>
      <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
      <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
+     <li>Gremium existent/aktiv?: <? if ($rolle["rolle_active"]): ?>Ja<? else: ?>Nein<? endif; ?></li>
      <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
@@ -528,6 +550,7 @@ endif;
   <?php $script[] = "\$('#deleteG{$gremium['id']}R{$rolle['rolle_id']}').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}') } });"; ?>
       </div>
       <div class="td"><?php echo htmlspecialchars($rolle["rolle_name"]);?></div>
+      <div class="td"><?php if (htmlspecialchars($rolle["rolle_active"])) { echo "ja"; } else { echo "nein"; } ;?></div>
       <div class="td"><?php 
           $current_personen = getRollePersonen($rolle["rolle_id"]);
           $liste = Array(); foreach ($current_personen as $person) { if ($person["active"]) { $liste[] = $person["email"]; } }
@@ -546,11 +569,12 @@ endif;
  </div>
  <div class="td"><?php echo htmlspecialchars($gremium["name"]);?></div>
  <div class="td"><?php echo htmlspecialchars($gremium["fakultaet"]);?></div>
- <div class="td" colspan="2"><?php echo htmlspecialchars($gremium["studiengang"]);
+ <div class="td"><?php echo htmlspecialchars($gremium["studiengang"]);
             if (!empty($gremium["studiengangabschluss"])) {
               echo " (".htmlspecialchars($gremium["studiengangabschluss"]).")";
             }
       ?></div>
+ <div class="td"><?php if (htmlspecialchars($gremium["active"])) { echo "ja"; } else { echo "nein"; } ;?></div>
 </div>
 <?php
 endforeach;

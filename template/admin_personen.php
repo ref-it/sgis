@@ -49,7 +49,7 @@ asort($filter["active"]);
 <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" class="tr" style="background-color: lightyellow;">
  <div class="td">Filter: <input type="submit" name="submit" value="filtern"/>
              <input type="submit" name="submit" value="zurücksetzen"/>
-     <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_personen_name=&filter_personen_email=&filter_personen_canLogin=&filter_personen_active=#person');?>">kein Filter</a>
+     <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_personen_name=&filter_personen_email=&filter_personen_unirzlogin=&filter_personen_username=&filter_personen_lastLogin=&filter_personen_canLogin=&filter_personen_active=#person');?>">kein Filter</a>
  </div>
  <div class="td"><select name="filter_personen_name[]" multiple="multiple"><?php foreach ($filter["name"] as $name): ?><option <?if (in_array($name, $activefilter["name"])):?> selected="selected"<? endif;?>><?=$name;?></option><?php endforeach;?></select></div>
  <div class="td"><select name="filter_personen_email[]" multiple="multiple"><?php foreach ($filter["email"] as $email): ?><option <?if (in_array($email, $activefilter["email"])):?> selected="selected"<? endif;?>><?=$email;?></option><?php endforeach;?></select></div>
@@ -105,6 +105,8 @@ foreach ($struct_personen as $i => $person):
      <li><label for="email"     >E-Mail:                </label><input type="text" name="email"      value="<?php echo htmlspecialchars($person["email"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="unirzlogin">UniRZ-Login:           </label><input type="text" name="unirzlogin" value="<?php echo htmlspecialchars($person["unirzlogin"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="username"  >Benutzername:          </label><input type="text" name="username"   value="<?php echo htmlspecialchars($person["username"],ENT_QUOTES);?>" readonly="readonly"/></li>
+     <li><label for="lastlogin" >letztes Login:         </label><?php echo htmlspecialchars($person["lastLogin"],ENT_QUOTES);?></li>
+     <li><label for="canlogin"  >Login erlaubt?:        </label><? if ($person["canLogin"]): ?>erlaubt, außer während zur Gruppe cannotLogin zugehörig<? else: ?>nicht erlaubt, außer während zur Gruppe canLogin zugehörig<? endif; ?></li>
      <li><label for="action"    >Aktion:                </label><select name="action" size="1"><option value="person.disable" selected="selected">Person deaktivieren</option><option value="person.delete">Datensatz löschen</option></select></li>
      <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>

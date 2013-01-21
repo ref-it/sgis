@@ -36,6 +36,7 @@ if ($r === false) {
                 studiengang VARCHAR(128) NULL,
                 studiengangabschluss VARCHAR(128) NULL,
                 wiki_members VARCHAR(128) NULL,
+                active BOOLEAN NOT NULL DEFAULT 1,
                 PRIMARY KEY(id),
                 UNIQUE(name, fakultaet, studiengang, studiengangabschluss)
                ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or die(print_r($pdo->errorInfo(),true));
@@ -48,6 +49,7 @@ if ($r === false) {
                 id INT NOT NULL AUTO_INCREMENT,
                 gremium_id INT NOT NULL,
                 name VARCHAR(128) NOT NULL,
+                active BOOLEAN NOT NULL DEFAULT 1,
                 PRIMARY KEY(id),
                 FOREIGN KEY (gremium_id) REFERENCES {$DB_PREFIX}gremium(id) ON DELETE CASCADE,
                 UNIQUE(gremium_id, name),
@@ -220,7 +222,7 @@ function dbMailinglisteInsertRolle($mlId, $rolleId) {
 
 function getAlleRolle() {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, r.id as rolle_id, r.name as rolle_name FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
   $query->execute(Array()) or die(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -365,18 +367,16 @@ function dbGruppeInsertRolle($grpId, $rolleId) {
   return $query->execute(Array($grpId, $rolleId)) or die(print_r($query->errorInfo(),true));
 }
 
-function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members) {
+function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $active) {
   global $pdo, $DB_PREFIX;
-echo __LINE__."<br>\n";
-  var_dump(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members));
-  $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengangabschluss, wiki_members) VALUES ( ?, ?, ?, ?, ?)");
-  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members)) or die(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengangabschluss, wiki_members, active) VALUES ( ?, ?, ?, ?, ?, ?)");
+  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $active)) or die(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
 }
 
-function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members) {
+function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $active) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengangabschluss = ?, wiki_members = ? WHERE id = ?");
-  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $id)) or die(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengangabschluss = ?, wiki_members = ?, active = ? WHERE id = ?");
+  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $active, $id)) or die(print_r($query->errorInfo(),true));
 }
 
 function dbGremiumDelete($id) {
@@ -385,16 +385,16 @@ function dbGremiumDelete($id) {
   return $query->execute(Array($id)) or die(print_r($query->errorInfo(),true));
 }
   
-function dbGremiumInsertRolle($gremium_id, $name) {
+function dbGremiumInsertRolle($gremium_id, $name, $active) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name) VALUES ( ?, ?)");
-  return $query->execute(Array($gremium_id, $name)) or die(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name, active) VALUES ( ?, ?, ?)");
+  return $query->execute(Array($gremium_id, $name, $active)) or die(print_r($query->errorInfo(),true));
 }
 
-function dbGremiumUpdateRolle($id, $name) {
+function dbGremiumUpdateRolle($id, $name, $active) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rolle SET name = ? WHERE id = ?");
-  return $query->execute(Array($name, $id)) or die(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rolle SET name = ?, active = ? WHERE id = ?");
+  return $query->execute(Array($name, $active, $id)) or die(print_r($query->errorInfo(),true));
 }
 
 function dbGremiumDeleteRolle($id) {

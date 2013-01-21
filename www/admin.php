@@ -128,11 +128,11 @@ if (isset($_POST["action"])) {
    $msgs[] = "Gruppen-Rollenzuordnung wurde eingetragen.";
   break;
   case "gremium.insert":
-   $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"]);
+   $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["active"]);
    $msgs[] = "Gremium wurde angelegt.";
   break;
   case "gremium.update":
-   $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"]);
+   $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["active"]);
    $msgs[] = "Gremium wurde geändert.";
   break;
   case "gremium.delete":
@@ -140,11 +140,11 @@ if (isset($_POST["action"])) {
    $msgs[] = "Gremium wurde entfernt.";
   break;
   case "rolle_gremium.insert":
-   $ret = dbGremiumInsertRolle($_POST["gremium_id"],$_POST["name"]);
+   $ret = dbGremiumInsertRolle($_POST["gremium_id"],$_POST["name"],$_POST["active"]);
    $msgs[] = "Rolle wurde angelegt.";
   break;
   case "rolle_gremium.update":
-   $ret = dbGremiumUpdateRolle($_POST["id"], $_POST["name"]);
+   $ret = dbGremiumUpdateRolle($_POST["id"], $_POST["name"],$_POST["active"]);
    $msgs[] = "Rolle wurde umbenannt.";
   break;
   case "rolle_gremium.delete":
@@ -245,12 +245,14 @@ $activefilter["name"] = Array();
 $activefilter["fakultaet"] = Array();
 $activefilter["studiengang"] = Array();
 $activefilter["studiengangabschluss"] = Array();
+$activefilter["active"] = Array();
 
 if (isset($_COOKIE["filter_gremien"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
 if (isset($_REQUEST["filter_gremien_name"])) { if (is_array($_REQUEST["filter_gremien_name"])) { $activefilter["name"] = $_REQUEST["filter_gremien_name"]; } else {   $activefilter["name"] = Array(); } }
 if (isset($_REQUEST["filter_gremien_fakultaet"])) { if (is_array($_REQUEST["filter_gremien_fakultaet"])) { $activefilter["fakultaet"] = $_REQUEST["filter_gremien_fakultaet"]; } else { $activefilter["fakultaet"] = Array(); } }
 if (isset($_REQUEST["filter_gremien_studiengang"])) { if (is_array($_REQUEST["filter_gremien_studiengang"])) { $activefilter["studiengang"] = $_REQUEST["filter_gremien_studiengang"]; } else { $activefilter["studiengang"] = Array(); } }
 if (isset($_REQUEST["filter_gremien_studiengangabschluss"])) { if (is_array($_REQUEST["filter_gremien_studiengangabschluss"])) { $activefilter["studiengangabschluss"] = $_REQUEST["filter_gremien_studiengangabschluss"]; } else { $activefilter["studiengangabschluss"] = Array(); } }
+if (isset($_REQUEST["filter_gremien_active"])) { if (is_array($_REQUEST["filter_gremien_active"])) { $activefilter["active"] = $_REQUEST["filter_gremien_active"]; } else { $activefilter["active"] = Array(); } }
 setcookie("filter_gremien", base64_encode(json_encode($activefilter)), 0);
 $_COOKIE["filter_gremien"] = base64_encode(json_encode($activefilter));
 
@@ -284,10 +286,15 @@ $script[] = '$( "form" ).submit(function (ev) {
     console.log(data);
     $.post(action, data)
      .success(function (values, status, req) {
+       var txt = "Die Daten wurden erfolgreich gespeichert.\nSoll die Seite mit den geänderten Daten neu geladen werden?";
        if (values.msgs && values.msgs.length > 0) {
-         alert(values.msgs.join("\n"));
+         if (values.ret) {
+           txt = values.msgs.join("\n")+"\n"+txt;
+         } else {
+           alert(values.msgs.join("\n"));
+         }
        }
-       if (values.ret && confirm("Die Daten wurden erfolgreich gespeichert.\nSoll die Seite mit den geänderten Daten neu geladen werden?")) {
+       if (values.ret && confirm(txt)) {
          var captchaPart = "captcha=" + values.captcha + "&captchaId=" + values.id;
          if (action.indexOf("?") != -1) {
            actions = action.split("?", 2);
