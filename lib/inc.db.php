@@ -222,7 +222,7 @@ function dbMailinglisteInsertRolle($mlId, $rolleId) {
 
 function getAlleRolle() {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, (rm.id IS NOT NULL) as rolle_hat_mitglied FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
   $query->execute(Array()) or die(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }

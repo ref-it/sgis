@@ -254,6 +254,8 @@ $activefilter["fakultaet"] = Array();
 $activefilter["studiengang"] = Array();
 $activefilter["studiengangabschluss"] = Array();
 $activefilter["active"] = Array(1);
+$activefilter["mitglieder"] = Array();
+$activefilter["problem"] = Array();
 
 if (isset($_COOKIE["filter_gremien"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
 if (isset($_REQUEST["filter_gremien_name"])) { if (is_array($_REQUEST["filter_gremien_name"])) { $activefilter["name"] = $_REQUEST["filter_gremien_name"]; } else {   $activefilter["name"] = Array(); } }
@@ -261,6 +263,8 @@ if (isset($_REQUEST["filter_gremien_fakultaet"])) { if (is_array($_REQUEST["filt
 if (isset($_REQUEST["filter_gremien_studiengang"])) { if (is_array($_REQUEST["filter_gremien_studiengang"])) { $activefilter["studiengang"] = $_REQUEST["filter_gremien_studiengang"]; } else { $activefilter["studiengang"] = Array(); } }
 if (isset($_REQUEST["filter_gremien_studiengangabschluss"])) { if (is_array($_REQUEST["filter_gremien_studiengangabschluss"])) { $activefilter["studiengangabschluss"] = $_REQUEST["filter_gremien_studiengangabschluss"]; } else { $activefilter["studiengangabschluss"] = Array(); } }
 if (isset($_REQUEST["filter_gremien_active"])) { if (is_array($_REQUEST["filter_gremien_active"])) { $activefilter["active"] = $_REQUEST["filter_gremien_active"]; } else { $activefilter["active"] = Array(1); } }
+if (isset($_REQUEST["filter_gremien_mitglieder"])) { if (is_array($_REQUEST["filter_gremien_mitglieder"])) { $activefilter["mitglieder"] = $_REQUEST["filter_gremien_mitglieder"]; } else {   $activefilter["mitglieder"] = Array(); } }
+if (isset($_REQUEST["filter_gremien_problem"])) { if (is_array($_REQUEST["filter_gremien_problem"])) { $activefilter["problem"] = $_REQUEST["filter_gremien_problem"]; } else {   $activefilter["problem"] = Array(); } }
 setcookie("filter_gremien", base64_encode(json_encode($activefilter)), 0);
 $_COOKIE["filter_gremien"] = base64_encode(json_encode($activefilter));
 
@@ -319,7 +323,7 @@ $script[] = '$( "form" ).submit(function (ev) {
          captcha = values.captcha;
          captchaId = values.id;
          captchaImg = "data:"+values.meta+";base64,"+values.img;
-         if (close.length == 1) {
+         if (ret && close.length == 1) {
            close.click();
          }
        }

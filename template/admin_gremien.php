@@ -32,11 +32,10 @@
   </div>
   <?php $script[] = "\$('#insertG').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: $('#rowGhead') } });"; ?>
  </div>
- <div class="th">Gremium</div><div class="th">Fakultät</div><div class="th">Studiengang</div><div class="th">Aktiv</div>
+ <div class="th">Gremium</div><div class="th">Fakultät</div><div class="th">Studiengang</div><div class="th">Aktiv</div><div class="th">Mitglieder</div><div class="th">Mitglieder in inaktiven Rollen</div>
 </div>
 <?php
 $struct_gremien = Array();
-$last_gremium_id = -1; $last_struct_id = -1;
 $filter = Array();
 $filter["name"] = Array();
 $filter["fakultaet"] = Array();
@@ -45,12 +44,24 @@ $filter["studiengangabschluss"] = Array();
 $filter["active"] = Array(1);
 $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
 
+$gremium_mitglieder = Array();
+$gremium_problem = Array(); # Mitglieder in inaktiven Rollen
 foreach ($alle_gremien as $i => $gremium):
- if (count($activefilter["name"]) > 0 && !in_array($gremium["gremium_name"], $activefilter["name"])) continue;
- if (count($activefilter["fakultaet"]) > 0 && !in_array($gremium["gremium_fakultaet"], $activefilter["fakultaet"])) continue;
- if (count($activefilter["studiengang"]) > 0 && !in_array($gremium["gremium_studiengang"], $activefilter["studiengang"])) continue;
- if (count($activefilter["studiengangabschluss"]) > 0 && !in_array($gremium["gremium_studiengangabschluss"], $activefilter["studiengangabschluss"])) continue;
- if (count($activefilter["active"]) > 0 && !in_array($gremium["gremium_active"], $activefilter["active"])) continue;
+  if (!isset($gremium_mitglieder[$gremium["gremium_id"]])) $gremium_mitglieder[$gremium["gremium_id"]] = false;
+  if (!isset($gremium_problem[$gremium["gremium_id"]])) $gremium_problem[$gremium["gremium_id"]] = false;
+  $gremium_mitglieder[$gremium["gremium_id"]] |= $gremium["rolle_hat_mitglied"];
+  $gremium_problem[$gremium["gremium_id"]] |= $gremium["rolle_hat_mitglied"] && !$gremium["rolle_active"];
+endforeach;
+
+$last_gremium_id = -1; $last_struct_id = -1;
+foreach ($alle_gremien as $i => $gremium):
+  if (count($activefilter["name"]) > 0 && !in_array($gremium["gremium_name"], $activefilter["name"])) continue;
+  if (count($activefilter["fakultaet"]) > 0 && !in_array($gremium["gremium_fakultaet"], $activefilter["fakultaet"])) continue;
+  if (count($activefilter["studiengang"]) > 0 && !in_array($gremium["gremium_studiengang"], $activefilter["studiengang"])) continue;
+  if (count($activefilter["studiengangabschluss"]) > 0 && !in_array($gremium["gremium_studiengangabschluss"], $activefilter["studiengangabschluss"])) continue;
+  if (count($activefilter["active"]) > 0 && !in_array($gremium["gremium_active"], $activefilter["active"])) continue;
+  if (count($activefilter["mitglieder"]) > 0 && !in_array($gremium_mitglieder[$gremium["gremium_id"]] ? 1 : 0, $activefilter["mitglieder"])) continue;
+  if (count($activefilter["problem"]) > 0 && !in_array($gremium_problem[$gremium["gremium_id"]] ? 1 : 0, $activefilter["problem"])) continue;
   if ($last_gremium_id != $gremium["gremium_id"]) {
     $last_gremium_id = $gremium["gremium_id"];
     $last_struct_id++;
@@ -61,6 +72,8 @@ foreach ($alle_gremien as $i => $gremium):
   $struct_gremien[$last_struct_id]["studiengang"] = $gremium["gremium_studiengang"];
   $struct_gremien[$last_struct_id]["studiengangabschluss"] = $gremium["gremium_studiengangabschluss"];
   $struct_gremien[$last_struct_id]["active"] = (int) $gremium["gremium_active"];
+  $struct_gremien[$last_struct_id]["mitglieder"] = ($gremium_mitglieder[$gremium["gremium_id"]] ? 1 : 0);
+  $struct_gremien[$last_struct_id]["problem"] = ($gremium_problem[$gremium["gremium_id"]] ? 1 : 0);
   $struct_gremien[$last_struct_id]["display_name"] = $gremium["gremium_name"]." ".$gremium["gremium_fakultaet"]." ".$gremium["gremium_studiengang"]." ".$gremium["gremium_studiengangabschluss"];
   $struct_gremien[$last_struct_id]["wiki_members"] = $gremium["gremium_wiki_members"];
   if ($gremium["rolle_id"] !== NULL)
@@ -83,18 +96,26 @@ $filter["studiengangabschluss"] = array_unique($filter["studiengangabschluss"]);
 sort($filter["studiengangabschluss"]);
 $filter["active"] = Array(0 => "Nein", 1 => "Ja");
 asort($filter["active"]);
+$filter["mitglieder"] = Array(0 => "Nein", 1 => "Ja");
+asort($filter["mitglieder"]);
+$filter["problem"] = Array(0 => "Nein", 1 => "Ja");
+asort($filter["problem"]);
+
+
 
 ?>
 <form class="tr" style="background-color: lightyellow;" action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
  <div class="td">Filter: <input type="submit" name="submit" value="filtern"/>
              <input type="submit" name="submit" value="zurücksetzen"/>
-     <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_gremien_name=&filter_gremien_fakultaet=&filter_gremien_studiengang=&filter_gremien_studiengangabschluss=&filter_gremien_active=#gremium');?>">kein Filter</a>
+     <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_gremien_name=&filter_gremien_fakultaet=&filter_gremien_studiengang=&filter_gremien_studiengangabschluss=&filter_gremien_active=&filter_gremien_mitglieder=&filter_gremien_problem=#gremium');?>">kein Filter</a>
  </div>
  <div class="td"><select name="filter_gremien_name[]" multiple="multiple"><?php foreach ($filter["name"] as $name): ?><option <?if (in_array($name, $activefilter["name"])):?> selected="selected"<? endif;?>><?=$name;?></option><?php endforeach;?></select></div>
  <div class="td"><select name="filter_gremien_fakultaet[]" multiple="multiple"><?php foreach ($filter["fakultaet"] as $fakultaet): ?><option <?if (in_array($fakultaet, $activefilter["fakultaet"])):?> selected="selected"<? endif;?>><?=$fakultaet;?></option><?php endforeach;?></select></div>
  <div class="td"><select name="filter_gremien_studiengang[]" multiple="multiple"><?php foreach ($filter["studiengang"] as $studiengang): ?><option <?if (in_array($studiengang, $activefilter["studiengang"])):?> selected="selected"<? endif;?>><?=$studiengang;?></option><?php endforeach;?></select>
  <select name="filter_gremien_studiengangabschluss[]" multiple="multiple"><?php foreach ($filter["studiengangabschluss"] as $studiengangabschluss): ?><option <?if (in_array($studiengangabschluss, $activefilter["studiengangabschluss"])):?> selected="selected"<? endif;?>><?=$studiengangabschluss;?></option><?php endforeach;?></select></div>
  <div class="td"><select name="filter_gremien_active[]" multiple="multiple"><?php foreach ($filter["active"] as $v => $active): ?><option value="<?=htmlspecialchars($v);?>" <?if (in_array($v, $activefilter["active"])):?> selected="selected"<? endif;?>><?=$active;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_mitglieder[]" multiple="multiple"><?php foreach ($filter["mitglieder"] as $v => $active): ?><option value="<?=htmlspecialchars($v);?>" <?if (in_array($v, $activefilter["mitglieder"])):?> selected="selected"<? endif;?>><?=$active;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_problem[]" multiple="multiple"><?php foreach ($filter["problem"] as $v => $active): ?><option value="<?=htmlspecialchars($v);?>" <?if (in_array($v, $activefilter["problem"])):?> selected="selected"<? endif;?>><?=$active;?></option><?php endforeach;?></select></div>
 </form>
 <?php
 foreach ($struct_gremien as $i => $gremium):
@@ -578,6 +599,8 @@ endif;
             }
       ?></div>
  <div class="td"><?php if (htmlspecialchars($gremium["active"])) { echo "ja"; } else { echo "nein"; } ;?></div>
+ <div class="td"><?php if (htmlspecialchars($gremium["mitglieder"])) { echo "ja"; } else { echo "nein"; } ;?></div>
+ <div class="td"><?php if (htmlspecialchars($gremium["problem"])) { echo "ja"; } else { echo "nein"; } ;?></div>
 </div>
 <?php
 endforeach;
