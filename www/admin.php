@@ -218,6 +218,42 @@ if (isset($_REQUEST["ajax"])) {
   exit;
 }
 
+// Person filter
+$activefilter = Array();
+$activefilter["name"] = Array();
+$activefilter["email"] = Array();
+$activefilter["unirzlogin"] = Array();
+$activefilter["username"] = Array();
+$activefilter["lastLogin"] = Array();
+$activefilter["canLogin"] = Array();
+$activefilter["active"] = Array();
+
+if (isset($_COOKIE["filter_personen"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_personen"]), true);
+if (isset($_REQUEST["filter_personen_name"])) { if (is_array($_REQUEST["filter_personen_name"])) { $activefilter["name"] = $_REQUEST["filter_personen_name"]; } else {   $activefilter["name"] = Array(); } }
+if (isset($_REQUEST["filter_personen_email"])) { if (is_array($_REQUEST["filter_personen_email"])) { $activefilter["email"] = $_REQUEST["filter_personen_email"]; } else { $activefilter["email"] = Array(); } }
+if (isset($_REQUEST["filter_personen_unirzlogin"])) { if (is_array($_REQUEST["filter_personen_unirzlogin"])) { $activefilter["unirzlogin"] = $_REQUEST["filter_personen_unirzlogin"]; } else { $activefilter["unirzlogin"] = Array(); } }
+if (isset($_REQUEST["filter_personen_username"])) { if (is_array($_REQUEST["filter_personen_username"])) { $activefilter["username"] = $_REQUEST["filter_personen_username"]; } else { $activefilter["username"] = Array(); } }
+if (isset($_REQUEST["filter_personen_lastLogin"])) { if (is_array($_REQUEST["filter_personen_lastLogin"])) { $activefilter["lastLogin"] = $_REQUEST["filter_personen_lastLogin"]; } else { $activefilter["lastLogin"] = Array(); } }
+if (isset($_REQUEST["filter_personen_canLogin"])) { if (is_array($_REQUEST["filter_personen_canLogin"])) { $activefilter["canLogin"] = $_REQUEST["filter_personen_canLogin"]; } else { $activefilter["canLogin"] = Array(); } }
+if (isset($_REQUEST["filter_personen_active"])) { if (is_array($_REQUEST["filter_personen_active"])) { $activefilter["active"] = $_REQUEST["filter_personen_active"]; } else { $activefilter["active"] = Array(); } }
+setcookie("filter_personen", base64_encode(json_encode($activefilter)), 0);
+$_COOKIE["filter_personen"] = base64_encode(json_encode($activefilter));
+
+// Gremium filter
+$activefilter = Array();
+$activefilter["name"] = Array();
+$activefilter["fakultaet"] = Array();
+$activefilter["studiengang"] = Array();
+$activefilter["studiengangabschluss"] = Array();
+
+if (isset($_COOKIE["filter_gremien"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
+if (isset($_REQUEST["filter_gremien_name"])) { if (is_array($_REQUEST["filter_gremien_name"])) { $activefilter["name"] = $_REQUEST["filter_gremien_name"]; } else {   $activefilter["name"] = Array(); } }
+if (isset($_REQUEST["filter_gremien_fakultaet"])) { if (is_array($_REQUEST["filter_gremien_fakultaet"])) { $activefilter["fakultaet"] = $_REQUEST["filter_gremien_fakultaet"]; } else { $activefilter["fakultaet"] = Array(); } }
+if (isset($_REQUEST["filter_gremien_studiengang"])) { if (is_array($_REQUEST["filter_gremien_studiengang"])) { $activefilter["studiengang"] = $_REQUEST["filter_gremien_studiengang"]; } else { $activefilter["studiengang"] = Array(); } }
+if (isset($_REQUEST["filter_gremien_studiengangabschluss"])) { if (is_array($_REQUEST["filter_gremien_studiengangabschluss"])) { $activefilter["studiengangabschluss"] = $_REQUEST["filter_gremien_studiengangabschluss"]; } else { $activefilter["studiengangabschluss"] = Array(); } }
+setcookie("filter_gremien", base64_encode(json_encode($activefilter)), 0);
+$_COOKIE["filter_gremien"] = base64_encode(json_encode($activefilter));
+
 foreach ($msgs as $msg):
   echo "<b class=\"msg\">".htmlspecialchars($msg)."</b>\n";
 endforeach;
@@ -241,6 +277,8 @@ $script[] = 'function xpAjaxErrorHandler (jqXHR, textStatus, errorThrown) {
 };';
 $script[] = '$( "form" ).submit(function (ev) {
     var action = $(this).attr("action");
+    if ($(this).find("input[name=action]").length + $(this).find("select[name=action]").length == 0) { return true; }
+    var close = $(this).find("input[type=reset]");
     var data = $(this).serializeArray();
     data.push({"name": "ajax", "value" : "1"});
     console.log(data);
@@ -266,6 +304,9 @@ $script[] = '$( "form" ).submit(function (ev) {
          captcha = values.captcha;
          captchaId = values.id;
          captchaImg = "data:"+values.meta+";base64,"+values.img;
+         if (close.length == 1) {
+           close.click();
+         }
        }
      })
      .error(xpAjaxErrorHandler);

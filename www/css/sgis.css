@@ -10,7 +10,15 @@ ul.pageselect li { display: inline-block; }
 ul.pageselect li:before { content: ' \2022 '; }
 ul.pageselect li:first-child:before { content: ''; }
 span.rolle_gremienname {  white-space:nowrap; }
-td { vertical-align: top; }
+div.td { vertical-align: top; }
 div.kommentar { display: inline-block; vertical-align: top; }
 .personinactive, .gremiuminactive { background-color: silver; }
+div.table { display:table; border-collapse:collapse; }
+form.tr, div.tr { display:table-row; }
+div.td { display:table-cell; }
+div.th { display:table-cell; font-weight: bold; text-align: center; }
+div.tbody { display:table-row-group; }
+div.thead { display:table-header-group; }
+div.tfoot { display:table-footer-group; }
+
 

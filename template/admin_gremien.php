@@ -2,9 +2,9 @@
 <a name="gremium"></a>
 <noscript><h3>Gremien und Rollen</h3></noscript>
 
-<table style="min-width:100%;">
-<tr id="rowGhead">
- <th>
+<div class="table" style="min-width:100%;">
+<div class="tr" id="rowGhead">
+ <div class="th">
   <a href="#" onClick="$('#insertG').dialog('open'); return false;" title="Gremium anlegen">[NEU]</a>
   <div id="insertG" title="neues Gremium anlegen" class="editgremiumdialog">
     <noscript><h4>Neues Gremium anlegen</h4></noscript>
@@ -28,25 +28,18 @@
     </form>
   </div>
   <?php $script[] = "\$('#insertG').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: $('#rowGhead') } });"; ?>
- </th>
- <th>Gremium</th><th>Fakultät</th><th colspan="2">Studiengang</th>
-</tr>
+ </div>
+ <div class="th">Gremium</div><div class="th">Fakultät</div><div class="th" colspan="2">Studiengang</div>
+</div>
 <?php
 $struct_gremien = Array();
 $last_gremium_id = -1; $last_struct_id = -1;
 $filter = Array();
-$activefilter = Array();
-$activefilter["name"] = Array();
-$activefilter["fakultaet"] = Array();
-$activefilter["studiengang"] = Array();
-$activefilter["studiengangabschluss"] = Array();
-
-if (isset($_COOKIE["filter_gremien"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
-if (isset($_REQUEST["filter_gremien_name"])) { if (is_array($_REQUEST["filter_gremien_name"])) { $activefilter["name"] = $_REQUEST["filter_gremien_name"]; } else {   $activefilter["name"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_fakultaet"])) { if (is_array($_REQUEST["filter_gremien_fakultaet"])) { $activefilter["fakultaet"] = $_REQUEST["filter_gremien_fakultaet"]; } else { $activefilter["fakultaet"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_studiengang"])) { if (is_array($_REQUEST["filter_gremien_studiengang"])) { $activefilter["studiengang"] = $_REQUEST["filter_gremien_studiengang"]; } else { $activefilter["studiengang"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_studiengangabschluss"])) { if (is_array($_REQUEST["filter_gremien_studiengangabschluss"])) { $activefilter["studiengangabschluss"] = $_REQUEST["filter_gremien_studiengangabschluss"]; } else { $activefilter["studiengangabschluss"] = Array(); } }
-setcookie("filter_gremien", base64_encode(json_encode($activefilter)), 0);
+$filter["name"] = Array();
+$filter["fakultaet"] = Array();
+$filter["studiengang"] = Array();
+$filter["studiengangabschluss"] = Array();
+$activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
 
 foreach ($alle_gremien as $i => $gremium):
  if (count($activefilter["name"]) > 0 && !in_array($gremium["gremium_name"], $activefilter["name"])) continue;
@@ -84,25 +77,23 @@ $filter["studiengangabschluss"] = array_unique($filter["studiengangabschluss"]);
 sort($filter["studiengangabschluss"]);
 
 ?>
-<tr style="background-color: lightyellow;">
- <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
- <td>Filter: <input type="submit" name="submit" value="filtern"/>
+<form class="tr" style="background-color: lightyellow;" action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+ <div class="td">Filter: <input type="submit" name="submit" value="filtern"/>
              <input type="submit" name="submit" value="zurücksetzen"/>
      <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_gremien_name=&filter_gremien_fakultaet=&filter_gremien_studiengang=&filter_gremien_studiengangabschluss=#gremium');?>">kein Filter</a>
- </td>
- <td><select name="filter_gremien_name[]" multiple="multiple"><?php foreach ($filter["name"] as $name): ?><option <?if (in_array($name, $activefilter["name"])):?> selected="selected"<? endif;?>><?=$name;?></option><?php endforeach;?></select></td>
- <td><select name="filter_gremien_fakultaet[]" multiple="multiple"><?php foreach ($filter["fakultaet"] as $fakultaet): ?><option <?if (in_array($fakultaet, $activefilter["fakultaet"])):?> selected="selected"<? endif;?>><?=$fakultaet;?></option><?php endforeach;?></select></td>
- <td><select name="filter_gremien_studiengang[]" multiple="multiple"><?php foreach ($filter["studiengang"] as $studiengang): ?><option <?if (in_array($studiengang, $activefilter["studiengang"])):?> selected="selected"<? endif;?>><?=$studiengang;?></option><?php endforeach;?></select></td>
- <td><select name="filter_gremien_studiengangabschluss[]" multiple="multiple"><?php foreach ($filter["studiengangabschluss"] as $studiengangabschluss): ?><option <?if (in_array($studiengangabschluss, $activefilter["studiengangabschluss"])):?> selected="selected"<? endif;?>><?=$studiengangabschluss;?></option><?php endforeach;?></select></td>
- </form>
-</tr>
+ </div>
+ <div class="td"><select name="filter_gremien_name[]" multiple="multiple"><?php foreach ($filter["name"] as $name): ?><option <?if (in_array($name, $activefilter["name"])):?> selected="selected"<? endif;?>><?=$name;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_fakultaet[]" multiple="multiple"><?php foreach ($filter["fakultaet"] as $fakultaet): ?><option <?if (in_array($fakultaet, $activefilter["fakultaet"])):?> selected="selected"<? endif;?>><?=$fakultaet;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_studiengang[]" multiple="multiple"><?php foreach ($filter["studiengang"] as $studiengang): ?><option <?if (in_array($studiengang, $activefilter["studiengang"])):?> selected="selected"<? endif;?>><?=$studiengang;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_studiengangabschluss[]" multiple="multiple"><?php foreach ($filter["studiengangabschluss"] as $studiengangabschluss): ?><option <?if (in_array($studiengangabschluss, $activefilter["studiengangabschluss"])):?> selected="selected"<? endif;?>><?=$studiengangabschluss;?></option><?php endforeach;?></select></div>
+</form>
 <?php
 foreach ($struct_gremien as $i => $gremium):
  if (($_COOKIE["gremium_start"] >= 0) && ($i < $_COOKIE["gremium_start"]) && ($_COOKIE["gremium_start"] <= count($struct_gremien))) continue;
  if (($_COOKIE["gremium_length"] >= 0) && ($i >= $_COOKIE["gremium_length"] + $_COOKIE["gremium_start"])) break;
 ?>
-<tr id="rowG<?=$gremium["id"];?>">
- <td>
+<div class="tr" id="rowG<?=$gremium["id"];?>">
+ <div class="td">
   <?=$i;?>.
   <a href="#" onClick="$('#deleteG<?=$gremium["id"];?>').dialog('open'); return false;" titel="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> löschen" >[X]</a>
   <div id="deleteG<?=$gremium["id"];?>" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> entfernen" class="editgremiumdialog">
@@ -124,25 +115,25 @@ foreach ($struct_gremien as $i => $gremium):
     <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteG<?=$gremium["id"];?>').dialog('close');"/>
    </form>
    <h4>Rollen</h4>
-   <table>
-   <tr><th>Rolle</th></tr>
+   <div class="table">
+   <div class="tr"><div class="th">Rolle</div></div>
 <?php
 $rollen = $gremium["rollen"];
 if (count($rollen) == 0):
 ?>
-   <tr><td><i>Keine Rollen.</i></td></tr>
+   <div class="tr"><div class="td"><i>Keine Rollen.</i></div></div>
 <?php
 else:
 foreach($rollen as $rolle):
 ?>
-   <tr>
-    <td><?php echo htmlspecialchars($rolle["rolle_name"]);?></td>
-   </tr>
+   <div class="tr">
+    <div class="td"><?php echo htmlspecialchars($rolle["rolle_name"]);?></div>
+   </div>
 <?php
 endforeach;
 endif;
 ?>
-   </table>
+   </div>
   </div>
   <a href="#" onClick="$('#editG<?=$gremium["id"];?>').dialog('open'); return false;" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten">[E]</a>
   <div id="editG<?=$gremium["id"];?>" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten" class="editgremiumdialog">
@@ -165,9 +156,9 @@ endif;
    </form>
 
    <h4>Rollen</h4>
-   <table>
-   <tr>
-    <th>
+   <div class="table">
+   <div class="tr">
+    <div class="th">
      <a href="#" onClick="$('#insertG<?=$gremium["id"];?>R').dialog('open'); return false;" titel="Rolle einfügen" >[NEU]</a>
      <div id="insertG<?=$gremium["id"];?>R" title="Rolle einfügen">
       <noscript><h4>Rolle einfügen</h4></noscript>
@@ -185,21 +176,21 @@ endif;
       </form>
      </div>
      <?php $script[] = "\$('#insertG{$gremium['id']}R').dialog({ autoOpen: false, width: 700, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}') } });"; ?>
-    </th>
-    <th>Rolle</th>
-    <th>Personen</th>
-   </tr>
+    </div>
+    <div class="th">Rolle</div>
+    <div class="th">Personen</div>
+   </div>
 <?php
 $rollen = $gremium["rollen"];
 if (count($rollen) == 0):
 ?>
-   <tr><td colspan="2"><i>Keine Rollen.</i></td></tr>
+   <div class="tr"><div class="td" colspan="2"><i>Keine Rollen.</i></div></div>
 <?php
 else:
 foreach($rollen as $rolle):
 ?>
-   <tr>
-    <td>
+   <div class="tr">
+    <div class="td">
      <a href="#" onClick="$('#editG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('open'); return false;" titel="Rollen bearbeiten" >[E]</a>
      <div id="editG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>" title="Rolle bearbeiten">
       <noscript><h4>Rolle bearbeiten</h4></noscript>
@@ -220,9 +211,9 @@ foreach($rollen as $rolle):
 <?php
 $current_personen = getRollePersonen($rolle["rolle_id"]);
 ?>
-      <table>
-      <tr>
-       <th>
+      <div class="table">
+      <div class="tr">
+       <div class="th">
         <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>P').dialog('open'); return false;" titel="Personen-Rollenzuordnung einfügen" >[NEU]</a>
         <div id="insertR<?=$rolle["rolle_id"];?>P" title="Personen-Rollenzuordnung einfügen" class="editpersonrole">
          <noscript><h4>Personen-Rollenzuordnung einfügen</h4></noscript>
@@ -247,19 +238,19 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
          </form>
         </div>
         <?php $script[] = "\$('#insertR{$rolle['rolle_id']}P').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
-       </th>
-       <th>e-Mail</th><th>Name</th><th>Zeitraum</th><th>Beschluss</th><th>Kommentar</th>
-      </tr>
+       </div>
+       <div class="th">e-Mail</div><div class="th">Name</div><div class="th">Zeitraum</div><div class="th">Beschluss</div><div class="th">Kommentar</div>
+      </div>
 <?php
 if (count($current_personen) == 0):
 ?>
-      <tr><td colspan="6">Keine Personen</td></tr>
+      <div class="tr"><div class="td" colspan="6">Keine Personen</div></div>
 <?php
 else:
 foreach ($current_personen as $person):
 ?>
-      <tr class="<?=($person["active"] ? "personactive" : "personinactive");?> forrole<?=$rolle["rolle_id"];?>">
-       <td>
+      <div class="tr <?=($person["active"] ? "personactive" : "personinactive");?> forrole<?=$rolle["rolle_id"];?>">
+       <div class="td">
         <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('open'); return false;" titel="Personen-Rollenzuordnung entfernen" >[X]</a>
         <div id="deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>" title="Personen-Rollenzuordnung entfernen">
          <noscript><h4>Personen-Rollenzuordnung entfernen</h4></noscript>
@@ -318,10 +309,10 @@ foreach ($current_personen as $person):
          </form>
         </div>
         <?php $script[]="\$('#editR{$rolle['rolle_id']}P{$person["rel_id"]}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
-       </td>
-       <td><?php echo htmlspecialchars($person["email"]);?></td>
-       <td><?php echo htmlspecialchars($person["name"]);?></td>
-       <td><?php
+       </div>
+       <div class="td"><?php echo htmlspecialchars($person["email"]);?></div>
+       <div class="td"><?php echo htmlspecialchars($person["name"]);?></div>
+       <div class="td"><?php
            if (empty($person["von"]) && empty($person["bis"])) {
             echo "keine Angabe";
            } elseif (empty($person["von"])) {
@@ -331,17 +322,17 @@ foreach ($current_personen as $person):
            } else {
             echo htmlspecialchars($person["von"])." - ".$person["bis"];
            }
-         ?></td>
-       <td><?php echo htmlspecialchars($person["beschlussAm"])." ".htmlspecialchars($person["beschlussDurch"]); ?></td>
-       <td><?php echo str_replace("\n","<br/>",htmlspecialchars($person["kommentar"]));?></td>
-      </tr>
+         ?></div>
+       <div class="td"><?php echo htmlspecialchars($person["beschlussAm"])." ".htmlspecialchars($person["beschlussDurch"]); ?></div>
+       <div class="td"><?php echo str_replace("\n","<br/>",htmlspecialchars($person["kommentar"]));?></div>
+      </div>
 <?php
 endforeach;
 endif;
 ?>
-      </table>
-      <a href="#" onClick="$('tr.personinactive.forrole<?=$rolle["rolle_id"];?>').toggle(); return false;" titel="inaktive Personenzuordnungen anzeigen/ausblenden" >[inaktive Personen anzeigen/ausblenden]</a>
-      <?php $script[] = "\$('tr.personinactive.forrole{$rolle['rolle_id']}').hide();"; ?>
+      </div>
+      <a href="#" onClick="$('div.tr.personinactive.forrole<?=$rolle["rolle_id"];?>').toggle(); return false;" titel="inaktive Personenzuordnungen anzeigen/ausblenden" >[inaktive Personen anzeigen/ausblenden]</a>
+      <?php $script[] = "\$('div.tr.personinactive.forrole{$rolle['rolle_id']}').hide();"; ?>
       <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>Pmass').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten (Mehrfacheintragung)" >[Mehrfacheintragung]</a>
       <div id="insertR<?=$rolle["rolle_id"];?>Pmass" title="Rollenzuordnung bearbeiten (Mehrfacheintragung)" class="editpersonrole">
        <noscript><h4>Rollenzuordnung hinzufügen (Mehrfacheintragung)</h4></noscript>
@@ -388,9 +379,9 @@ endif;
       </div>
       <?php $script[]="\$('#deleteR{$rolle['rolle_id']}Pmass').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
       <h4>Gruppen</h4>
-      <table>
-      <tr>
-       <th>
+      <div class="table">
+      <div class="tr">
+       <div class="th">
         <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>GRP').dialog('open'); return false;" titel="Gruppen-Rollenzuordnung einfügen" >[NEU]</a>
         <div id="insertR<?=$rolle["rolle_id"];?>GRP" title="Gruppen-Rollenzuordnung einfügen">
          <noscript><h4>Gruppen-Rollenzuordnung einfügen</h4></noscript>
@@ -409,20 +400,20 @@ endif;
          </form>
         </div>
         <?php $script[] = "\$('#insertR{$rolle['rolle_id']}GRP').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
-       </th>
-       <th>Name</th><th>Beschreibung</th>
-      </tr>
+       </div>
+       <div class="th">Name</div><div class="th">Beschreibung</div>
+      </div>
 <?php
 $current_gruppen = getRolleGruppen($rolle["rolle_id"]);
 if (count($current_gruppen) == 0):
 ?>
-      <tr><td colspan="3">Keine Gruppen</td></tr>
+      <div class="tr"><div class="td" colspan="3">Keine Gruppen</div></div>
 <?php
 else:
 foreach ($current_gruppen as $gruppe):
 ?>
-      <tr>
-       <td>
+      <div class="tr">
+       <div class="td">
         <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>GRP<?=$gruppe["id"];?>').dialog('open'); return false;" titel="Gruppen-Rollenzuordnung entfernen" >[X]</a>
         <div id="deleteR<?=$rolle["rolle_id"];?>GRP<?=$gruppe["id"];?>" title="Gruppen-Rollenzuordnung entfernen">
           <noscript><h4>Gruppen-Rollenzuordnung entfernen</h4></noscript>
@@ -443,18 +434,18 @@ foreach ($current_gruppen as $gruppe):
      
         </div>
         <?php $script[] = "\$('#deleteR{$rolle['rolle_id']}GRP{$gruppe['id']}').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
-       </td>
-       <td><?php echo htmlspecialchars($gruppe["name"]);?></td>
-       <td><?php echo htmlspecialchars($gruppe["beschreibung"]);?></td>
-      </tr>
+       </div>
+       <div class="td"><?php echo htmlspecialchars($gruppe["name"]);?></div>
+       <div class="td"><?php echo htmlspecialchars($gruppe["beschreibung"]);?></div>
+      </div>
 <?php
 endforeach;
 endif;
 ?>
-      </table>
+      </div>
      <h4>Mailinglisten</h4>
-      <table>
-      <tr><th>
+      <div class="table">
+      <div class="tr"><div class="th">
         <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>ML').dialog('open'); return false;" titel="Mailinglisten-Rollenzuordnung einfügen" >[NEU]</a>
          <div id="insertR<?=$rolle["rolle_id"];?>ML" title="Mailinglisten-Rollenzuordnung einfügen">
           <noscript><h4>Mailinglisten-Rollenzuordnung einfügen</h4></noscript>
@@ -473,18 +464,18 @@ endif;
           </form>
          </div>
          <?php $script[] = "\$('#insertR{$rolle['rolle_id']}ML').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
-        </th><th>Adresse</th><th>Webseite</th></tr>
+        </div><div class="th">Adresse</div><div class="th">Webseite</div></div>
 <?php
 $current_mailinglisten = getRolleMailinglisten($rolle["rolle_id"]);
 if (count($current_mailinglisten) == 0):
 ?>
-      <tr><td colspan="3">Keine Mailinglisten</td></tr>
+      <div class="tr"><div class="td" colspan="3">Keine Mailinglisten</div></div>
 <?php
 else:
 foreach ($current_mailinglisten as $mailingliste):
 ?>
-      <tr>
-       <td>
+      <div class="tr">
+       <div class="td">
         <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>ML<?=$mailingliste["id"];?>').dialog('open'); return false;" titel="Mailinglisten-Rollenzuordnung entfernen" >[X]</a>
         <div id="deleteR<?=$rolle["rolle_id"];?>ML<?=$mailingliste["id"];?>" title="Mailinglisten-Rollenzuordnung entfernen">
           <noscript><h4>Mailinglisten-Rollenzuordnung entfernen</h4></noscript>
@@ -505,15 +496,15 @@ foreach ($current_mailinglisten as $mailingliste):
      
         </div>
         <?php $script[] = "\$('#deleteR{$rolle['rolle_id']}ML{$mailingliste['id']}').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
-       </td>
-       <td><a href="mailto:<?php echo htmlspecialchars($mailingliste["address"]);?>"><?php echo htmlspecialchars($mailingliste["address"]);?></a></td>
-       <td><a href="<?php echo htmlspecialchars($mailingliste["url"]);?>"><?php echo htmlspecialchars($mailingliste["url"]);?></a></td>
-      </tr>
+       </div>
+       <div class="td"><a href="mailto:<?php echo htmlspecialchars($mailingliste["address"]);?>"><?php echo htmlspecialchars($mailingliste["address"]);?></a></div>
+       <div class="td"><a href="<?php echo htmlspecialchars($mailingliste["url"]);?>"><?php echo htmlspecialchars($mailingliste["url"]);?></a></div>
+      </div>
 <?php
 endforeach;
 endif;
 ?>
-      </table>
+      </div>
 
    </div>
   <?php $script[] = "\$('#editG{$gremium['id']}R{$rolle['rolle_id']}').dialog({ autoOpen: false, width: 1300, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}') } });"; ?>
@@ -535,36 +526,36 @@ endif;
 
    </div>
   <?php $script[] = "\$('#deleteG{$gremium['id']}R{$rolle['rolle_id']}').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}') } });"; ?>
-      </td>
-      <td><?php echo htmlspecialchars($rolle["rolle_name"]);?></td>
-      <td><?php 
+      </div>
+      <div class="td"><?php echo htmlspecialchars($rolle["rolle_name"]);?></div>
+      <div class="td"><?php 
           $current_personen = getRollePersonen($rolle["rolle_id"]);
           $liste = Array(); foreach ($current_personen as $person) { if ($person["active"]) { $liste[] = $person["email"]; } }
-          echo htmlspecialchars(implode(", ", $liste));?></td>
-     </tr>
+          echo htmlspecialchars(implode(", ", $liste));?></div>
+     </div>
 <?php
 endforeach;
 endif;
 ?>
-     </table>
+     </div>
    </div>
    <?php
      $script[] = "\$('#editG{$gremium['id']}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: $('#rowG{$gremium['id']}') } });";
      $script[] = "\$('#deleteG{$gremium['id']}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: $('#rowG{$gremium['id']}') } });";
    ?>
- </td>
- <td><?php echo htmlspecialchars($gremium["name"]);?></td>
- <td><?php echo htmlspecialchars($gremium["fakultaet"]);?></td>
- <td colspan="2"><?php echo htmlspecialchars($gremium["studiengang"]);
+ </div>
+ <div class="td"><?php echo htmlspecialchars($gremium["name"]);?></div>
+ <div class="td"><?php echo htmlspecialchars($gremium["fakultaet"]);?></div>
+ <div class="td" colspan="2"><?php echo htmlspecialchars($gremium["studiengang"]);
             if (!empty($gremium["studiengangabschluss"])) {
               echo " (".htmlspecialchars($gremium["studiengangabschluss"]).")";
             }
-      ?></td>
-</tr>
+      ?></div>
+</div>
 <?php
 endforeach;
 ?>
-</table>
+</div>
 <hr/>
 <ul class="pageselect">
 <?php if ($_COOKIE["gremium_start"] > 0): ?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=0#gremium">&lt;&lt;</a></li><? endif; ?>
