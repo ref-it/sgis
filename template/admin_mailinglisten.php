@@ -89,16 +89,18 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
          if ($last_gremium_id != -1) { echo "</optgroup>"; }
          $last_gremium_id = $agremium["gremium_id"];
 ?>
-       <optgroup label="<?php echo htmlspecialchars($agremium["gremium_name"]." ".$agremium["gremium_fakultaet"]." ".$agremium["gremium_studiengang"]." ".$agremium["gremium_studiengangabschluss"],ENT_QUOTES);?>">
+       <optgroup class="forinsertML<?=$mailingliste["id"];?>R <?=($agremium["gremium_active"] ? "gremiumactive" : "gremiuminactive");?>" label="<?php echo htmlspecialchars($agremium["gremium_name"]." ".$agremium["gremium_fakultaet"]." ".$agremium["gremium_studiengang"]." ".$agremium["gremium_studiengangabschluss"],ENT_QUOTES);?>">
 <?php
 	endif;
 ?>
-        <option value="<?=$agremium["rolle_id"];?>"><?php echo htmlspecialchars($agremium["rolle_name"],ENT_QUOTES);?></option>
+        <option  class="forinsertML<?=$mailingliste["id"];?>R <?=($agremium["rolle_active"] ? "rolleactive" : "rolleinactive");?>" value="<?=$agremium["rolle_id"];?>"><?php echo htmlspecialchars($agremium["rolle_name"],ENT_QUOTES);?></option>
 <?php
       endforeach;
       if ($last_gremium_id != -1) { echo "</optgroup>"; }
 ?>
          </select>
+         <a href="#" onClick="$('option.rolleinactive.forinsertML<?=$mailingliste["id"];?>R,optgroup.gremiuminactive.forinsertML<?=$mailingliste["id"];?>R').toggle(); return false;" titel="inaktive Gremien/Rolle anzeigen/ausblenden" >[inaktive Gremien/Rollen anzeigen/ausblenden]</a>
+         <?php $script[] = "\$('option.rolleinactive.forinsertML{$mailingliste["id"]}R,optgroup.gremiuminactive.forinsertML{$mailingliste["id"]}R').hide();"; ?>
        <br/><span></span></li>
      <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>

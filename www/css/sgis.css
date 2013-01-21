@@ -12,7 +12,7 @@ ul.pageselect li:first-child:before { content: ''; }
 span.rolle_gremienname {  white-space:nowrap; }
 div.td { vertical-align: top; }
 div.kommentar { display: inline-block; vertical-align: top; }
-.personinactive, .gremiuminactive { background-color: silver; }
+.personinactive, .gremiuminactive, .rolleinactive { background-color: silver; }
 div.table { display:table; border-collapse:collapse; }
 form.tr, div.tr { display:table-row; }
 div.td { display:table-cell; }
