@@ -142,7 +142,7 @@ abstract class sspmod_sgis_Auth_UserPassBaseCookie extends sspmod_core_Auth_User
 			throw new Exception('Could not find authentication source with id ' . $state[self::AUTHID]);
 		}
 
-		$value = base64_encode($username).":".base64_encode($password);
+		$value = base64_encode($username).":".base64_encode($password).":".time();
 
 		return self::encrypt($value, $source->rememberPasswordEnabled);
 	}
@@ -157,7 +157,8 @@ abstract class sspmod_sgis_Auth_UserPassBaseCookie extends sspmod_core_Auth_User
 		}
 		$value = self::decrypt($value, $source->rememberPasswordEnabled);
 		if ($value === false) { return false; }
-		$values = explode(":", $value, 2);
+		$values = explode(":", $value, 3);
+		if (time() > $values[2] + 90 * 24 * 60 * 60) { return false; }
 		return Array("username" => base64_decode($values[0]), "password" => base64_decode($values[1]));
 	}
 
