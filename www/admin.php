@@ -225,7 +225,7 @@ $activefilter["email"] = Array();
 $activefilter["unirzlogin"] = Array();
 $activefilter["username"] = Array();
 $activefilter["lastLogin"] = Array();
-$activefilter["canLogin"] = Array();
+$activefilter["canLogin"] = Array(1);
 $activefilter["active"] = Array();
 
 if (isset($_COOKIE["filter_personen"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_personen"]), true);
@@ -234,7 +234,7 @@ if (isset($_REQUEST["filter_personen_email"])) { if (is_array($_REQUEST["filter_
 if (isset($_REQUEST["filter_personen_unirzlogin"])) { if (is_array($_REQUEST["filter_personen_unirzlogin"])) { $activefilter["unirzlogin"] = $_REQUEST["filter_personen_unirzlogin"]; } else { $activefilter["unirzlogin"] = Array(); } }
 if (isset($_REQUEST["filter_personen_username"])) { if (is_array($_REQUEST["filter_personen_username"])) { $activefilter["username"] = $_REQUEST["filter_personen_username"]; } else { $activefilter["username"] = Array(); } }
 if (isset($_REQUEST["filter_personen_lastLogin"])) { if (is_array($_REQUEST["filter_personen_lastLogin"])) { $activefilter["lastLogin"] = $_REQUEST["filter_personen_lastLogin"]; } else { $activefilter["lastLogin"] = Array(); } }
-if (isset($_REQUEST["filter_personen_canLogin"])) { if (is_array($_REQUEST["filter_personen_canLogin"])) { $activefilter["canLogin"] = $_REQUEST["filter_personen_canLogin"]; } else { $activefilter["canLogin"] = Array(); } }
+if (isset($_REQUEST["filter_personen_canLogin"])) { if (is_array($_REQUEST["filter_personen_canLogin"])) { $activefilter["canLogin"] = $_REQUEST["filter_personen_canLogin"]; } else { $activefilter["canLogin"] = Array(1); } }
 if (isset($_REQUEST["filter_personen_active"])) { if (is_array($_REQUEST["filter_personen_active"])) { $activefilter["active"] = $_REQUEST["filter_personen_active"]; } else { $activefilter["active"] = Array(); } }
 setcookie("filter_personen", base64_encode(json_encode($activefilter)), 0);
 $_COOKIE["filter_personen"] = base64_encode(json_encode($activefilter));
