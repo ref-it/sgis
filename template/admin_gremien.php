@@ -180,6 +180,9 @@ endif;
        <ul>
         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
         <li>Rolle: <input type="text" name="name" value=""/></li>
+        <li><label for="active"  >Rolle existent/aktiv?:        </label>
+            <select name="active" size="1"><option value="1" selected="selected">Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
+        </li>
         <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
        </ul>
        <input type="hidden" name="gremium_id" value="<?php echo $gremium["id"];?>"/>
@@ -239,16 +242,16 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
           <ul>
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
-           <li><label for="person_id">Person:</label> <select name="person_id" size="1"><?php foreach ($alle_personen as $person):?><option value="<?php echo $person["id"];?>"><?php echo htmlspecialchars($person["email"]);?></option><? endforeach; ?></select></li>
+           <li><label for="person_id">Person:</label> <select name="person_id" size="1"><?php foreach ($alle_personen as $person):?><option class="forinsertR<?=$rolle["rolle_id"];?>P <?=($person["active"] ? "personactive" : "personinactive");?>" value="<?php echo $person["id"];?>"><?php echo htmlspecialchars($person["email"]);?></option><? endforeach; ?></select>
+             <a href="#" onClick="$('option.personinactive.forinsertR<?=$rolle["rolle_id"];?>P').toggle(); return false;" titel="inaktive Personen anzeigen/ausblenden" >[inaktive Personen anzeigen/ausblenden]</a>
+             <?php $script[] = "\$('option.personinactive.forinsertR{$rolle["rolle_id"]}P').hide();"; ?>
+           </li>
            <li><label for="von">von:</label> <input type="text" name="von" value="<?=date("Y-m-d");?>" class="datepicker"/></li>
            <li><label for="bis">bis:</label> <input type="text" name="bis" value="" class="datepicker"/></li>
 <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
            <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
            <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
            <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
-           <li><label for="active"  >Rolle existent/aktiv?:        </label>
-               <select name="active" size="1"><option value="1" selected="selected">Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
-           </li>
            <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
@@ -258,7 +261,7 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
           <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?=$rolle["rolle_id"];?>P').dialog('close');"/>
          </form>
         </div>
-        <?php $script[] = "\$('#insertR{$rolle['rolle_id']}P').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
+        <?php $script[] = "\$('#insertR{$rolle['rolle_id']}P').dialog({ autoOpen: false, width: 1100, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
        </div>
        <div class="th">e-Mail</div><div class="th">Name</div><div class="th">Zeitraum</div><div class="th">Beschluss</div><div class="th">Kommentar</div>
       </div>
