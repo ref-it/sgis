@@ -12,10 +12,9 @@
      <ul>
      <li><label for="name">Name:</label><input type="text" name="name" value=""/></li>
      <li><label for="beschreibung">Beschreibung:</label><input type="text" name="beschreibung" value=""/></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="action" value="gruppe.insert"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Speichern"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertGRP').dialog('close');"/>
     </form>
@@ -39,11 +38,10 @@ foreach ($alle_gruppen as $i => $gruppe):
      <li>ID: <?php echo $gruppe["id"];?></li>
      <li><label for="name">Name:</label><input type="text" name="name" value="<?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="beschreibung">Beschreibung:</label><input type="text" name="beschreibung" value="<?php echo htmlspecialchars($gruppe["beschreibung"],ENT_QUOTES);?>" readonly="readonly"/></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $gruppe["id"];?>"/>
      <input type="hidden" name="action" value="gruppe.delete"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Löschen"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteGRP<?=$gruppe["id"];?>').dialog('close');"/>
      </form>
@@ -56,11 +54,10 @@ foreach ($alle_gruppen as $i => $gruppe):
      <li>ID: <?php echo $gruppe["id"];?></li>
      <li><label for="name">Name:</label><input type="text" name="name" value="<?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?>"/></li>
      <li><label for="beschreibung">Beschreibung:</label><input type="text" name="beschreibung" value="<?php echo htmlspecialchars($gruppe["beschreibung"],ENT_QUOTES);?>"/></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $gruppe["id"];?>"/>
      <input type="hidden" name="action" value="gruppe.update"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Speichern"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#editGRP<?=$gruppe["id"];?>').dialog('close');"/>
      </form>
@@ -96,11 +93,10 @@ foreach ($alle_gruppen as $i => $gruppe):
          <a href="#" onClick="$('option.rolleinactive.forinsertGRP<?=$gruppe["id"];?>R,optgroup.gremiuminactive.forinsertGRP<?=$gruppe["id"];?>R').toggle(); return false;" titel="inaktive Gremien/Rolle anzeigen/ausblenden" >[inaktive Gremien/Rollen anzeigen/ausblenden]</a>
          <?php $script[] = "\$('option.rolleinactive.forinsertGRP{$gruppe["id"]}R,optgroup.gremiuminactive.forinsertGRP{$gruppe["id"]}R').hide();"; ?>
        <br/><span></span></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="gruppe_id" value="<?php echo $gruppe["id"];?>"/>
      <input type="hidden" name="action" value="rolle_gruppe.insert"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Zuordnung eintragen"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertGRP<?=$gruppe["id"];?>R').dialog('close');"/>
      </form>
@@ -125,12 +121,11 @@ foreach($gremien as $gremium):
      <ul>
      <li>Gruppe: <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?></li>
      <li>Gremium/Rolle: <?php echo htmlspecialchars($gremium["rolle_name"]." ".$gremium["gremium_name"]." ".$gremium["gremium_fakultaet"]." ".$gremium["gremium_studiengang"]." ".$gremium["gremium_studiengangabschluss"],ENT_QUOTES);?></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="gruppe_id" value="<?php echo $gruppe["id"];?>"/>
      <input type="hidden" name="rolle_id" value="<?php echo $gremium["rolle_id"];?>"/>
      <input type="hidden" name="action" value="rolle_gruppe.delete"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Zuordnung aufheben"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteGRP<?=$gruppe["id"];?>R<?=$gremium["rolle_id"];?>').dialog('close');"/>
      </form>

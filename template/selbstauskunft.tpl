@@ -1,14 +1,6 @@
 <?php
 
-global $attributes, $logoutUrl, $ADMINGROUP;
-
-$captchaId = Securimage::getCaptchaId();
-$options = array('captchaId'  => $captchaId, 'no_session' => true, 'no_exit' => true, 'send_headers' => false);
-$captcha = new Securimage($options);
-ob_start();   // start the output buffer
-$captcha->show();
-$imgBinary = ob_get_contents(); // get contents of the buffer
-ob_end_clean(); // turn off buffering and clear the buffer
+global $attributes, $logoutUrl, $ADMINGROUP, $nonce;
 
 require "../template/header.tpl";
 
@@ -178,11 +170,10 @@ Bitte geben deine neuen Zugangsdaten für das sGIS ein:
  </li>
  <li> <label for="password"  style="width:225px; display: inline-block;">Passwort</label> <input type="password" name="password" value=""/> </li>
  <li> <label for="password2" style="width:225px; display: inline-block;">Passwort (Wiederholung)</label> <input type="password" name="password2" value=""/> </li>
- <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha"/></li>
 </ul>
 
 <input type="hidden" name="action" value="pwchange"/>
-<input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+<input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
 
 <input type="submit" name="submit" value="Speichern"/>
 <input type="reset" name="reset" value="Abbruch"/>

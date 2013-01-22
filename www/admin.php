@@ -1,6 +1,6 @@
 <?php
 
-global $attributes, $logoutUrl, $ADMINGROUP;
+global $attributes, $logoutUrl, $ADMINGROUP, $nonce;
 ob_start('ob_gzhandler');
 
 require_once "../lib/inc.all.php";
@@ -21,38 +21,10 @@ if (isset($_GET["msgs"])) {
  $msgs = Array();
 }
 
-$validcaptcha = false;
-if (isset($_REQUEST["captcha"]) && !isset($_REQUEST["tab"])) {
- if (empty($_REQUEST["captchaId"])) { die("empty captcha id supplied"); }
- $validcaptcha = Securimage::checkByCaptchaId($_REQUEST["captchaId"], $_REQUEST["captcha"]);
-}
-
-if (isset($_REQUEST["captchaId"]) && isset($_REQUEST["tab"])) {
-  $captchaId = $_REQUEST["captchaId"];
-} else {
-  $captchaId = Securimage::getCaptchaId();
-}
-$options = array('captchaId'  => $captchaId, 'no_session' => true, 'no_exit' => true, 'send_headers' => false);
-$captcha = new Securimage($options);
-ob_start();   // start the output buffer
-$captcha->show();
-$imgBinary = ob_get_contents(); // get contents of the buffer
-ob_end_clean(); // turn off buffering and clear the buffer
-if ($validcaptcha) {
-  $captcha = $captcha->getCode();
-  $captcha = $captcha["code_disp"];
-} else {
-  if (isset($_REQUEST["captcha"]) && isset($_REQUEST["tab"])) {
-    $captcha = $_REQUEST["captcha"];
-  } else {
-    $captcha = "";
-  }
-}
-
 if (isset($_POST["action"])) {
  $ret = false;
- if (!$validcaptcha) {
-  $msgs[] = "Falsches Captcha!";
+ if (!isset($_REQUEST["nonce"]) || $_REQUEST["nonce"] !== $nonce) {
+  $msgs[] = "Formular veraltet - CRSP Schutz aktiviert.";
  } else {
   switch ($_POST["action"]):
   case "mailingliste.insert":
@@ -203,7 +175,7 @@ if (isset($_POST["action"])) {
   endswitch;
  }
  if ($ret && !isset($_REQUEST["ajax"])) {
-  $query = "captchaId=".urlencode($captchaId)."&captcha=".urlencode($captcha);
+  $query = "";
   foreach ($msgs as $msg) {
    $query .= "&msgs[]=".urlencode($msg);
   }
@@ -214,10 +186,6 @@ if (isset($_POST["action"])) {
 
 if (isset($_REQUEST["ajax"])) {
   $result = Array();
-  $result["id"] = $captchaId;
-  $result["captcha"] = $captcha;
-  $result["img"] = base64_encode($imgBinary);
-  $result["mime"] = "image/png";
   $result["msgs"] = $msgs;
   $result["ret"] = $ret;
 
@@ -273,19 +241,6 @@ foreach ($msgs as $msg):
 endforeach;
 
 $script[] = '$( "#tabs" ).tabs();';
-$script[] = '$("<a href=\"#\">[Captcha neu laden]</a>").insertAfter($( "img.captcha" )).click(function() {
-    $.post("captcha.php", {})
-     .success(function (values, status, req) {
-       $( "img.captcha" ).attr("src","data:"+values.meta+";base64,"+values.img);
-       $( "input[name=captchaId]" ).val(values.id);
-       $( "input[name=captcha]" ).val("");
-       captcha = "";
-       captchaId = values.id;
-       captchaImg = "data:"+values.meta+";base64,"+values.img;
-      })
-     .error(xpAjaxErrorHandler);
-     return false;
-   });';
 $script[] = 'function xpAjaxErrorHandler (jqXHR, textStatus, errorThrown) {
       alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText);
 };';
@@ -307,23 +262,9 @@ $script[] = '$( "form" ).submit(function (ev) {
          }
        }
        if (values.ret && confirm(txt)) {
-         var captchaPart = "captcha=" + values.captcha + "&captchaId=" + values.id;
-         if (action.indexOf("?") != -1) {
-           actions = action.split("?", 2);
-           action = actions[0] + "?" + captchaPart + "&" + actions[1];
-         } else {
-           actions = action.split("#", 2);
-           action = actions[0] + "?" + captchaPart + "#" + actions[1];
-         }
          self.location.replace(action);
        } else {
-         $( "img.captcha" ).attr("src","data:"+values.meta+";base64,"+values.img);
-         $( "input[name=captchaId]" ).val(values.id);
-         $( "input[name=captcha]" ).val(values.captcha);
-         captcha = values.captcha;
-         captchaId = values.id;
-         captchaImg = "data:"+values.meta+";base64,"+values.img;
-         if (ret && close.length == 1) {
+         if (values.ret && close.length == 1) {
            close.click();
          }
        }
@@ -331,19 +272,8 @@ $script[] = '$( "form" ).submit(function (ev) {
      .error(xpAjaxErrorHandler);
     return false;
    });';
-if (!isset($_REQUEST["tab"])) {
-  $script[] = 'var captcha = "'.$captcha.'";';
-  $script[] = 'var captchaId = "'.$captchaId.'";';
-  $script[] = 'var captchaImg = "data:image/png;base64,'.base64_encode($imgBinary).'";';
-} else {
-  $script[] = '$(function() { 
-    $( "img.captcha" ).attr("src",captchaImg);
-    $( "input[name=captchaId]" ).val(captchaId);
-    $( "input[name=captcha]" ).val(captcha);
-});';
-}
 
-global $scripting, $captcha, $captchaId;
+global $scripting;
 if (isset($_REQUEST["javascript"])) {
   setcookie("javascript",$_REQUEST["javascript"]);
   $_COOKIE["javascript"] = $_REQUEST["javascript"];
@@ -351,8 +281,8 @@ if (isset($_REQUEST["javascript"])) {
 $scripting = (isset($_COOKIE["javascript"]) && ($_COOKIE["javascript"] == 1));
 
 function addTabHead($name, $titel) {
- global $scripting, $captcha, $captchaId;
- ?> <li aria-controls="<?=htmlspecialchars($name);?>"><a href="<?=htmlspecialchars($scripting ? $_SERVER["PHP_SELF"]."?tab=".urlencode($name)."&captcha=$captcha&captchaId=$captchaId" : "#$name"); ?>"><?=htmlspecialchars($titel);?></a></li> <?
+ global $scripting;
+ ?> <li aria-controls="<?=htmlspecialchars($name);?>"><a href="<?=htmlspecialchars($scripting ? $_SERVER["PHP_SELF"]."?tab=".urlencode($name) : "#$name"); ?>"><?=htmlspecialchars($titel);?></a></li> <?
 }
 
 if (isset($_REQUEST["tab"])) {

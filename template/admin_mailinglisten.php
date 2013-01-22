@@ -16,10 +16,9 @@
          Listen-Administratorpasswort</li>
      <li><label for="url">Webseite (listinfo):</label><input type="text" name="url" value=""/><br/>
          Beispiel: https://listen.stura.tu-ilmenau.de/mailman/listinfo/ref-xxx</li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="action" value="mailingliste.insert"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Speichern"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertML').dialog('close');"/>
     </form>
@@ -44,11 +43,10 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
      <li><label for="address">Adresse:</label><input type="text" name="address" value="<?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="password">Passwort:</label><input type="text" name="password" value="<?php echo htmlspecialchars($mailingliste["password"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="url">Webseite (listinfo):</label><input type="text" name="url" value="<?php echo htmlspecialchars($mailingliste["url"],ENT_QUOTES);?>" readonly="readonly"/></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $mailingliste["id"];?>"/>
      <input type="hidden" name="action" value="mailingliste.delete"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Löschen"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteML<?=$mailingliste["id"];?>').dialog('close');"/>
      </form>
@@ -62,11 +60,10 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
      <li><label for="address">Adresse:</label><input type="text" name="address" value="<?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?>"/></li>
      <li><label for="password">Passwort:</label><input type="text" name="password" value="<?php echo htmlspecialchars($mailingliste["password"],ENT_QUOTES);?>"/></li>
      <li><label for="url">Webseite (listinfo):</label><input type="text" name="url" value="<?php echo htmlspecialchars($mailingliste["url"],ENT_QUOTES);?>"/></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $mailingliste["id"];?>"/>
      <input type="hidden" name="action" value="mailingliste.update"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Speichern"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#editML<?=$mailingliste["id"];?>').dialog('close');"/>
      </form>
@@ -102,11 +99,10 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
          <a href="#" onClick="$('option.rolleinactive.forinsertML<?=$mailingliste["id"];?>R,optgroup.gremiuminactive.forinsertML<?=$mailingliste["id"];?>R').toggle(); return false;" titel="inaktive Gremien/Rolle anzeigen/ausblenden" >[inaktive Gremien/Rollen anzeigen/ausblenden]</a>
          <?php $script[] = "\$('option.rolleinactive.forinsertML{$mailingliste["id"]}R,optgroup.gremiuminactive.forinsertML{$mailingliste["id"]}R').hide();"; ?>
        <br/><span></span></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="mailingliste_id" value="<?php echo $mailingliste["id"];?>"/>
      <input type="hidden" name="action" value="rolle_mailingliste.insert"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Zuordnung eintragen"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertML<?=$mailingliste["id"];?>R').dialog('close');"/>
      </form>
@@ -131,12 +127,11 @@ foreach($gremien as $gremium):
      <ul>
      <li>Mailingliste: <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?></li>
      <li>Gremium/Rolle: <?php echo htmlspecialchars($gremium["rolle_name"]." ".$gremium["gremium_name"]." ".$gremium["gremium_fakultaet"]." ".$gremium["gremium_studiengang"]." ".$gremium["gremium_studiengangabschluss"],ENT_QUOTES);?></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="mailingliste_id" value="<?php echo $mailingliste["id"];?>"/>
      <input type="hidden" name="rolle_id" value="<?php echo $gremium["rolle_id"];?>"/>
      <input type="hidden" name="action" value="rolle_mailingliste.delete"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Zuordnung aufheben"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteML<?=$mailingliste["id"];?>R<?=$gremium["rolle_id"];?>').dialog('close');"/>
      </form>

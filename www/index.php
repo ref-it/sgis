@@ -1,6 +1,6 @@
 <?php
 
-global $attributes, $logoutUrl, $AUTHGROUP, $ADMINGROUP;
+global $attributes, $logoutUrl, $AUTHGROUP, $ADMINGROUP, $nonce;
 
 require_once "../lib/inc.all.php";
 
@@ -17,9 +17,8 @@ $gruppen = getPersonGruppe($person["id"]);
 $mailinglisten = getPersonMailingliste($person["id"]);
 
 if (isset($_POST["action"]) && ($_POST["action"] == "pwchange")) {
-  if (empty($_REQUEST["captchaId"])) { die("empty captcha id supplied"); }
-  if (Securimage::checkByCaptchaId($_REQUEST["captchaId"], $_REQUEST["captcha"]) != true) {
-    echo "<b class=\"msg\">Falsches Captcha!</b><br>\n";
+  if (!isset($_REQUEST["nonce"]) || $_REQUEST["nonce"] !== $nonce) {
+    echo "<b class=\"msg\">Formular nicht frisch - CSRF Schutz.</b><br>\n";
   } else {
     if (empty($person["username"]) && isset($_POST["username"]) && ($_POST["username"] !== $person["username"])) {
       setPersonUsername($person["id"], $_POST["username"]);

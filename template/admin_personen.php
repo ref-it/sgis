@@ -76,10 +76,9 @@ asort($filter["active"]);
      <li><label for="canlogin"  >Login erlaubt?:        </label>
          <select name="canlogin" size="1"><option value="1" selected="selected">erlaubt, außer während zur Gruppe cannotLogin zugehörig</option><option value="0">nicht erlaubt, außer während zur Gruppe canLogin zugehörig</option></select><br/>
 	 (nicht erlaubt für Dummy-eMail-Adressen auf Mailinglisten und sonstige Ausnahmen nutzen)</li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="action" value="person.insert"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Speichern"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertP').dialog('close');"/>
     </form>
@@ -108,10 +107,9 @@ foreach ($struct_personen as $i => $person):
      <li><label for="lastlogin" >letztes Login:         </label><?php echo htmlspecialchars($person["lastLogin"],ENT_QUOTES);?></li>
      <li><label for="canlogin"  >Login erlaubt?:        </label><? if ($person["canLogin"]): ?>erlaubt, außer während zur Gruppe cannotLogin zugehörig<? else: ?>nicht erlaubt, außer während zur Gruppe canLogin zugehörig<? endif; ?></li>
      <li><label for="action"    >Aktion:                </label><select name="action" size="1"><option value="person.disable" selected="selected">Person deaktivieren</option><option value="person.delete">Datensatz löschen</option></select></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $person["id"];?>"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Löschen"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteP<?=$person["id"];?>').dialog('close');"/>
      </form>
@@ -177,11 +175,10 @@ endif;
          <select name="canlogin" size="1"><option value="1" <? if ($person["canLogin"]) echo "selected=\"selected\""; ?>>erlaubt, außer während zur Gruppe cannotLogin zugehörig</option><option value="0" <? if (!$person["canLogin"]) echo "selected=\"selected\""; ?>>nicht erlaubt, außer während zur Gruppe canLogin zugehörig</option></select>
      </li>
      <li>letztes Login: <?php echo $person["lastLogin"];?></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $person["id"];?>"/>
      <input type="hidden" name="action" value="person.update"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Speichern"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#editP<?=$person["id"];?>').dialog('close');"/>
      </form>
@@ -224,11 +221,10 @@ endif;
      <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
      <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
      <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="person_id" value="<?php echo $person["id"];?>"/>
      <input type="hidden" name="action" value="rolle_person.insert"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Zuordnung eintragen"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertP<?=$person["id"];?>R').dialog('close');"/>
      </form>
@@ -268,10 +264,9 @@ if (empty($gremium["von"]) && empty($gremium["bis"])) {
      <li><span class="label">Beschluss:</span> <?php echo htmlspecialchars($gremium["beschlussAm"])." ".htmlspecialchars($gremium["beschlussDurch"]); ?></li>
      <li><span class="label">Kommentar:</span> <div class="kommentar"><?=str_replace("\n","<br/>",htmlspecialchars($gremium["kommentar"]));?></div></li>
      <li><label for="action">Aktion:</label><select name="action" size="1"><option value="rolle_person.disable" selected="selected">Zuordnung terminieren</option><option value="rolle_person.delete">Datensatz löschen</option></select></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Zuordnung aufheben"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteP<?=$person["id"];?>R<?=$gremium["id"];?>').dialog('close');"/>
      </form>
@@ -291,13 +286,12 @@ if (empty($gremium["von"]) && empty($gremium["bis"])) {
      <li><label for="beschlussAm"   >beschlossen am:</label> <input type="text" name="beschlussAm" value="<?=htmlspecialchars($gremium["beschlussAm"]);?>"/></li>
      <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value="<?=htmlspecialchars($gremium["beschlussDurch"]);?>"/></li>
      <li><label for="kommentar"     >Kommentar:</label> <textarea name="kommentar"><?=htmlspecialchars($gremium["kommentar"]);?></textarea></li>
-     <li><img src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="person_id" value="<?php echo $person["id"];?>"/>
      <input type="hidden" name="rolle_id" value="<?php echo $gremium["rolle_id"];?>"/>
      <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
      <input type="hidden" name="action" value="rolle_person.update"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Zuordnung eintragen"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#editP<?=$person["id"];?>R<?=$gremium["id"];?>').dialog('close');"/>
      </form>

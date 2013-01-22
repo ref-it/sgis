@@ -7,13 +7,12 @@ requireGroup($ADMINGROUP);
 
 require_once "../template/header.tpl";
 
-$validcaptcha = false;
-if (isset($_REQUEST["captcha"])) {
- if (empty($_REQUEST["captchaId"])) { die("empty captcha id supplied"); }
- $validcaptcha = Securimage::checkByCaptchaId($_REQUEST["captchaId"], $_REQUEST["captcha"]);
+$validnonce = false;
+if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
+ $validnonce = true;
 }
 
-if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0 && $validcaptcha) {
+if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0 && $validnonce) {
   $alle_mailinglisten = getMailinglisten();
   foreach ($alle_mailinglisten as $mailingliste) {
     $list = $mailingliste["address"];
@@ -76,7 +75,7 @@ function commitMembersParsePage($url, $postFields, $getFields) {
 	curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_POSTFIELDS,  $postFields);
-        curl_exec($ch);
+        $output = curl_exec($ch);
         curl_close($ch);     
 
         // password ok check
@@ -122,14 +121,6 @@ function fetchMembersParsePage($url, $postFields, $getFields, &$members, &$lette
 	$numMember = $matches[1];
 
 }
-
-$captchaId = Securimage::getCaptchaId();
-$options = array('captchaId'  => $captchaId, 'no_session' => true, 'no_exit' => true, 'send_headers' => false);
-$captcha = new Securimage($options);
-ob_start();   // start the output buffer
-$captcha->show();
-$imgBinary = ob_get_contents(); // get contents of the buffer
-ob_end_clean(); // turn off buffering and clear the buffer
 
 ?>
 
@@ -186,8 +177,7 @@ endforeach;
 
 ?></table>
 
-<img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value=""/>
-<input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+<input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
 
 <a href="#" onClick="$('.mls').attr('checked',true); return false;">alle auswählen</a>
 <a href="#" onClick="$('.mls').attr('checked',false); return false;">keine auswählen</a>

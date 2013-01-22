@@ -22,10 +22,9 @@
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
          <select name="active" size="1" selected="selected"><option value="1" >Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
      </li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="action" value="gremium.insert"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Speichern"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertG').dialog('close');"/>
     </form>
@@ -138,10 +137,9 @@ foreach ($struct_gremien as $i => $gremium):
      <li><label for="wiki_members"        >Wiki-Seite für Mitglieder: </label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="active"              >Gremium existent/aktiv?:   </label><? if ($gremium["active"]): ?>Ja<? else: ?>Nein<? endif; ?></li>
      <li><label for="action"              >Aktion:                    </label><select name="action" size="1"><option value="gremium.disable" selected="selected">Gremium deaktivieren</option><option value="gremium.delete">Gremium löschen</option></select></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
     </ul>
     <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
-    <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+    <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
     <input type="submit" name="submit" value="Löschen"/>
     <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteG<?=$gremium["id"];?>').dialog('close');"/>
    </form>
@@ -181,11 +179,10 @@ endif;
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
          <select name="active" size="1"><option value="1" <? if ($gremium["active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <? if (!$gremium["active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
      </li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
     </ul>
     <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
     <input type="hidden" name="action" value="gremium.update"/>
-    <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+    <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
     <input type="submit" name="submit" value="Speichern"/>
     <input type="reset" name="reset" value="Abbrechen" onClick="$('#editG<?=$gremium["id"];?>').dialog('close');"/>
    </form>
@@ -204,11 +201,10 @@ endif;
         <li><label for="active"  >Rolle existent/aktiv?:        </label>
             <select name="active" size="1"><option value="1" selected="selected">Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
         </li>
-        <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
        </ul>
        <input type="hidden" name="gremium_id" value="<?php echo $gremium["id"];?>"/>
        <input type="hidden" name="action" value="rolle_gremium.insert"/>
-       <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+       <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
        <input type="submit" name="submit" value="Rolle eintragen"/>
        <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertG<?=$gremium["id"];?>R').dialog('close');"/>
       </form>
@@ -240,11 +236,10 @@ foreach($rollen as $rolle):
         <li><label for="active"  >Rolle existent/aktiv?:        </label>
            <select name="active" size="1"><option value="1" <? if ($rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <? if (!$rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
         </li>
-        <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
        </ul>
        <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
        <input type="hidden" name="action" value="rolle_gremium.update"/>
-       <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+       <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
        <input type="submit" name="submit" value="Rolle bearbeiten"/>
        <input type="reset" name="reset" value="Abbrechen" onClick="$('#editG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('close');"/>
       </form>
@@ -273,11 +268,10 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
            <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
            <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
            <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
-           <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_person.insert"/>
-          <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+          <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Personen-Rollenzuordnung einfügen"/>
           <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?=$rolle["rolle_id"];?>P').dialog('close');"/>
          </form>
@@ -318,10 +312,9 @@ foreach ($current_personen as $person):
            <li><span class="label">Beschluss:</span> <?php echo htmlspecialchars($person["beschlussAm"])." ".htmlspecialchars($person["beschlussDurch"]); ?></li>
            <li><span class="label">Kommentar:</span> <div class="kommentar"><?=str_replace("\n","<br/>",htmlspecialchars($person["kommentar"]));?></div></li>
            <li><label for="action">Aktion:</label><select name="action" size="1"><option value="rolle_person.disable" selected="selected">Zuordnung terminieren</option><option value="rolle_person.delete">Datensatz löschen</option></select></li>
-           <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="id" value="<?php echo $person["rel_id"];?>"/>
-          <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+          <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Personen-Rollenzuordnung entfernen"/>
           <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('close');"/>
          </form>
@@ -342,13 +335,12 @@ foreach ($current_personen as $person):
            <li><label for="beschlussAm"   >beschlossen am:</label> <input type="text" name="beschlussAm" value="<?=htmlspecialchars($person["beschlussAm"]);?>"/></li>
            <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value="<?=htmlspecialchars($person["beschlussDurch"]);?>"/></li>
            <li><label for="kommentar"     >Kommentar:</label> <textarea name="kommentar"><?=htmlspecialchars($person["kommentar"]);?></textarea></li>
-           <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="id" value="<?php echo $person["rel_id"];?>"/>
           <input type="hidden" name="person_id" value="<?php echo $person["id"];?>"/>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_person.update"/>
-          <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+          <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Zuordnung bearbeiten"/>
           <input type="reset" name="reset" value="Abbrechen" onClick="$('#editR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('close');"/>
          </form>
@@ -393,10 +385,9 @@ endif;
          <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
          <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
          <li><label for="duplicate">Bei bestehender aktiver Zuordnung:</label> <select name="duplicate" size="1"><option selected="selected" value="skip">Person nicht hinzufügen</option><option value="ignore">Person dennoch hinzufügen</option></select></li>
-         <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
         </ul>
         <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
-        <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+        <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
         <input type="hidden" name="action" value="rolle_person.bulkinsert"/>
         <input type="submit" name="submit" value="Personen-Rollenzuordnung hinzufügen"/>
         <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?=$rolle["rolle_id"];?>Pmass').dialog('close');"/>
@@ -413,10 +404,9 @@ endif;
          <li><label for="email">eMail-Adressen (zeilenweise):</label><textarea name="email"></textarea></li>
          <li><label for="bis">bis:</label> <input type="text" name="bis" value="" class="datepicker"/></li>
          <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
-         <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
         </ul>
         <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
-        <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+        <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
         <input type="hidden" name="action" value="rolle_person.bulkdisable"/>
         <input type="submit" name="submit" value="Personen-Rollenzuordnung entfernen"/>
         <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>Pmass').dialog('close');"/>
@@ -435,11 +425,10 @@ endif;
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
            <li>Gruppe: <select name="gruppe_id" size="1"><?php foreach ($alle_gruppen as $gruppe):?><option value="<?php echo $gruppe["id"];?>"><?php echo htmlspecialchars($gruppe["name"]);?></option><? endforeach; ?></select></li>
-           <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_gruppe.insert"/>
-          <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+          <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Gruppen-Rollenzuordnung einfügen"/>
           <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?=$rolle["rolle_id"];?>GRP').dialog('close');"/>
          </form>
@@ -467,12 +456,11 @@ foreach ($current_gruppen as $gruppe):
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
           <li>Gruppe: <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?></li>
-          <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="gruppe_id" value="<?php echo $gruppe["id"];?>"/>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_gruppe.delete"/>
-          <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+          <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Gruppen-Rollenzuordnung entfernen"/>
           <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>GRP<?=$gruppe["id"];?>').dialog('close');"/>
           </form>
@@ -499,11 +487,10 @@ endif;
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
           <li>Mailingliste: <select name="mailingliste_id" size="1"><?php foreach ($alle_mailinglisten as $mailingliste):?><option value="<?php echo $mailingliste["id"];?>"><?php echo htmlspecialchars($mailingliste["address"]);?></option><? endforeach; ?></select></li>
-          <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_mailingliste.insert"/>
-          <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+          <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Mailinglisten-Rollenzuordnung einfügen"/>
           <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?=$rolle["rolle_id"];?>ML').dialog('close');"/>
           </form>
@@ -529,12 +516,11 @@ foreach ($current_mailinglisten as $mailingliste):
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
           <li>Mailingliste: <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?></li>
-          <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
           </ul>
           <input type="hidden" name="mailingliste_id" value="<?php echo $mailingliste["id"];?>"/>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_mailingliste.delete"/>
-          <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+          <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Mailinglisten-Rollenzuordnung entfernen"/>
           <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>ML<?=$mailingliste["id"];?>').dialog('close');"/>
           </form>
@@ -562,10 +548,9 @@ endif;
      <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
      <li>Gremium existent/aktiv?: <? if ($rolle["rolle_active"]): ?>Ja<? else: ?>Nein<? endif; ?></li>
      <li>Aktion: <select name="action" size="1"><option value="rolle_gremium.disable" selected="selected">Rolle deaktivieren</option><option value="rolle_gremium.delete">Rolle löschen</option></select></li>
-     <li><img class="captcha" src="data:image/png;base64,<?php echo base64_encode($imgBinary);?>" alt="Captcha" class="captcha"/> Bitte Captcha eingeben: <input type="text" name="captcha" value="<?=$captcha;?>"/></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
-     <input type="hidden" name="captchaId" value="<?php echo htmlspecialchars($captchaId);?>"/>
+     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Rolle löschen"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('close');"/>
      </form>
