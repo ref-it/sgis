@@ -138,6 +138,14 @@ function getPersonDetailsByMail($mail) {
   return $query->fetch(PDO::FETCH_ASSOC);
 }
 
+function getPersonDetailsByUsername($username) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}person WHERE username LIKE ?");
+  $query->execute(Array($username)) or httperror(print_r($query->errorInfo(),true));
+  if ($query->rowCount() == 0) return false;
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
 function getPersonRolle($personId) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("SELECT DISTINCT rm.id AS id, g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, r.id as rolle_id, r.name as rolle_name, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.kommentar as kommentar, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) as active FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND rm.gremium_id = g.id WHERE rm.person_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
