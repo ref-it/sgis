@@ -9,5 +9,6 @@ require_once SGISBASE.'/lib/inc.db.php';
 require_once SGISBASE.'/lib/inc.page.php';
 require_once SGISBASE.'/lib/inc.error.php';
 require_once SGISBASE.'/lib/inc.nonce.php';
+require_once SGISBASE.'/lib/inc.header.php';
 require_once SGISBASE.'/lib/ods/OpenDocument_Spreadsheet_Writer.class.php';
 
