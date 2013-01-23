@@ -262,8 +262,16 @@ $script[] = '$( "form" ).submit(function (ev) {
          }
        }
        if (values.ret && confirm(txt)) {
-         self.location.replace(action);
-         self.location.reload();
+         var q = "&x=" + Math.random();
+         if (action.indexOf("?") != -1) {
+           var actions = action.split("?", 2);
+           action = actions[0] + "?" + q + "&" + actions[1];
+         } else if (action.indexOf("#") != -1) {
+           var actions = action.split("#", 2);
+           action = actions[0] + "?" + q + "#" + actions[1];
+         } else {
+           action = action + "?" + q;
+         }
          self.location.replace(action);
        } else {
          if (values.ret && close.length == 1) {
