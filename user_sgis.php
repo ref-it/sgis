@@ -150,6 +150,10 @@ class OC_USER_SGIS {
                 OC_Log::write('saml','Invalid group "'.$group.'", allowed chars "a-zA-Z0-9" and "_.@-" ',OC_Log::DEBUG);
             }
             else {
+                if (!OC_Group::groupExists($group)) {
+                    OC_Group::createGroup($group);
+                    OC_Log::write('saml','New group created: '.$group, OC_Log::DEBUG);
+                } 
                 if (OC_Group::groupExists($group) && !OC_Group::inGroup($uid, $group)) {
                     OC_Group::addToGroup($uid, $group);
                     OC_Log::write('saml','Added "'.$uid.'" to the group "'.$group.'"', OC_Log::DEBUG);
