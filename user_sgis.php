@@ -28,6 +28,7 @@ class OC_USER_SGIS {
     protected $sgis_key;
     protected $group = "sgis";
     protected static $me = NULL;
+    protected $testedUsers = Array();
 
     public function __construct() 
     {
@@ -64,6 +65,26 @@ class OC_USER_SGIS {
         } else {
             return $this->sgisLoginCheck($uid, $password, false) ? $uid : false;
         }
+    }
+
+    public function userExists($uid) {
+        try {
+            if ($this->backend->userExists($uid) && OC_Group::inGroup($uid, $this->group) && !isset($this->testedUsers[$uid])) {
+                $nonce = self::randomstring();
+                $reply = $this->sgisRequest(Array("username" => $uid, "password" => "", "nonce" => $nonce));
+                if ($reply === false) throw new Exception("SGIS failure");
+                if ($reply["nonce"] !== $nonce) throw new Exception("SGIS failure");
+                if ($reply["status"] !== "oklogin" && $reply["status"] !== "badlogin") throw new Exception("SGIS failure");
+                if (!isset($reply["person"])) {
+                    OC_User::disableUser($uid);
+                }
+                $grps = array_merge(Array($this->group),$reply["grps"]);
+                $this->update_groups($uid, $grps, false);
+                $this->testedUsers[$uid] = true;
+            }
+        } catch (Exception $e) {
+        }
+        return $this->backend->userExists($uid);
     }
 
     protected function sgisLoginCheck($uid, $password, $exists) {
@@ -120,43 +141,42 @@ class OC_USER_SGIS {
             } else {
                 OC_User::disableUser($uid);
             }
-            # Group management deferred, as addToGroup -> OC_Filesystem-Hook -> Fails due to OC_Failsystem::init not called.
-            $this->todoUid = $uid;
-            $this->todoReply = $reply;
         }
+        # Group management deferred, as addToGroup -> OC_Filesystem-Hook -> Fails due to OC_Failsystem::init not called.
+        $this->todoGroups = array_merge(Array($this->group),$reply["grps"]);
+        $this->todoUid = $uid;
     }
 
     public function updateUserFromSGISReally() {
-        if (!isset($this->todoUid) || !isset($this->todoReply)) return;
+        if (!isset($this->todoUid) || !isset($this->todoGroups)) return;
         $uid = $this->todoUid;
-        $reply = $this->todoReply;
-        $this->update_groups($uid, array_merge(Array($this->group),$reply["grps"]));
+        $grps = $this->todoGroups;
+        $this->update_groups($uid, $grps);
         unset($this->todoUid);
-        unset($this->todoReply);
+        unset($this->todoGroups);
     }
 
-    protected function update_groups($uid, $groups) {
-        if (!OC_Group::groupExists($this->group)) {
-            OC_Group::createGroup($this->group);
-            OC_Log::write('saml','New group created: '.$this->group, OC_Log::DEBUG);
-        } 
+    protected function update_groups($uid, $groups, $addToGroups = true) {
         $old_groups = OC_Group::getUserGroups($uid);
         foreach($old_groups as $group) {
+            if (in_array(strtolower($group), array_map('strtolower', $groups))) continue;
             OC_Group::removeFromGroup($uid,$group);
             OC_Log::write('saml','Removed "'.$uid.'" from the group "'.$group.'"', OC_Log::DEBUG);
         }
-        foreach($groups as $group) {
-            if (preg_match( '/[^a-zA-Z0-9 _\.@\-]/', $group)) {
-                OC_Log::write('saml','Invalid group "'.$group.'", allowed chars "a-zA-Z0-9" and "_.@-" ',OC_Log::DEBUG);
-            }
-            else {
-                if (!OC_Group::groupExists($group)) {
-                    OC_Group::createGroup($group);
-                    OC_Log::write('saml','New group created: '.$group, OC_Log::DEBUG);
-                } 
-                if (OC_Group::groupExists($group) && !OC_Group::inGroup($uid, $group)) {
-                    OC_Group::addToGroup($uid, $group);
-                    OC_Log::write('saml','Added "'.$uid.'" to the group "'.$group.'"', OC_Log::DEBUG);
+        if ($addToGroups) {
+            foreach($groups as $group) {
+                if (preg_match( '/[^a-zA-Z0-9 _\.@\-]/', $group)) {
+                    OC_Log::write('saml','Invalid group "'.$group.'", allowed chars "a-zA-Z0-9" and "_.@-" ',OC_Log::DEBUG);
+                }
+                else {
+                    if (!OC_Group::groupExists($group)) {
+                        OC_Group::createGroup($group);
+                        OC_Log::write('saml','New group created: '.$group, OC_Log::DEBUG);
+                    } 
+                    if (OC_Group::groupExists($group) && !OC_Group::inGroup($uid, $group)) {
+                        OC_Group::addToGroup($uid, $group);
+                        OC_Log::write('saml','Added "'.$uid.'" to the group "'.$group.'"', OC_Log::DEBUG);
+                    }
                 }
             }
         }
