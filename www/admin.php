@@ -204,7 +204,8 @@ $activefilter["lastLogin"] = Array();
 $activefilter["canLogin"] = Array(1);
 $activefilter["active"] = Array();
 
-if (isset($_COOKIE["filter_personen"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_personen"]), true);
+if (isset($_COOKIE["filter_personen"]) && !isset($_REQUEST["filter_personen_set"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_personen"]), true);
+if (isset($_REQUEST["filter_personen"])) { if (is_array($_REQUEST["filter_personen_name"])) { $activefilter["name"] = $_REQUEST["filter_personen_name"]; } else {   $activefilter["name"] = Array(); } }
 if (isset($_REQUEST["filter_personen_name"])) { if (is_array($_REQUEST["filter_personen_name"])) { $activefilter["name"] = $_REQUEST["filter_personen_name"]; } else {   $activefilter["name"] = Array(); } }
 if (isset($_REQUEST["filter_personen_email"])) { if (is_array($_REQUEST["filter_personen_email"])) { $activefilter["email"] = $_REQUEST["filter_personen_email"]; } else { $activefilter["email"] = Array(); } }
 if (isset($_REQUEST["filter_personen_unirzlogin"])) { if (is_array($_REQUEST["filter_personen_unirzlogin"])) { $activefilter["unirzlogin"] = $_REQUEST["filter_personen_unirzlogin"]; } else { $activefilter["unirzlogin"] = Array(); } }
@@ -225,7 +226,7 @@ $activefilter["active"] = Array(1);
 $activefilter["mitglieder"] = Array();
 $activefilter["problem"] = Array();
 
-if (isset($_COOKIE["filter_gremien"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
+if (isset($_COOKIE["filter_gremien"]) && !isset($_REQUEST["filter_gremien_set"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
 if (isset($_REQUEST["filter_gremien_name"])) { if (is_array($_REQUEST["filter_gremien_name"])) { $activefilter["name"] = $_REQUEST["filter_gremien_name"]; } else {   $activefilter["name"] = Array(); } }
 if (isset($_REQUEST["filter_gremien_fakultaet"])) { if (is_array($_REQUEST["filter_gremien_fakultaet"])) { $activefilter["fakultaet"] = $_REQUEST["filter_gremien_fakultaet"]; } else { $activefilter["fakultaet"] = Array(); } }
 if (isset($_REQUEST["filter_gremien_studiengang"])) { if (is_array($_REQUEST["filter_gremien_studiengang"])) { $activefilter["studiengang"] = $_REQUEST["filter_gremien_studiengang"]; } else { $activefilter["studiengang"] = Array(); } }

@@ -105,6 +105,7 @@ asort($filter["problem"]);
 ?>
 <form class="tr" style="background-color: lightyellow;" action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
  <div class="td">Filter: <input type="submit" name="submit" value="filtern"/>
+             <input type="hidden" name="filter_gremien_set" value=""/>
              <input type="submit" name="submit" value="zurücksetzen"/>
      <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_gremien_name=&filter_gremien_fakultaet=&filter_gremien_studiengang=&filter_gremien_studiengangabschluss=&filter_gremien_active=&filter_gremien_mitglieder=&filter_gremien_problem=#gremium');?>">kein Filter</a>
  </div>

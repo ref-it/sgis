@@ -48,6 +48,7 @@ asort($filter["active"]);
 ?>
 <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" class="tr" style="background-color: lightyellow;">
  <div class="td">Filter: <input type="submit" name="submit" value="filtern"/>
+             <input type="hidden" name="filter_personen_set" value=""/>
              <input type="submit" name="submit" value="zurücksetzen"/>
      <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_personen_name=&filter_personen_email=&filter_personen_unirzlogin=&filter_personen_username=&filter_personen_lastLogin=&filter_personen_canLogin=&filter_personen_active=#person');?>">kein Filter</a>
  </div>
