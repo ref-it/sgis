@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<info>
+       <id>user_sgis</id>
+       <name>SGIS user backend</name>
+       <description>Authenticate Users by SGIS</description>
+       <licence>AGPL</licence>
+       <author>Michael Braun &lt;michael-dev (at) fami-braun (dot) de &gt;</author>
+       <require>4.9</require>
+       <shipped>false</shipped>
+       <types>
+       		<authentication/>
+       </types>
+</info>
