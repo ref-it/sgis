@@ -14,7 +14,7 @@ function encrypt( $msg, $k, $base64 = true ) {
 
 	$msg  = mcrypt_generic($td, $msg);			    # encrypt
 	$msg  = $iv . $msg;							  # prepend iv
-	$mac  = self::pbkdf2($msg, $k, 1000, 32);	    # create mac
+	$mac  = pbkdf2($msg, $k, 1000, 32);	    # create mac
 	$msg .= $mac;							      # append mac
 
 	mcrypt_generic_deinit($td);					  # clear buffers
@@ -36,7 +36,7 @@ function decrypt( $msg, $k, $base64 = true ) {
 	$mo  = strlen($msg) - 32;						      # mac offset
 	$em  = substr($msg, $mo);						      # extract mac
 	$msg = substr($msg, 32, strlen($msg)-64);		      # extract ciphertext
-	$mac = self::pbkdf2($iv . $msg, $k, 1000, 32);	  # create mac
+	$mac = pbkdf2($iv . $msg, $k, 1000, 32);	  # create mac
 
 	if ( $em !== $mac )								  # authenticate mac
 		return false;

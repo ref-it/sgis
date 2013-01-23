@@ -263,6 +263,8 @@ $script[] = '$( "form" ).submit(function (ev) {
        }
        if (values.ret && confirm(txt)) {
          self.location.replace(action);
+         self.location.reload();
+         self.location.replace(action);
        } else {
          if (values.ret && close.length == 1) {
            close.click();

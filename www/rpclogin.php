@@ -16,6 +16,7 @@ function handleLogin() {
 		return $ret;
 	}
 	$login = json_decode($login, true);
+	$ret["nonce"] = $login["nonce"];
 	$person = getPersonDetailsByUsername($login["username"]);
 	if ($person === false) {
 		$ret["status"] = "badlogin";
@@ -24,7 +25,8 @@ function handleLogin() {
 		return $ret;
 	}
 	$ret["person"] = $person;
-	$grps = Array("sgis");
+	unset($ret["person"]["password"]);
+	$grps = Array();
 	foreach (getPersonGruppe($person["id"]) as $grp) {
 		$grps[] = $grp["name"];
 	}
@@ -35,7 +37,7 @@ function handleLogin() {
 		$canLogin = in_array("canLogin", $grps);
 	}
 	$ret["canLogin"] = $canLogin;
-    	if (!$pwObj->verifyPasswordHash($login["password"], $person["password"])) {
+    	if (!@$pwObj->verifyPasswordHash($login["password"], $person["password"])) {
 		$ret["status"] = "badlogin";
 		$ret["msg"]    = "wrong password";
 		return $ret;
