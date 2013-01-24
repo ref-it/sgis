@@ -196,16 +196,16 @@ if ((count($alle_gruppen) > $_COOKIE["gruppe_start"] + 2 * $_COOKIE["gruppe_leng
 if ($_COOKIE["gruppe_length"] > 0):
  for($i = $_COOKIE["gruppe_length"] ; $i < count($alle_gruppen); $i = $i +  $_COOKIE["gruppe_length"]):
   if ($i < $_COOKIE["gruppe_start"] || $i > $_COOKIE["gruppe_start"]): 
-?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gruppe_start=<?=$i;?>#gruppe" title="<?=htmlspecialchars($alle_gruppen[$i]["email"]);?>"><?=$i;?></a></li><?
+?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gruppe_start=<?=$i;?>#gruppe" title="<?=htmlspecialchars($alle_gruppen[$i]["name"]);?>"><?=$i;?></a></li><?
   endif;
   if ($i < $prev && $i + $_COOKIE["gruppe_length"] > $prev): 
-?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gruppe_start=<?=$prev;?>#gruppe" title="<?=htmlspecialchars($alle_gruppen[$prev]["email"]);?>">&lt;</a></li><?
+?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gruppe_start=<?=$prev;?>#gruppe" title="<?=htmlspecialchars($alle_gruppen[$prev]["name"]);?>">&lt;</a></li><?
   endif;
   if ($i <= $_COOKIE["gruppe_start"] && $i + $_COOKIE["gruppe_length"] > $_COOKIE["gruppe_start"]): 
 ?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gruppe_start=<?=$_COOKIE["gruppe_start"];?>#gruppe">[<?=$_COOKIE["gruppe_start"];?>]</a></li><?
   endif;
   if ($i < $next && $i + $_COOKIE["gruppe_length"] > $next): 
-?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gruppe_start=<?=$next;?>#gruppe" title="<?=htmlspecialchars($alle_gruppen[$next]["email"]);?>">&gt;</a></li><?
+?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gruppe_start=<?=$next;?>#gruppe" title="<?=htmlspecialchars($alle_gruppen[$next]["name"]);?>">&gt;</a></li><?
   endif;
  endfor;
 endif; ?>
