@@ -17,8 +17,23 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
   foreach ($alle_mailinglisten as $mailingliste) {
     $list = $mailingliste["address"];
     if (!in_array($list, $_POST["commit"])) continue;
-    $url = $mailingliste["url"]; $url = str_replace("mailman/listinfo", "mailman/admin", $url)."/members";
+    $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"]);
     $password = $mailingliste["password"];
+    if (true) {
+      $getFields = Array();
+      $postFields = Array();
+      $postFields["adminpw"] = $password;
+      $postFields["subscribe_policy"] = 2; // Bestätigung / Genehmigung
+      $postFields["private_roster"] = 2; // nur Admin darf Mitglieder auflisten
+      commitPage($url."/privacy/subscribing", $postFields, $getFields);
+    }
+    if (true) {
+      $getFields = Array();
+      $postFields = Array();
+      $postFields["adminpw"] = $password;
+      $postFields["archive_private"] = 1; // private archive
+      commitPage($url."/archive", $postFields, $getFields);
+    }
     if (isset($_POST["addmember"][$list])) {
       $getFields = Array();
       $postFields = Array();
@@ -28,7 +43,7 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["send_notifications_to_list_owner"] = 1; # send notify
       $postFields["subscribees"] = join("\n", $_POST["addmember"][$list])."\n";
       $postFields["invitation"] = "";
-      commitMembersParsePage($url."/add", $postFields, $getFields);
+      commitPage($url."/members/add", $postFields, $getFields);
     }
     if (isset($_POST["delmember"][$list])) {
       $getFields = Array();
@@ -37,7 +52,7 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["send_unsub_ack_to_this_batch"] = 0; # don't tell unsubscriber
       $postFields["send_unsub_notifications_to_list_owner"] = 1; # tell owner
       $postFields["unsubscribees"] = join("\n", $_POST["delmember"][$list])."\n";
-      commitMembersParsePage($url."/remove", $postFields, $getFields);
+      commitPage($url."/members/remove", $postFields, $getFields);
     }
   }
 } elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0) {
@@ -69,7 +84,7 @@ function fetchMembers($url, $password) {
 
 }
 
-function commitMembersParsePage($url, $postFields, $getFields) {
+function commitPage($url, $postFields, $getFields) {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url.'?'.http_build_query($getFields));
 	curl_setopt($ch, CURLOPT_POST, 1);
