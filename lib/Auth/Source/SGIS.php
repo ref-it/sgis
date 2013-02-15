@@ -97,6 +97,10 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_sgis_Auth_UserPassBaseCookie {
 		} else {
 	                $attributes["displayName"] = Array($user["email"]);
 		}
+		$query = $this->pdo->prepare("SELECT DISTINCT m.address FROM {$prefix}mailingliste m INNER JOIN {$prefix}rel_rolle_mailingliste rrm ON m.id = rrm.mailingliste_id INNER JOIN {$prefix}rel_mitgliedschaft rm ON rrm.rolle_id = rm.rolle_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ?");
+		$query->execute(array($user["id"]));
+		$mailinglists = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
+                $attributes["mailinglists"] = array_unique($mailinglists);
 
 		$query = $this->pdo->prepare("UPDATE {$prefix}person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
 		$query->execute(Array($user["id"]));
