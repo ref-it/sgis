@@ -126,7 +126,7 @@ class auth_ssp extends auth_basic {
     }
  
     // the next line should be discommented to enable guest users (not authenticated) enter DokuWiki, see also documentation
-    if (($_REQUEST["do"] == "login") || !empty($user)) {
+    if ($_REQUEST["do"] == "login") {
 
 	    $this->as->requireAuth();
 	    $attrs = $this->as->getAttributes();
