@@ -118,11 +118,11 @@ foreach ($mapping as $wiki => $data) {
   foreach ($data as $gremium_id => $data2) {
     $g = $name_gremien[$gremium_id];
     $gname = preg_replace("/\s+/"," ",trim("{$g["gremium_name"]} {$g["gremium_fakultaet"]} {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]}"));
-    $text[] = "===== Gremium $gname =====";
+    $text[] = "===== $gname =====";
     foreach ($data2 as $rolle_id => $personen) {
       $text[] = "";
       $r = $name_rollen[$gremium_id][$rolle_id];
-      $text[] = "==== Rolle {$g["rolle_name"]} ====";
+      $text[] = "==== {$g["rolle_name"]} ====";
       if (!empty($personen["active"])) {
         uasort($personen["active"], 'cmpPerson');
         $text[] = "=== aktive Mitglieder ===";
