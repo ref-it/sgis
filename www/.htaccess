@@ -4,3 +4,4 @@ php_value error_log  /var/www.iscsi/tu-ilmenau.de/helfer.stura/sgis/PHP_errors.l
 SetENV TMP /var/www.iscsi/tu-ilmenau.de/helfer.stura/sgis/tmp/
 SetENV TMPDIR /var/www.iscsi/tu-ilmenau.de/helfer.stura/sgis/tmp/
 SetENV TEMP /var/www.iscsi/tu-ilmenau.de/helfer.stura/sgis/tmp/
+php_value include_path "/var/www/tu-ilmenau.de/helfer.stura/pear/pear/php:."

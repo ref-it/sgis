@@ -1,0 +1,2 @@
+ - depdendency:
+   - pear: XML_RPC2, Text_Diff

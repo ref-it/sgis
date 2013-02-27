@@ -1,6 +1,6 @@
 <?php
 
-global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP;
+global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP, $rpcKey, $wikiUrl, $CA_file;
 
 $DB_DSN = "FIXME";
 $DB_USERNAME = "FIXME";
@@ -12,4 +12,7 @@ $SIMPLESAMLAUTHSOURCE = "FIXME";
 $AUTHGROUP = "FIXME";
 # admin groups (comma separated)
 $ADMINGROUP = "FIXME";
-
+$rpcKey = "FIXME"; # ownCloud shared secret
+# dokuwiki exporter
+$wikiUrl = "https://sgis:PASSWORD@WIKIHOST"; # + /lib/exe/xmlrpc.php -> valid path
+$CA_file = dirname(__FILE__).'/ca.pem';

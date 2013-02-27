@@ -56,7 +56,7 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
     }
   }
 } elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0) {
-  echo "<b class=\"msg\">Captcha falsch/fehlt</b>";
+  echo "<b class=\"msg\">CSRF Schutz fehlgeschlagen</b>";
 }
 
 ?>
