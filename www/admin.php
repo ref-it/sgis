@@ -264,15 +264,6 @@ $script[] = '$( "form" ).submit(function (ev) {
     var close = $(this).find("input[type=reset]");
     var data = new FormData(this);
     data.append("ajax", 1);
-/*
-    $(this).find("input[type=file]").each(function (idx, elem) {
-     var files = $(elem).prop("files");
-     if (files.length < 1) { return; }
-     var file = files[0];
-     var name = $(elem).attr("name");
-     data.append( name, file);
-    });
-*/
     $.ajax({
       url: action,
       data: data,
