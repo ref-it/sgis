@@ -8,7 +8,7 @@
   <a href="#" onClick="$('#insertG').dialog('open'); return false;" title="Gremium anlegen">[NEU]</a>
   <div id="insertG" title="neues Gremium anlegen" class="editgremiumdialog">
     <noscript><h4>Neues Gremium anlegen</h4></noscript>
-    <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+    <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
      <ul>
      <li><label for="name">Name:</label><input type="text" name="name" value=""/></li>
      <li><label for="fakultaet">Fakultät:</label><input type="text" name="fakultaet" value=""/><br/>
@@ -18,7 +18,7 @@
      <li><label for="studiengangabschluss">Stg-Abschluss:</label><input type="text" name="studiengangabschluss" value=""/><br/>
          (Bachelor oder Master, leer lassen falls Gremium alle Abschlüsse abdeckt)</li>
      <li><label for="wiki_members">Wiki-Seite mit Mitgliederliste:</label><input type="text" name="wiki_members" value=""/><br/>
-         (beispw. :gremium:mitglieder:stura:%LEGISLATUR%)</li>
+         (beispw. :sgis:mitglieder:studierendenrat)</li>
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
          <select name="active" size="1" selected="selected"><option value="1" >Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
      </li>
@@ -103,7 +103,7 @@ asort($filter["problem"]);
 
 
 ?>
-<form class="tr" style="background-color: lightyellow;" action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+<form class="tr" style="background-color: lightyellow;" action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
  <div class="td">Filter: <input type="submit" name="submit" value="filtern"/>
              <input type="hidden" name="filter_gremien_set" value=""/>
              <input type="submit" name="submit" value="zurücksetzen"/>
@@ -128,7 +128,7 @@ foreach ($struct_gremien as $i => $gremium):
   <a href="#" onClick="$('#deleteG<?=$gremium["id"];?>').dialog('open'); return false;" titel="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> löschen" >[X]</a>
   <div id="deleteG<?=$gremium["id"];?>" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> entfernen" class="editgremiumdialog">
    <noscript><h4>Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> entfernen</h4></noscript>
-   <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+   <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
     <ul>
      <li>ID: <?php echo $gremium["id"];?></li>
      <li><label for="name"                >Name:                      </label><input type="text" name="name" value="<?php echo htmlspecialchars($gremium["name"],ENT_QUOTES);?>" readonly="readonly"/></li>
@@ -169,7 +169,7 @@ endif;
   <a href="#" onClick="$('#editG<?=$gremium["id"];?>').dialog('open'); return false;" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten">[E]</a>
   <div id="editG<?=$gremium["id"];?>" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten" class="editgremiumdialog">
    <noscript><h4>Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten</h4></noscript>
-   <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+   <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
     <ul>
      <li>ID: <?php echo $gremium["id"];?></li>
      <li><label for="name">Name:</label><input type="text" name="name" value="<?php echo htmlspecialchars($gremium["name"],ENT_QUOTES);?>" /></li>
@@ -195,7 +195,7 @@ endif;
      <a href="#" onClick="$('#insertG<?=$gremium["id"];?>R').dialog('open'); return false;" titel="Rolle einfügen" >[NEU]</a>
      <div id="insertG<?=$gremium["id"];?>R" title="Rolle einfügen">
       <noscript><h4>Rolle einfügen</h4></noscript>
-      <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+      <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
        <ul>
         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
         <li>Rolle: <input type="text" name="name" value=""/></li>
@@ -230,7 +230,7 @@ foreach($rollen as $rolle):
      <a href="#" onClick="$('#editG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('open'); return false;" titel="Rollen bearbeiten" >[E]</a>
      <div id="editG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>" title="Rolle bearbeiten">
       <noscript><h4>Rolle bearbeiten</h4></noscript>
-      <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+      <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
        <ul>
         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
         <li>Rolle: <input type="text" name="name" value="<?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?>"/></li>
@@ -255,7 +255,7 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
         <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>P').dialog('open'); return false;" titel="Personen-Rollenzuordnung einfügen" >[NEU]</a>
         <div id="insertR<?=$rolle["rolle_id"];?>P" title="Personen-Rollenzuordnung einfügen" class="editpersonrole">
          <noscript><h4>Personen-Rollenzuordnung einfügen</h4></noscript>
-         <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+         <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -294,7 +294,7 @@ foreach ($current_personen as $person):
         <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('open'); return false;" titel="Personen-Rollenzuordnung entfernen" >[X]</a>
         <div id="deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>" title="Personen-Rollenzuordnung entfernen">
          <noscript><h4>Personen-Rollenzuordnung entfernen</h4></noscript>
-         <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+         <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -325,7 +325,7 @@ foreach ($current_personen as $person):
         <a href="#" onClick="$('#editR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten" >[E]</a>
         <div id="editR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>" title="Rollenzuordnung bearbeiten" class="editpersonrole">
          <noscript><h4>Rollenzuordnung bearbeiten</h4></noscript>
-         <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+         <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -374,7 +374,7 @@ endif;
       <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>Pmass').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten (Mehrfacheintragung)" >[Mehrfacheintragung]</a>
       <div id="insertR<?=$rolle["rolle_id"];?>Pmass" title="Rollenzuordnung bearbeiten (Mehrfacheintragung)" class="editpersonrole">
        <noscript><h4>Rollenzuordnung hinzufügen (Mehrfacheintragung)</h4></noscript>
-       <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+       <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
         <ul>
          <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
          <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -398,7 +398,7 @@ endif;
       <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>Pmass').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten (Mehrfachaustragung)" >[Mehrfachaustragung]</a>
       <div id="deleteR<?=$rolle["rolle_id"];?>Pmass" title="Rollenzuordnung bearbeiten (Mehrfachaustragung)" class="editpersonrole">
        <noscript><h4>Rollenzuordnung entfernen (Mehrfachaustragung)</h4></noscript>
-       <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+       <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
         <ul>
          <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
          <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -421,7 +421,7 @@ endif;
         <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>GRP').dialog('open'); return false;" titel="Gruppen-Rollenzuordnung einfügen" >[NEU]</a>
         <div id="insertR<?=$rolle["rolle_id"];?>GRP" title="Gruppen-Rollenzuordnung einfügen">
          <noscript><h4>Gruppen-Rollenzuordnung einfügen</h4></noscript>
-         <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+         <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -452,7 +452,7 @@ foreach ($current_gruppen as $gruppe):
         <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>GRP<?=$gruppe["id"];?>').dialog('open'); return false;" titel="Gruppen-Rollenzuordnung entfernen" >[X]</a>
         <div id="deleteR<?=$rolle["rolle_id"];?>GRP<?=$gruppe["id"];?>" title="Gruppen-Rollenzuordnung entfernen">
           <noscript><h4>Gruppen-Rollenzuordnung entfernen</h4></noscript>
-          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -483,7 +483,7 @@ endif;
         <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>ML').dialog('open'); return false;" titel="Mailinglisten-Rollenzuordnung einfügen" >[NEU]</a>
          <div id="insertR<?=$rolle["rolle_id"];?>ML" title="Mailinglisten-Rollenzuordnung einfügen">
           <noscript><h4>Mailinglisten-Rollenzuordnung einfügen</h4></noscript>
-          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -512,7 +512,7 @@ foreach ($current_mailinglisten as $mailingliste):
         <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>ML<?=$mailingliste["id"];?>').dialog('open'); return false;" titel="Mailinglisten-Rollenzuordnung entfernen" >[X]</a>
         <div id="deleteR<?=$rolle["rolle_id"];?>ML<?=$mailingliste["id"];?>" title="Mailinglisten-Rollenzuordnung entfernen">
           <noscript><h4>Mailinglisten-Rollenzuordnung entfernen</h4></noscript>
-          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -543,7 +543,7 @@ endif;
    <a href="#" onClick="$('#deleteG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('open'); return false;" titel="Rollen entfernen" >[X]</a>
    <div id="deleteG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>" title="Rolle löschen">
      <noscript><h4>Rolle entfernen</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
      <ul>
      <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
      <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
@@ -624,7 +624,7 @@ if ($_COOKIE["gremium_length"] > 0):
 endif; ?>
 <?php if ($_COOKIE["gremium_start"] + $_COOKIE["gremium_length"] < count($struct_gremien)): ?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"])?>?gremium_start=<?=count($struct_gremien) - $_COOKIE["gremium_length"];?>#gremium">&gt;&gt;</a></li><? endif; ?>
 </ul>
-<form action="<?=htmlentities($_SERVER["PHP_SELF"]);?>#gremium" method="POST">
+<form action="<?=htmlentities($_SERVER["PHP_SELF"]);?>#gremium" method="POST" enctype="multipart/form-data">
 Einträge je Seite: <input type="text" name="gremium_length" value="<?=htmlentities($_COOKIE["gremium_length"]);?>"/>
 <input type="submit" name="submit" value="Auswählen"/><input type="reset" name="reset" value="Zurücksetzen"/>
 </form>

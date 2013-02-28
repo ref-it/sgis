@@ -8,7 +8,7 @@
   <a href="#" onClick="$('#insertML').dialog('open'); return false;" title="Mailingliste anlegen">[NEU]</a>
   <div id="insertML" title="neue Mailingliste anlegen" class="editmldialog">
     <noscript><h4>Neue Mailingliste anlegen</h4></noscript>
-    <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST">
+    <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST" enctype="multipart/form-data">
      <ul>
      <li><label for="address">Adresse:</label><input type="text" name="address" value=""/><br/>
          Beispiel: ref-xxx@stura.tu-ilmenau.de</li>
@@ -37,7 +37,7 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
    <a href="#" onClick="$('#deleteML<?=$mailingliste["id"];?>').dialog('open'); return false;" titel="Mailingliste <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?> löschen" >[X]</a>
    <div id="deleteML<?=$mailingliste["id"];?>" title="Mailingliste <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?> entfernen" class="editmldialog">
      <noscript><h4>Mailingliste <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?> entfernen</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST" enctype="multipart/form-data">
      <ul>
      <li>ID: <?php echo $mailingliste["id"];?></li>
      <li><label for="address">Adresse:</label><input type="text" name="address" value="<?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?>" readonly="readonly"/></li>
@@ -54,7 +54,7 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
    <a href="#" onClick="$('#editML<?=$mailingliste["id"];?>').dialog('open'); return false;" title="Mailingliste <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?> bearbeiten">[E]</a>
    <div id="editML<?=$mailingliste["id"];?>" title="Mailingliste <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?> bearbeiten" class="editmldialog">
      <noscript><h4>Mailingliste <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?> bearbeiten</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST" enctype="multipart/form-data">
      <ul>
      <li>ID: <?php echo $mailingliste["id"];?></li>
      <li><label for="address">Adresse:</label><input type="text" name="address" value="<?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?>"/></li>
@@ -74,7 +74,7 @@ foreach ($alle_mailinglisten as $i => $mailingliste):
    <a href="#" onClick="$('#insertML<?=$mailingliste["id"];?>R').dialog('open'); return false;" titel="Rollenzuordnung einfügen" >[NEU]</a>
    <div id="insertML<?=$mailingliste["id"];?>R" title="Rollenzuordnung einfügen">
      <noscript><h4>Rollenzuordnung einfügen</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST" enctype="multipart/form-data">
      <ul>
      <li>Mailingliste: <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?></li>
      <li>Rolle/Gremium:
@@ -123,7 +123,7 @@ foreach($gremien as $gremium):
    <a href="#" onClick="$('#deleteML<?=$mailingliste["id"];?>R<?=$gremium["rolle_id"];?>').dialog('open'); return false;" titel="Rollenzuordnung aufheben" >[X]</a>
    <div id="deleteML<?=$mailingliste["id"];?>R<?=$gremium["rolle_id"];?>" title="Rollenzuordnung aufheben">
      <noscript><h4>Rollenzuordnung aufheben</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#mailingliste" method="POST" enctype="multipart/form-data">
      <ul>
      <li>Mailingliste: <?php echo htmlspecialchars($mailingliste["address"],ENT_QUOTES);?></li>
      <li>Gremium/Rolle: <?php echo htmlspecialchars($gremium["rolle_name"]." ".$gremium["gremium_name"]." ".$gremium["gremium_fakultaet"]." ".$gremium["gremium_studiengang"]." ".$gremium["gremium_studiengangabschluss"],ENT_QUOTES);?></li>
@@ -217,7 +217,7 @@ if ($_COOKIE["mailingliste_length"] > 0):
 endif; ?>
 <?php if ($_COOKIE["mailingliste_start"] + $_COOKIE["mailingliste_length"] < count($alle_mailinglisten)): ?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"])?>?mailingliste_start=<?=count($alle_mailinglisten) - $_COOKIE["mailingliste_length"];?>#mailingliste">&gt;&gt;</a></li><? endif; ?>
 </ul>
-<form action="<?=htmlentities($_SERVER["PHP_SELF"]);?>#mailingliste" method="POST">
+<form action="<?=htmlentities($_SERVER["PHP_SELF"]);?>#mailingliste" method="POST" enctype="multipart/form-data">
 Einträge je Seite: <input type="text" name="mailingliste_length" value="<?=htmlentities($_COOKIE["mailingliste_length"]);?>"/>
 <input type="submit" name="submit" value="Auswählen"/><input type="reset" name="reset" value="Zurücksetzen"/>
 </form>

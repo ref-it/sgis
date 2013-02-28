@@ -46,7 +46,7 @@ $filter["active"] = Array(0 => "Nein", 1 => "Ja");
 asort($filter["active"]);
 
 ?>
-<form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" class="tr" style="background-color: lightyellow;">
+<form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" class="tr" style="background-color: lightyellow;" enctype="multipart/form-data">
  <div class="td">Filter: <input type="submit" name="submit" value="filtern"/>
              <input type="hidden" name="filter_personen_set" value=""/>
              <input type="submit" name="submit" value="zurücksetzen"/>
@@ -65,7 +65,7 @@ asort($filter["active"]);
   <a href="#" onClick="$('#insertP').dialog('open'); return false;" title="Person anlegen">[NEU]</a>
   <div id="insertP" title="neue Person anlegen" class="editmldialog">
     <noscript><h4>Neue Person anlegen</h4></noscript>
-    <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST">
+    <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" enctype="multipart/form-data">
      <ul>
      <li><label for="name"      >Name:                  </label><input type="text" name="name"       value=""/></li>
      <li><label for="email"     >E-Mail:                </label><input type="text" name="email"      value=""/><br/>
@@ -77,6 +77,9 @@ asort($filter["active"]);
      <li><label for="canlogin"  >Login erlaubt?:        </label>
          <select name="canlogin" size="1"><option value="1" selected="selected">erlaubt, außer während zur Gruppe cannotLogin zugehörig</option><option value="0">nicht erlaubt, außer während zur Gruppe canLogin zugehörig</option></select><br/>
 	 (nicht erlaubt für Dummy-eMail-Adressen auf Mailinglisten und sonstige Ausnahmen nutzen)</li>
+     <li><label for="csv"       >Datei importieren:        </label>
+         <input type="file" name="csv" accept="text/comma-separated-values"><br/>
+         (optional, Trennung durch Komma, Texttrenner: ", Spalten: Name, eMail, erste Zeile ist Kopfzeile, "Login-Erlaubt"-Wert wird aus Eingabe übernommen.)</li>
      </ul>
      <input type="hidden" name="action" value="person.insert"/>
      <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
@@ -98,7 +101,7 @@ foreach ($struct_personen as $i => $person):
    <a href="#" onClick="$('#deleteP<?=$person["id"];?>').dialog('open'); return false;" titel="Person <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?> löschen" >[X]</a>
    <div id="deleteP<?=$person["id"];?>" title="Person <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?> entfernen" class="editmldialog">
      <noscript><h4>Person <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?> entfernen</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" enctype="multipart/form-data">
      <ul>
      <li>ID: <?php echo $person["id"];?></li>
      <li><label for="name"      >Name:                  </label><input type="text" name="name"       value="<?php echo htmlspecialchars($person["name"],ENT_QUOTES);?>" readonly="readonly"/></li>
@@ -164,7 +167,7 @@ endif;
    <a href="#" onClick="$('#editP<?=$person["id"];?>').dialog('open'); return false;" title="Person <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?> bearbeiten">[E]</a>
    <div id="editP<?=$person["id"];?>" title="Person <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?> bearbeiten" class="editmldialog">
      <noscript><h4>Person <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?> bearbeiten</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" enctype="multipart/form-data">
      <ul>
      <li>ID: <?php echo $person["id"];?></li>
      <li><label for="name"      >Name:                  </label><input type="text" name="name"       value="<?php echo htmlspecialchars($person["name"],ENT_QUOTES);?>" /></li>
@@ -190,7 +193,7 @@ endif;
    <a href="#" onClick="$('#insertP<?=$person["id"];?>R').dialog('open'); return false;" titel="Rollenzuordnung einfügen" >[NEU]</a>
    <div id="insertP<?=$person["id"];?>R" title="Rollenzuordnung einfügen" class="editpersonrole">
      <noscript><h4>Rollenzuordnung einfügen</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" enctype="multipart/form-data">
      <ul>
      <li>Person: <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?></li>
      <li>Rolle/Gremium:
@@ -246,7 +249,7 @@ foreach($gremien as $gremium):
    <a href="#" onClick="$('#deleteP<?=$person["id"];?>R<?=$gremium["id"];?>').dialog('open'); return false;" titel="Rollenzuordnung aufheben" >[X]</a>
    <div id="deleteP<?=$person["id"];?>R<?=$gremium["id"];?>" title="Rollenzuordnung aufheben" class="editpersonrole">
      <noscript><h4>Rollenzuordnung aufheben</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" enctype="multipart/form-data">
      <ul>
      <li><span class="label">ID:</span> <?php echo htmlspecialchars($gremium["id"],ENT_QUOTES);?></li>
      <li><span class="label">Person:</span> <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?></li>
@@ -276,7 +279,7 @@ if (empty($gremium["von"]) && empty($gremium["bis"])) {
    <a href="#" onClick="$('#editP<?=$person["id"];?>R<?=$gremium["id"];?>').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten" >[E]</a>
    <div id="editP<?=$person["id"];?>R<?=$gremium["id"];?>" title="Rollenzuordnung bearbeiten" class="editpersonrole">
      <noscript><h4>Rollenzuordnung bearbeiten</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#person" method="POST" enctype="multipart/form-data">
      <ul>
      <li>ID: <?php echo htmlspecialchars($gremium["id"],ENT_QUOTES);?></li>
      <li>Person: <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?></li>
@@ -386,7 +389,7 @@ if ($_COOKIE["person_length"] > 0):
 endif; ?>
 <?php if ($_COOKIE["person_start"] + $_COOKIE["person_length"] < count($struct_personen)): ?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"])?>?person_start=<?=count($struct_personen) - $_COOKIE["person_length"];?>#person">&gt;&gt;</a></li><? endif; ?>
 </ul>
-<form action="<?=htmlentities($_SERVER["PHP_SELF"]);?>#person" method="POST">
+<form action="<?=htmlentities($_SERVER["PHP_SELF"]);?>#person" method="POST" enctype="multipart/form-data">
 Einträge je Seite: <input type="text" name="person_length" value="<?=htmlentities($_COOKIE["person_length"]);?>"/>
 <input type="submit" name="submit" value="Auswählen"/><input type="reset" name="reset" value="Zurücksetzen"/>
 </form>

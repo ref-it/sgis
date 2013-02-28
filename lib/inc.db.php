@@ -280,14 +280,16 @@ function dbPersonUpdate($id,$name,$email,$unirzlogin,$username,$password,$canlog
   return $ret1 && $ret2 && $ret3;
 }
 
-function dbPersonInsert($name,$email,$unirzlogin,$username,$password,$canlogin) {
+function dbPersonInsert($name,$email,$unirzlogin,$username,$password,$canlogin, $quiet=false) {
   global $pdo, $DB_PREFIX, $pwObj;
   if (empty($name)) $name = NULL;
   if (empty($unirzlogin)) $unirzlogin = NULL;
   if (empty($username)) $username = NULL;
   if (empty($password)) { $passwordHash = NULL;  } else { $passwordHash = @$pwObj->createPasswordHash($password); }
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person (name, email, unirzlogin, username, password, canLogin) VALUES (?, ?, ?, ?, ?, ?)");
-  return $query->execute(Array($name, $email, $unirzlogin, $username, $passwordHash, $canlogin)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($name, $email, $unirzlogin, $username, $passwordHash, $canlogin));
+  if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
+  return $ret;
 }
 
 function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$kommentar) {

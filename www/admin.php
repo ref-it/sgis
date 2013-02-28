@@ -60,8 +60,21 @@ if (isset($_POST["action"])) {
    $msgs[] = "Person wurde aktualisiert.";
   break;
   case "person.insert":
-   $ret = dbPersonInsert($_POST["name"],$_POST["email"],$_POST["unirzlogin"],$_POST["username"],$_POST["password"],$_POST["canlogin"]);
-   $msgs[] = "Person wurde angelegt.";
+   $quiet = isset($_FILES["csv"]);
+   $ret = true;
+   if (!empty($_POST["email"])) {
+     $ret = dbPersonInsert($_POST["name"],$_POST["email"],$_POST["unirzlogin"],$_POST["username"],$_POST["password"],$_POST["canlogin"], $quiet);
+     $msgs[] = "Person {$_POST["name"]} wurde ".($ret ? "": "nicht ")."angelegt.";
+   }
+   if ($quiet && (($handle = fopen($_FILES["csv"]["tmp_name"], "r")) !== FALSE)) {
+     fgetcsv($handle, 1000, ",");
+     while (($data = fgetcsv($handle, 0, ",", '"')) !== FALSE) {
+       $ret2 = dbPersonInsert($data[0],$data[1],"","","",$_POST["canlogin"], $quiet);
+       $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".($ret2 ? "": "nicht ")."angelegt.";
+       $ret = $ret && $ret2;
+     }
+     fclose($handle);
+   }
   break;
   case "rolle_person.insert":
    $ret = dbPersonInsertRolle($_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
@@ -249,11 +262,26 @@ $script[] = '$( "form" ).submit(function (ev) {
     var action = $(this).attr("action");
     if ($(this).find("input[name=action]").length + $(this).find("select[name=action]").length == 0) { return true; }
     var close = $(this).find("input[type=reset]");
-    var data = $(this).serializeArray();
-    data.push({"name": "ajax", "value" : "1"});
-    console.log(data);
-    $.post(action, data)
-     .success(function (values, status, req) {
+    var data = new FormData(this);
+    data.append("ajax", 1);
+/*
+    $(this).find("input[type=file]").each(function (idx, elem) {
+     var files = $(elem).prop("files");
+     if (files.length < 1) { return; }
+     var file = files[0];
+     var name = $(elem).attr("name");
+     data.append( name, file);
+    });
+*/
+    $.ajax({
+      url: action,
+      data: data,
+      cache: false,
+      contentType: false,
+      processData: false,
+      type: "POST"
+    })
+    .success(function (values, status, req) {
        var txt = "Die Daten wurden erfolgreich gespeichert.\nSoll die Seite mit den geänderten Daten neu geladen werden?";
        if (values.msgs && values.msgs.length > 0) {
          if (values.ret) {
@@ -280,7 +308,7 @@ $script[] = '$( "form" ).submit(function (ev) {
          }
        }
      })
-     .error(xpAjaxErrorHandler);
+    .error(xpAjaxErrorHandler);
     return false;
    });';
 

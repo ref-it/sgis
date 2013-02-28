@@ -8,7 +8,7 @@
   <a href="#" onClick="$('#insertGRP').dialog('open'); return false;" title="Gruppe anlegen">[NEU]</a>
   <div id="insertGRP" title="neue Gruppe anlegen" class="editmldialog">
     <noscript><h4>Neue Gruppe anlegen</h4></noscript>
-    <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST">
+    <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST" enctype="multipart/form-data">
      <ul>
      <li><label for="name">Name:</label><input type="text" name="name" value=""/></li>
      <li><label for="beschreibung">Beschreibung:</label><input type="text" name="beschreibung" value=""/></li>
@@ -33,7 +33,7 @@ foreach ($alle_gruppen as $i => $gruppe):
    <a href="#" onClick="$('#deleteGRP<?=$gruppe["id"];?>').dialog('open'); return false;" titel="Gruppe <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?> löschen" >[X]</a>
    <div id="deleteGRP<?=$gruppe["id"];?>" title="Gruppe <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?> entfernen" class="editmldialog">
      <noscript><h4>Gruppe <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?> entfernen</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST" enctype="multipart/form-data">
      <ul>
      <li>ID: <?php echo $gruppe["id"];?></li>
      <li><label for="name">Name:</label><input type="text" name="name" value="<?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?>" readonly="readonly"/></li>
@@ -49,7 +49,7 @@ foreach ($alle_gruppen as $i => $gruppe):
    <a href="#" onClick="$('#editGRP<?=$gruppe["id"];?>').dialog('open'); return false;" title="Gruppe <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?> bearbeiten">[E]</a>
    <div id="editGRP<?=$gruppe["id"];?>" title="Gruppe <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?> bearbeiten" class="editmldialog">
      <noscript><h4>Gruppe <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?> bearbeiten</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST" enctype="multipart/form-data">
      <ul>
      <li>ID: <?php echo $gruppe["id"];?></li>
      <li><label for="name">Name:</label><input type="text" name="name" value="<?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?>"/></li>
@@ -68,7 +68,7 @@ foreach ($alle_gruppen as $i => $gruppe):
    <a href="#" onClick="$('#insertGRP<?=$gruppe["id"];?>R').dialog('open'); return false;" titel="Rollenzuordnung einfügen" >[NEU]</a>
    <div id="insertGRP<?=$gruppe["id"];?>R" title="Rollenzuordnung einfügen">
      <noscript><h4>Rollenzuordnung einfügen</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST" enctype="multipart/form-data">
      <ul>
      <li>Gruppe: <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?></li>
      <li>Rolle/Gremium:
@@ -117,7 +117,7 @@ foreach($gremien as $gremium):
    <a href="#" onClick="$('#deleteGRP<?=$gruppe["id"];?>R<?=$gremium["rolle_id"];?>').dialog('open'); return false;" titel="Rollenzuordnung aufheben" >[X]</a>
    <div id="deleteGRP<?=$gruppe["id"];?>R<?=$gremium["rolle_id"];?>" title="Rollenzuordnung aufheben">
      <noscript><h4>Rollenzuordnung aufheben</h4></noscript>
-     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST">
+     <form action="<?php echo $_SERVER["PHP_SELF"];?>#gruppe" method="POST" enctype="multipart/form-data">
      <ul>
      <li>Gruppe: <?php echo htmlspecialchars($gruppe["name"],ENT_QUOTES);?></li>
      <li>Gremium/Rolle: <?php echo htmlspecialchars($gremium["rolle_name"]." ".$gremium["gremium_name"]." ".$gremium["gremium_fakultaet"]." ".$gremium["gremium_studiengang"]." ".$gremium["gremium_studiengangabschluss"],ENT_QUOTES);?></li>
@@ -211,7 +211,7 @@ if ($_COOKIE["gruppe_length"] > 0):
 endif; ?>
 <?php if ($_COOKIE["gruppe_start"] + $_COOKIE["gruppe_length"] < count($alle_gruppen)): ?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"])?>?gruppe_start=<?=count($alle_gruppen) - $_COOKIE["gruppe_length"];?>#gruppe">&gt;&gt;</a></li><? endif; ?>
 </ul>
-<form action="<?=htmlentities($_SERVER["PHP_SELF"]);?>#gruppe" method="POST">
+<form action="<?=htmlentities($_SERVER["PHP_SELF"]);?>#gruppe" method="POST" enctype="multipart/form-data">
 Einträge je Seite: <input type="text" name="gruppe_length" value="<?=htmlentities($_COOKIE["gruppe_length"]);?>"/>
 <input type="submit" name="submit" value="Auswählen"/><input type="reset" name="reset" value="Zurücksetzen"/>
 </form>
