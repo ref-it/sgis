@@ -5,37 +5,45 @@ global $ADMINGROUP;
 require_once "../lib/inc.all.php";
 requireGroup($ADMINGROUP);
 
-require_once "../template/header.tpl";
-
 $validnonce = false;
 if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
  $validnonce = true;
 }
 
+function checkResult($url, $output) {
+  // password ok check
+  if (strpos($output, '<INPUT TYPE="password" NAME="adminpw" SIZE="30">') !== FALSE)
+    die("Fehler beim Abruf von $url - falsches Passwort.");
+}
+
 if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0 && $validnonce) {
   $alle_mailinglisten = getMailinglisten();
+  $writeRequests = Array();
   foreach ($alle_mailinglisten as $mailingliste) {
     $list = $mailingliste["address"];
+    header("X-Progress: $list");
     if (!in_array($list, $_POST["commit"])) continue;
     $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"]);
     $password = $mailingliste["password"];
     if (true) {
-      $getFields = Array();
       $postFields = Array();
       $postFields["adminpw"] = $password;
       $postFields["subscribe_policy"] = 2; // Bestätigung / Genehmigung
+      $postFields["unsubscribe_policy"] = 1; // Genehmigung
       $postFields["private_roster"] = 2; // nur Admin darf Mitglieder auflisten
-      commitPage($url."/privacy/subscribing", $postFields, $getFields);
-    }
-    if (true) {
-      $getFields = Array();
+      $writeRequests[] = Array("url" => $url."/privacy/subscribing", "post" => $postFields);
+
+      $postFields = Array();
+      $postFields["adminpw"] = $password;
+      $postFields["send_reminders"] = 0; // no password reminder
+      $writeRequests[] = Array("url" => $url."/general", "post" => $postFields);
+
       $postFields = Array();
       $postFields["adminpw"] = $password;
       $postFields["archive_private"] = 1; // private archive
-      commitPage($url."/archive", $postFields, $getFields);
+      $writeRequests[] = Array("url" => $url."/archive", "post" => $postFields);
     }
     if (isset($_POST["addmember"][$list])) {
-      $getFields = Array();
       $postFields = Array();
       $postFields["adminpw"] = $password;
       $postFields["subscribe_or_invite"] = 0; # abbonieren
@@ -43,19 +51,29 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["send_notifications_to_list_owner"] = 1; # send notify
       $postFields["subscribees"] = join("\n", $_POST["addmember"][$list])."\n";
       $postFields["invitation"] = "";
-      commitPage($url."/members/add", $postFields, $getFields);
+      $writeRequests[] = Array("url" => $url."/members/add", "post" => $postFields);
     }
     if (isset($_POST["delmember"][$list])) {
-      $getFields = Array();
       $postFields = Array();
       $postFields["adminpw"] = $password;
       $postFields["send_unsub_ack_to_this_batch"] = 0; # don't tell unsubscriber
       $postFields["send_unsub_notifications_to_list_owner"] = 1; # tell owner
       $postFields["unsubscribees"] = join("\n", $_POST["delmember"][$list])."\n";
-      commitPage($url."/members/remove", $postFields, $getFields);
+      $writeRequests[] = Array("url" => $url."/members/remove", "post" => $postFields);
     }
   }
-} elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0) {
+  $writeResults = multiCurlRequest($writeRequests);
+  foreach ($writeResults as $id => $val) {
+    // password ok check
+    checkResult($writeRequests[$id]["url"], $val);
+  }
+  header("Location: ${_SERVER["PHP_SELF"]}");
+  die();
+}
+
+require_once "../template/header.tpl";
+
+if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0 && !$validnonce) {
   echo "<b class=\"msg\">CSRF Schutz fehlgeschlagen</b>";
 }
 
@@ -63,78 +81,86 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
 <h2>Mailinglistenmitgliedschaften aktualisieren</h2>
 <?php
 
-function fetchMembers($url, $password) {
-  $url = str_replace("mailman/listinfo", "mailman/admin", $url)."/members";
-  $members = Array(); $dummy = Array(); $letters = Array(); $number = -1;
+// fetch all members
+// 1. get all letters
+// 2. get all chunks
+// 3. check results
 
-  fetchMembersParsePage($url, Array("adminpw" => $password), Array(), $members, $letters, $dummy, $number);
-  foreach ($letters as $letter) {
-    $chunks = Array();
-    fetchMembersParsePage($url, Array("adminpw" => $password), Array("letter" => $letter), $members, $dummy, $chunks, $dummy);
-    foreach($chunks as $chunk) {
-      fetchMembersParsePage($url, Array("adminpw" => $password), Array("letter" => $letter, "chunk" => $chunk), $members, $dummy, $dummy, $dummy);
+$alle_mailinglisten = getMailinglisten();
+$fetchRequests = Array();
+foreach ($alle_mailinglisten as $id => &$mailingliste) {
+  $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
+  $fetchRequests[$id] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id);
+  $mailingliste["members"] = Array();
+  $mailingliste["numMembers"] = 0;
+}
+while (count($fetchRequests) > 0) {
+  $fetchResults = multiCurlRequest($fetchRequests);
+  $newFetchRequests = Array();
+  foreach ($fetchResults as $id => $result) {
+    checkResult($fetchRequests[$id]["url"], $result);
+    $mailingliste_id = $fetchRequests[$id]["mailingliste"];
+    $mailingliste = &$alle_mailinglisten[$mailingliste_id];
+    $mailingliste["numMembers"] = parseMembersPage($result, $fetchRequests[$id]["url"], $mailingliste["members"]);
+    $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
+    if (!isset($fetchRequests[$id]["letter"])) {
+      // need to fetch per-letter page
+      $letters = parseLettersPage($result, $fetchRequests[$id]["url"]);
+      foreach ($letters as $letter) {
+        $newFetchRequests[] = Array("url" => $url.'?'.http_build_query(Array("letter" => $letter)),
+                                    "post" => Array("adminpw" => $mailingliste["password"]),
+                                    "mailingliste" => $mailingliste_id,
+                                    "letter" => $letter);
+      }
+    } elseif (!isset($fetchRequests[$id]["chunk"])) {
+      // need to fetch per-chunk page
+      $letter = $fetchRequests[$id]["letter"];
+      $chunks = parseLettersPage($result, $fetchRequests[$id]["url"]);
+      foreach ($chunks as $chunk) {
+        $newFetchRequests[] = Array("url" => $url.'?'.http_build_query(Array("letter" => $letter, "chunk" => $chunk)),
+                                    "post" => Array("adminpw" => $mailingliste["password"]),
+                                    "mailingliste" => $mailingliste_id,
+                                    "letter" => $letter,
+                                    "chunk" => $chunk);
+      }
     }
   }
-
-  $members = array_unique($members);
-  sort($members);
-  if (count($members) != $number) die("Fehler bei $url : $number Mitglieder erwartet, aber nur ".count($members)." gefunden.");
-
-  return $members;
-
+  $fetchRequests = $newFetchRequests;
+}
+foreach ($alle_mailinglisten as $id => &$mailingliste) {
+  $mailingliste["members"] = array_unique($mailingliste["members"]);
+  sort($mailingliste["members"]);
+  if (count($mailingliste["members"]) != $mailingliste["numMembers"]) {
+    die("Fehler bei Mailingliste {$mailingliste["address"]} : {$mailingliste["numMembers"]} Mitglieder erwartet, aber nur ".count($mailingliste["members"])." gefunden.");
+  }
 }
 
-function commitPage($url, $postFields, $getFields) {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url.'?'.http_build_query($getFields));
-	curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS,  $postFields);
-        $output = curl_exec($ch);
-        curl_close($ch);     
-
-        // password ok check
-        if (strpos($output, '<INPUT TYPE="password" NAME="adminpw" SIZE="30">') !== FALSE)
-          die("Fehler beim Abruf von $url - falsches Passwort.");
+function parseMembersPage($output, $url, &$members) {
+  $matches = Array();
+  preg_match_all( '/<INPUT name="user" type="HIDDEN" value="([^"]*)" >/', $output, $matches);
+  foreach ($matches[1] as $member) {
+    $members[] = urldecode($member);
+  }
+  // num total member
+  $match = preg_quote("<td COLSPAN=\"11\" BGCOLOR=\"#dddddd\"><center><em>","/")."([0-9]*) Mitglieder insgesamt(, [0-9]* werden angezeigt)?".preg_quote("</em></center></td>","/");
+  if (!(preg_match( "/$match/", $output, $matches) === 1)) { die("Fehler beim Abruf von $url - keine Mitgliederanzahl - falsche Sprache?"); }
+  return $matches[1]; // numMembers
 }
 
-function fetchMembersParsePage($url, $postFields, $getFields, &$members, &$letters, &$chunks, &$numMember) {
+function parseLettersPage($output, $url) {
+  $matches = Array();
+  $match = preg_quote("a href=\"$url?letter=","/")."(.)".preg_quote("\"","/");
+  $matches = Array();
+  preg_match_all( "/$match/", $output, $matches);
+  return $matches[1];
+}
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url.'?'.http_build_query($getFields));
-	curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS,  $postFields);
-        $output = curl_exec($ch);
-        curl_close($ch);     
-
-	$matches = Array();
-	preg_match_all( '/<INPUT name="user" type="HIDDEN" value="([^"]*)" >/', $output, $matches);
-	foreach ($matches[1] as $member) {
-		$members[] = urldecode($member);
-	}
-
-        // password ok check
-        if (strpos($output, '<INPUT TYPE="password" NAME="adminpw" SIZE="30">') !== FALSE)
-          die("Fehler beim Abruf von $url - falsches Passwort.");
-
-	// letters required
-	$match = preg_quote("a href=\"$url?letter=","/")."(.)".preg_quote("\"","/");
-	$matches = Array();
-	preg_match_all( "/$match/", $output, $matches);
-	$letters = $matches[1];
-
-	// chunks required
-	$match = preg_quote("a href=\"$url?letter=","/").".".preg_quote("&chunk=","/")."([0-9]*)".preg_quote("\"","/");
-	$matches = Array();
-	preg_match_all( "/$match/", $output, $matches);
-	$chunks = $matches[1];
-
-	// num total member
-	$match = preg_quote("<td COLSPAN=\"11\" BGCOLOR=\"#dddddd\"><center><em>","/")."([0-9]*) Mitglieder insgesamt(, [0-9]* werden angezeigt)?".preg_quote("</em></center></td>","/");
-	if (!(preg_match( "/$match/", $output, $matches) === 1)) { die("Fehler beim Abruf von $url - keine Mitgliederanzahl - falsche Sprache?"); }
-	$numMember = $matches[1];
-
+function parseChunksPage($output, $url) {
+  // chunks required
+  $match = preg_quote("a href=\"$url?letter=","/").".".preg_quote("&chunk=","/")."([0-9]*)".preg_quote("\"","/");
+  $matches = Array();
+  preg_match_all( "/$match/", $output, $matches);
+  return $matches[1];
 }
 
 ?>
@@ -144,12 +170,11 @@ function fetchMembersParsePage($url, $postFields, $getFields, &$members, &$lette
 <tr><th></th><th>Mailingliste</th><th>Einfügen</th><th>Entfernen</th> <!-- <th>IST</th><th>SOLL</th> --> </tr>
 <?
 
-$alle_mailinglisten = getMailinglisten();
 foreach ($alle_mailinglisten as $mailingliste):
   echo "<tr>";
   echo "<td><input class=\"mls\" type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($mailingliste["address"])."\"></td>";
   echo "<td><a href=\"".htmlspecialchars($mailingliste["url"])."\">".htmlspecialchars($mailingliste["address"])."</a></td>\n";
-  $members = fetchMembers($mailingliste["url"], $mailingliste["password"]);
+  $members = $mailingliste["members"];
   $dbmembers = getMailinglistePerson($mailingliste["id"]);
   $addmembers = array_diff($dbmembers, $members);
   $delmembers = array_diff($members, $dbmembers);

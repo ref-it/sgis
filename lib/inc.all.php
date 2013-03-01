@@ -11,6 +11,7 @@ require_once SGISBASE.'/lib/inc.error.php';
 require_once SGISBASE.'/lib/inc.nonce.php';
 require_once SGISBASE.'/lib/inc.header.php';
 require_once SGISBASE.'/lib/inc.crypto.php';
+require_once SGISBASE.'/lib/inc.curl.php';
 require_once SGISBASE.'/lib/ods/OpenDocument_Spreadsheet_Writer.class.php';
 require_once 'XML/RPC2/Client.php';
 require_once 'HTTP/Request2.php';

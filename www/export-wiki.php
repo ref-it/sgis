@@ -3,8 +3,6 @@ global $ADMINGROUP;
 require_once "../lib/inc.all.php";
 requireGroup($ADMINGROUP);
 
-require_once "../template/header.tpl";
-
 $validnonce = false;
 if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
  $validnonce = true;
@@ -146,12 +144,21 @@ foreach ($mapping as $wiki => $data) {
     writeWikiPage($wiki, base64_decode($_POST["text"][$wiki]));
   } elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && isset($_POST["commit"][$wiki])) {
     echo "<b class=\"msg\">CSRF Schutz.</b>";
+  } elseif (!isset($_POST["commit"])) {
+    $mapping[$wiki]["old"] = explode("\n",fetchWikiPage($wiki));
+    $x = new Text_Diff('auto',Array($mapping[$wiki]["old"],$mapping[$wiki]["new"]));
+    $y = new Text_Diff_Renderer_unified();
+    $mapping[$wiki]["diff"] = $y->render($x);
   }
-  $mapping[$wiki]["old"] = explode("\n",fetchWikiPage($wiki));
-  $x = new Text_Diff('auto',Array($mapping[$wiki]["old"],$mapping[$wiki]["new"]));
-  $y = new Text_Diff_Renderer_unified();
-  $mapping[$wiki]["diff"] = $y->render($x);
 }
+
+if (isset($_POST["commit"])) {
+  header("Location: ${_SERVER["PHP_SELF"]}");
+  die();
+}
+
+require_once "../template/header.tpl";
+
 
 ?>
 <h2>Gremienmitgliedschaften im Wiki aktualisieren</h2>
