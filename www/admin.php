@@ -60,20 +60,22 @@ if (isset($_POST["action"])) {
    $msgs[] = "Person wurde aktualisiert.";
   break;
   case "person.insert":
-   $quiet = isset($_FILES["csv"]);
+   $quiet = isset($_FILES["csv"]) && !empty($_FILES["csv"]["tmp_name"]);
    $ret = true;
    if (!empty($_POST["email"])) {
      $ret = dbPersonInsert($_POST["name"],$_POST["email"],$_POST["unirzlogin"],$_POST["username"],$_POST["password"],$_POST["canlogin"], $quiet);
      $msgs[] = "Person {$_POST["name"]} wurde ".($ret ? "": "nicht ")."angelegt.";
    }
-   if ($quiet && (($handle = fopen($_FILES["csv"]["tmp_name"], "r")) !== FALSE)) {
-     fgetcsv($handle, 1000, ",");
-     while (($data = fgetcsv($handle, 0, ",", '"')) !== FALSE) {
-       $ret2 = dbPersonInsert($data[0],$data[1],"","","",$_POST["canlogin"], $quiet);
-       $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".($ret2 ? "": "nicht ")."angelegt.";
-       $ret = $ret && $ret2;
+   if ($quiet) {
+     if (($handle = fopen($_FILES["csv"]["tmp_name"], "r")) !== FALSE) {
+       fgetcsv($handle, 1000, ",");
+       while (($data = fgetcsv($handle, 0, ",", '"')) !== FALSE) {
+         $ret2 = dbPersonInsert($data[0],$data[1],"","","",$_POST["canlogin"], $quiet);
+         $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".($ret2 ? "": "nicht ")."angelegt.";
+         $ret = $ret && $ret2;
+       }
+       fclose($handle);
      }
-     fclose($handle);
    }
   break;
   case "rolle_person.insert":
