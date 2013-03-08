@@ -1,0 +1,6 @@
+[submodule "lib/plugins/authchained"]
+	path = lib/plugins/authchained
+	url = https://github.com/michael-dev/dokuwiki-plugin-chained.git
+[submodule "lib/plugins/authssp"]
+	path = lib/plugins/authssp
+	url = https://github.com/michael-dev/dokuwiki-plugin-ssp.git

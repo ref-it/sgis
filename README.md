@@ -1,3 +1,9 @@
-$conf['authtype'] = 'chained';
-$conf['auth']['chained']['authtypes'] = 'plain:ssp';
-$conf['auth']['chained']['usermanager_authtype'] = 'plain';
+    $conf['plugin']['authssp']['ssp_path'] = dirname(dirname(dirname(__FILE__))).'/simplesamlphp';
+    $conf['plugin']['authssp']['ssp_auth_source'] = 'default-sp';
+    $conf['plugin']['authssp']['ssp_usersfile'] = $conf['savedir'] . '/users.ssp.php';
+    $conf['plugin']['authssp']['ssp_attr_name'] = 'displayName';
+    $conf['plugin']['authssp']['ssp_attr_user'] = 'eduPersonPrincipalName';
+    $conf['plugin']['authssp']['ssp_attr_mail'] = 'mail';
+    $conf['plugin']['authssp']['ssp_attr_grps'] = 'groups';
+    $conf['plugin']['authchained']['authtypes'] = 'authplain:authssp';
+    $conf['plugin']['authchained']['usermanager_authtype'] = 'authplain';
