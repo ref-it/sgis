@@ -38,6 +38,3 @@ function multiCurlRequest($data, $options = array()) {
   return $result;
 }
  
-?>
-
-
