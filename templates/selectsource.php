@@ -27,7 +27,7 @@ foreach($this->data['sources'] as $source) {
 }
 ?>
 </ul>
-<?
+<?php
 if ($this->data['rememberSourceEnabled']) {
 	echo str_repeat("\t", 4);
 	echo '<input type="checkbox" id="remember_source" tabindex="4" name="remember_source" value="Yes" ';

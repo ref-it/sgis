@@ -104,7 +104,7 @@ foreach ($this->data['organizations'] as $orgId => $orgDesc) {
 ?>
 			</select></td>
 			<td style="padding: .4em;">
-<?
+<?php
 if ($this->data['rememberPasswordEnabled'] && $this->data['rememberUsernameEnabled']) {
 	$text = $this->t('{login:login_button}');
 	echo str_repeat("\t", 4);

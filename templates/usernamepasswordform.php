@@ -60,7 +60,7 @@ echo $this->t(
                         <td><input type="submit" name="no" id="nobutton" value="<?php echo htmlspecialchars($this->t('{sgis:sgis:no}')) ?>" /></td>
                 </tr>
 	</table>
-<?
+<?php
 foreach ($this->data['data'] as $name => $value) {
     echo '<input type="hidden" name="' . htmlspecialchars($name) .
         '" value="' . htmlspecialchars($value) . '" />';
