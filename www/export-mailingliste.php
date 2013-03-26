@@ -169,7 +169,7 @@ function parseChunksPage($output, $url) {
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
 <table>
 <tr><th></th><th>Mailingliste</th><th>Einfügen</th><th>Entfernen</th> <!-- <th>IST</th><th>SOLL</th> --> </tr>
-<?
+<?php
 
 foreach ($alle_mailinglisten as $mailingliste):
   echo "<tr>";
@@ -230,7 +230,7 @@ endforeach;
 <a href="<?php echo $logoutUrl; ?>">Logout</a> &bull;
 <a href="index.php">Selbstauskunft</a> &bull;
 <a href="admin.php">Verwaltung</a>
-<?
+<?php
 require_once "../template/footer.tpl";
 
 # vim: set expandtab tabstop=8 shiftwidth=8 :

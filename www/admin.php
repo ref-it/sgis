@@ -314,7 +314,7 @@ $scripting = (isset($_COOKIE["javascript"]) && ($_COOKIE["javascript"] == 1));
 
 function addTabHead($name, $titel) {
  global $scripting;
- ?> <li aria-controls="<?=htmlspecialchars($name);?>"><a href="<?=htmlspecialchars($scripting ? $_SERVER["PHP_SELF"]."?tab=".urlencode($name) : "#$name"); ?>"><?=htmlspecialchars($titel);?></a></li> <?
+ ?> <li aria-controls="<?php echo htmlspecialchars($name);?>"><a href="<?php echo htmlspecialchars($scripting ? $_SERVER["PHP_SELF"]."?tab=".urlencode($name) : "#$name"); ?>"><?php echo htmlspecialchars($titel);?></a></li> <?php
 }
 
 if (isset($_REQUEST["tab"])) {
@@ -336,17 +336,17 @@ if (isset($_REQUEST["tab"])) {
   }
 ?>
   <script type="text/javascript">
-    <? echo implode("\n", array_unique($script)); ?>
+    <?php  echo implode("\n", array_unique($script)); ?>
   </script>
-<?
+<?php
   exit;
 }
 
 if (!$scripting) {
 ?><script type="text/javascript">
-   self.location.replace("<?=$_SERVER["PHP_SELF"];?>?javascript=1");
+   self.location.replace("<?php echo $_SERVER["PHP_SELF"];?>?javascript=1");
   </script>
-<?
+<?php
 }
 
 
@@ -356,10 +356,10 @@ if (!$scripting) {
 
 <div id="tabs">
  <ul>
-  <? addTabHead("person", "Personen"); ?>
-  <? addTabHead("gremium", "Gremien und Rollen"); ?>
-  <? addTabHead("gruppe", "Gruppen"); ?>
-  <? addTabHead("mailingliste", "Mailinglisten"); ?>
+  <?php  addTabHead("person", "Personen"); ?>
+  <?php  addTabHead("gremium", "Gremien und Rollen"); ?>
+  <?php  addTabHead("gruppe", "Gruppen"); ?>
+  <?php  addTabHead("mailingliste", "Mailinglisten"); ?>
   <li><a href="#export">Export</a></li>
   <li><a href="#hilfe">Hilfe</a></li>
  </ul>
@@ -402,7 +402,7 @@ if (!$scripting) {
 </div>
 
 <script type="text/javascript">
-<? echo implode("\n", array_unique($script)); ?>
+<?php echo implode("\n", array_unique($script)); ?>
 </script>
 
 <hr/>
@@ -413,9 +413,9 @@ if (!$scripting) {
 if ($scripting):
 ?>
 <noscript>
-  &bull; <a href="<?=$_SERVER["PHP_SELF"];?>?javascript=0">JavaScript deaktivieren.</a>
+  &bull; <a href="<?php echo $_SERVER["PHP_SELF"];?>?javascript=0">JavaScript deaktivieren.</a>
 </noscript>
-<?
+<?php
 endif;
 ?>
 

@@ -107,26 +107,26 @@ asort($filter["problem"]);
  <div class="td">Filter: <input type="submit" name="submit" value="filtern"/>
              <input type="hidden" name="filter_gremien_set" value=""/>
              <input type="submit" name="submit" value="zurücksetzen"/>
-     <a href="<?=htmlspecialchars($_SERVER["PHP_SELF"].'?filter_gremien_name=&filter_gremien_fakultaet=&filter_gremien_studiengang=&filter_gremien_studiengangabschluss=&filter_gremien_active=&filter_gremien_mitglieder=&filter_gremien_problem=#gremium');?>">kein Filter</a>
+     <a href="<?php echo htmlspecialchars($_SERVER["PHP_SELF"].'?filter_gremien_name=&filter_gremien_fakultaet=&filter_gremien_studiengang=&filter_gremien_studiengangabschluss=&filter_gremien_active=&filter_gremien_mitglieder=&filter_gremien_problem=#gremium');?>">kein Filter</a>
  </div>
- <div class="td"><select name="filter_gremien_name[]" multiple="multiple"><?php foreach ($filter["name"] as $name): ?><option <?if (in_array($name, $activefilter["name"])):?> selected="selected"<? endif;?>><?=$name;?></option><?php endforeach;?></select></div>
- <div class="td"><select name="filter_gremien_fakultaet[]" multiple="multiple"><?php foreach ($filter["fakultaet"] as $fakultaet): ?><option <?if (in_array($fakultaet, $activefilter["fakultaet"])):?> selected="selected"<? endif;?>><?=$fakultaet;?></option><?php endforeach;?></select></div>
- <div class="td"><select name="filter_gremien_studiengang[]" multiple="multiple"><?php foreach ($filter["studiengang"] as $studiengang): ?><option <?if (in_array($studiengang, $activefilter["studiengang"])):?> selected="selected"<? endif;?>><?=$studiengang;?></option><?php endforeach;?></select>
- <select name="filter_gremien_studiengangabschluss[]" multiple="multiple"><?php foreach ($filter["studiengangabschluss"] as $studiengangabschluss): ?><option <?if (in_array($studiengangabschluss, $activefilter["studiengangabschluss"])):?> selected="selected"<? endif;?>><?=$studiengangabschluss;?></option><?php endforeach;?></select></div>
- <div class="td"><select name="filter_gremien_active[]" multiple="multiple"><?php foreach ($filter["active"] as $v => $active): ?><option value="<?=htmlspecialchars($v);?>" <?if (in_array($v, $activefilter["active"])):?> selected="selected"<? endif;?>><?=$active;?></option><?php endforeach;?></select></div>
- <div class="td"><select name="filter_gremien_mitglieder[]" multiple="multiple"><?php foreach ($filter["mitglieder"] as $v => $active): ?><option value="<?=htmlspecialchars($v);?>" <?if (in_array($v, $activefilter["mitglieder"])):?> selected="selected"<? endif;?>><?=$active;?></option><?php endforeach;?></select></div>
- <div class="td"><select name="filter_gremien_problem[]" multiple="multiple"><?php foreach ($filter["problem"] as $v => $active): ?><option value="<?=htmlspecialchars($v);?>" <?if (in_array($v, $activefilter["problem"])):?> selected="selected"<? endif;?>><?=$active;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_name[]" multiple="multiple"><?php foreach ($filter["name"] as $name): ?><option <?php if (in_array($name, $activefilter["name"])):?> selected="selected"<?php  endif;?>><?php echo $name;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_fakultaet[]" multiple="multiple"><?php foreach ($filter["fakultaet"] as $fakultaet): ?><option <?php if (in_array($fakultaet, $activefilter["fakultaet"])):?> selected="selected"<?php  endif;?>><?php echo $fakultaet;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_studiengang[]" multiple="multiple"><?php foreach ($filter["studiengang"] as $studiengang): ?><option <?php if (in_array($studiengang, $activefilter["studiengang"])):?> selected="selected"<?php  endif;?>><?php echo $studiengang;?></option><?php endforeach;?></select>
+ <select name="filter_gremien_studiengangabschluss[]" multiple="multiple"><?php foreach ($filter["studiengangabschluss"] as $studiengangabschluss): ?><option <?php if (in_array($studiengangabschluss, $activefilter["studiengangabschluss"])):?> selected="selected"<?php  endif;?>><?php echo $studiengangabschluss;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_active[]" multiple="multiple"><?php foreach ($filter["active"] as $v => $active): ?><option value="<?php echo htmlspecialchars($v);?>" <?php if (in_array($v, $activefilter["active"])):?> selected="selected"<?php  endif;?>><?php echo $active;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_mitglieder[]" multiple="multiple"><?php foreach ($filter["mitglieder"] as $v => $active): ?><option value="<?php echo htmlspecialchars($v);?>" <?php if (in_array($v, $activefilter["mitglieder"])):?> selected="selected"<?php  endif;?>><?php echo $active;?></option><?php endforeach;?></select></div>
+ <div class="td"><select name="filter_gremien_problem[]" multiple="multiple"><?php foreach ($filter["problem"] as $v => $active): ?><option value="<?php echo htmlspecialchars($v);?>" <?php if (in_array($v, $activefilter["problem"])):?> selected="selected"<?php  endif;?>><?php echo $active;?></option><?php endforeach;?></select></div>
 </form>
 <?php
 foreach ($struct_gremien as $i => $gremium):
  if (($_COOKIE["gremium_start"] >= 0) && ($i < $_COOKIE["gremium_start"]) && ($_COOKIE["gremium_start"] <= count($struct_gremien))) continue;
  if (($_COOKIE["gremium_length"] >= 0) && ($i >= $_COOKIE["gremium_length"] + $_COOKIE["gremium_start"])) break;
 ?>
-<div class="tr" id="rowG<?=$gremium["id"];?>">
+<div class="tr" id="rowG<?php echo $gremium["id"];?>">
  <div class="td">
-  <?=$i;?>.
-  <a href="#" onClick="$('#deleteG<?=$gremium["id"];?>').dialog('open'); return false;" titel="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> löschen" >[X]</a>
-  <div id="deleteG<?=$gremium["id"];?>" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> entfernen" class="editgremiumdialog">
+  <?php echo $i;?>.
+  <a href="#" onClick="$('#deleteG<?php echo $gremium["id"];?>').dialog('open'); return false;" titel="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> löschen" >[X]</a>
+  <div id="deleteG<?php echo $gremium["id"];?>" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> entfernen" class="editgremiumdialog">
    <noscript><h4>Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> entfernen</h4></noscript>
    <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
     <ul>
@@ -136,13 +136,13 @@ foreach ($struct_gremien as $i => $gremium):
      <li><label for="studiengang"         >Studiengang:               </label><input type="text" name="studiengang" value="<?php echo htmlspecialchars($gremium["studiengang"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="studiengangabschluss">Stg-Abschluss:             </label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="wiki_members"        >Wiki-Seite für Mitglieder: </label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" readonly="readonly"/></li>
-     <li><label for="active"              >Gremium existent/aktiv?:   </label><? if ($gremium["active"]): ?>Ja<? else: ?>Nein<? endif; ?></li>
+     <li><label for="active"              >Gremium existent/aktiv?:   </label><?php  if ($gremium["active"]): ?>Ja<?php  else: ?>Nein<?php  endif; ?></li>
      <li><label for="action"              >Aktion:                    </label><select name="action" size="1"><option value="gremium.disable" selected="selected">Gremium deaktivieren</option><option value="gremium.delete">Gremium löschen</option></select></li>
     </ul>
     <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
     <input type="submit" name="submit" value="Löschen"/>
-    <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteG<?=$gremium["id"];?>').dialog('close');"/>
+    <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteG<?php echo $gremium["id"];?>').dialog('close');"/>
    </form>
    <h4>Rollen</h4>
    <div class="table">
@@ -166,8 +166,8 @@ endif;
 ?>
    </div>
   </div>
-  <a href="#" onClick="$('#editG<?=$gremium["id"];?>').dialog('open'); return false;" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten">[E]</a>
-  <div id="editG<?=$gremium["id"];?>" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten" class="editgremiumdialog">
+  <a href="#" onClick="$('#editG<?php echo $gremium["id"];?>').dialog('open'); return false;" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten">[E]</a>
+  <div id="editG<?php echo $gremium["id"];?>" title="Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten" class="editgremiumdialog">
    <noscript><h4>Gremium <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?> bearbeiten</h4></noscript>
    <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
     <ul>
@@ -178,22 +178,22 @@ endif;
      <li><label for="studiengangabschluss">Stg-Abschluss:</label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" /></li>
      <li><label for="wiki_members">Wiki-Seite für Mitglieder:</label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" /></li>
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
-         <select name="active" size="1"><option value="1" <? if ($gremium["active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <? if (!$gremium["active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
+         <select name="active" size="1"><option value="1" <?php  if ($gremium["active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <?php  if (!$gremium["active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
      </li>
     </ul>
     <input type="hidden" name="id" value="<?php echo $gremium["id"];?>"/>
     <input type="hidden" name="action" value="gremium.update"/>
     <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
     <input type="submit" name="submit" value="Speichern"/>
-    <input type="reset" name="reset" value="Abbrechen" onClick="$('#editG<?=$gremium["id"];?>').dialog('close');"/>
+    <input type="reset" name="reset" value="Abbrechen" onClick="$('#editG<?php echo $gremium["id"];?>').dialog('close');"/>
    </form>
 
    <h4>Rollen</h4>
    <div class="table">
    <div class="tr">
     <div class="th">
-     <a href="#" onClick="$('#insertG<?=$gremium["id"];?>R').dialog('open'); return false;" titel="Rolle einfügen" >[NEU]</a>
-     <div id="insertG<?=$gremium["id"];?>R" title="Rolle einfügen">
+     <a href="#" onClick="$('#insertG<?php echo $gremium["id"];?>R').dialog('open'); return false;" titel="Rolle einfügen" >[NEU]</a>
+     <div id="insertG<?php echo $gremium["id"];?>R" title="Rolle einfügen">
       <noscript><h4>Rolle einfügen</h4></noscript>
       <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
        <ul>
@@ -207,7 +207,7 @@ endif;
        <input type="hidden" name="action" value="rolle_gremium.insert"/>
        <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
        <input type="submit" name="submit" value="Rolle eintragen"/>
-       <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertG<?=$gremium["id"];?>R').dialog('close');"/>
+       <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertG<?php echo $gremium["id"];?>R').dialog('close');"/>
       </form>
      </div>
      <?php $script[] = "\$('#insertG{$gremium['id']}R').dialog({ autoOpen: false, width: 700, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}') } });"; ?>
@@ -227,22 +227,22 @@ foreach($rollen as $rolle):
 ?>
    <div class="tr">
     <div class="td">
-     <a href="#" onClick="$('#editG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('open'); return false;" titel="Rollen bearbeiten" >[E]</a>
-     <div id="editG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>" title="Rolle bearbeiten">
+     <a href="#" onClick="$('#editG<?php echo $gremium["id"];?>R<?php echo $rolle["rolle_id"];?>').dialog('open'); return false;" titel="Rollen bearbeiten" >[E]</a>
+     <div id="editG<?php echo $gremium["id"];?>R<?php echo $rolle["rolle_id"];?>" title="Rolle bearbeiten">
       <noscript><h4>Rolle bearbeiten</h4></noscript>
       <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
        <ul>
         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
         <li>Rolle: <input type="text" name="name" value="<?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?>"/></li>
         <li><label for="active"  >Rolle existent/aktiv?:        </label>
-           <select name="active" size="1"><option value="1" <? if ($rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <? if (!$rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
+           <select name="active" size="1"><option value="1" <?php  if ($rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <?php  if (!$rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
         </li>
        </ul>
        <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
        <input type="hidden" name="action" value="rolle_gremium.update"/>
        <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
        <input type="submit" name="submit" value="Rolle bearbeiten"/>
-       <input type="reset" name="reset" value="Abbrechen" onClick="$('#editG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('close');"/>
+       <input type="reset" name="reset" value="Abbrechen" onClick="$('#editG<?php echo $gremium["id"];?>R<?php echo $rolle["rolle_id"];?>').dialog('close');"/>
       </form>
 
       <h4>Personen</h4>
@@ -252,18 +252,18 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
       <div class="table">
       <div class="tr">
        <div class="th">
-        <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>P').dialog('open'); return false;" titel="Personen-Rollenzuordnung einfügen" >[NEU]</a>
-        <div id="insertR<?=$rolle["rolle_id"];?>P" title="Personen-Rollenzuordnung einfügen" class="editpersonrole">
+        <a href="#" onClick="$('#insertR<?php echo $rolle["rolle_id"];?>P').dialog('open'); return false;" titel="Personen-Rollenzuordnung einfügen" >[NEU]</a>
+        <div id="insertR<?php echo $rolle["rolle_id"];?>P" title="Personen-Rollenzuordnung einfügen" class="editpersonrole">
          <noscript><h4>Personen-Rollenzuordnung einfügen</h4></noscript>
          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
-           <li><label for="person_id">Person:</label> <select name="person_id" size="1"><?php foreach ($alle_personen as $person):?><option class="forinsertR<?=$rolle["rolle_id"];?>P <?=($person["active"] ? "personactive" : "personinactive");?>" value="<?php echo $person["id"];?>"><?php echo htmlspecialchars($person["email"]);?></option><? endforeach; ?></select>
-             <a href="#" onClick="$('option.personinactive.forinsertR<?=$rolle["rolle_id"];?>P').toggle(); return false;" titel="inaktive Personen anzeigen/ausblenden" >[inaktive Personen anzeigen/ausblenden]</a>
+           <li><label for="person_id">Person:</label> <select name="person_id" size="1"><?php foreach ($alle_personen as $person):?><option class="forinsertR<?php echo $rolle["rolle_id"];?>P <?php echo ($person["active"] ? "personactive" : "personinactive");?>" value="<?php echo $person["id"];?>"><?php echo htmlspecialchars($person["email"]);?></option><?php  endforeach; ?></select>
+             <a href="#" onClick="$('option.personinactive.forinsertR<?php echo $rolle["rolle_id"];?>P').toggle(); return false;" titel="inaktive Personen anzeigen/ausblenden" >[inaktive Personen anzeigen/ausblenden]</a>
              <?php $script[] = "\$('option.personinactive.forinsertR{$rolle["rolle_id"]}P').hide();"; ?>
            </li>
-           <li><label for="von">von:</label> <input type="text" name="von" value="<?=date("Y-m-d");?>" class="datepicker"/></li>
+           <li><label for="von">von:</label> <input type="text" name="von" value="<?php echo date("Y-m-d");?>" class="datepicker"/></li>
            <li><label for="bis">bis:</label> <input type="text" name="bis" value="" class="datepicker"/></li>
 <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
            <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
@@ -274,7 +274,7 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
           <input type="hidden" name="action" value="rolle_person.insert"/>
           <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Personen-Rollenzuordnung einfügen"/>
-          <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?=$rolle["rolle_id"];?>P').dialog('close');"/>
+          <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?php echo $rolle["rolle_id"];?>P').dialog('close');"/>
          </form>
         </div>
         <?php $script[] = "\$('#insertR{$rolle['rolle_id']}P').dialog({ autoOpen: false, width: 1100, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
@@ -289,10 +289,10 @@ if (count($current_personen) == 0):
 else:
 foreach ($current_personen as $person):
 ?>
-      <div class="tr <?=($person["active"] ? "personactive" : "personinactive");?> forrole<?=$rolle["rolle_id"];?>">
+      <div class="tr <?php echo ($person["active"] ? "personactive" : "personinactive");?> forrole<?php echo $rolle["rolle_id"];?>">
        <div class="td">
-        <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('open'); return false;" titel="Personen-Rollenzuordnung entfernen" >[X]</a>
-        <div id="deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>" title="Personen-Rollenzuordnung entfernen">
+        <a href="#" onClick="$('#deleteR<?php echo $rolle["rolle_id"];?>P<?php echo $person["rel_id"];?>').dialog('open'); return false;" titel="Personen-Rollenzuordnung entfernen" >[X]</a>
+        <div id="deleteR<?php echo $rolle["rolle_id"];?>P<?php echo $person["rel_id"];?>" title="Personen-Rollenzuordnung entfernen">
          <noscript><h4>Personen-Rollenzuordnung entfernen</h4></noscript>
          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
@@ -311,31 +311,31 @@ foreach ($current_personen as $person):
             }
             ?></li>
            <li><span class="label">Beschluss:</span> <?php echo htmlspecialchars($person["beschlussAm"])." ".htmlspecialchars($person["beschlussDurch"]); ?></li>
-           <li><span class="label">Kommentar:</span> <div class="kommentar"><?=str_replace("\n","<br/>",htmlspecialchars($person["kommentar"]));?></div></li>
+           <li><span class="label">Kommentar:</span> <div class="kommentar"><?php echo str_replace("\n","<br/>",htmlspecialchars($person["kommentar"]));?></div></li>
            <li><label for="action">Aktion:</label><select name="action" size="1"><option value="rolle_person.disable" selected="selected">Zuordnung terminieren</option><option value="rolle_person.delete">Datensatz löschen</option></select></li>
           </ul>
           <input type="hidden" name="id" value="<?php echo $person["rel_id"];?>"/>
           <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Personen-Rollenzuordnung entfernen"/>
-          <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('close');"/>
+          <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?php echo $rolle["rolle_id"];?>P<?php echo $person["rel_id"];?>').dialog('close');"/>
          </form>
      
         </div>
         <?php $script[] = "\$('#deleteR{$rolle['rolle_id']}P{$person['rel_id']}').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
-        <a href="#" onClick="$('#editR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten" >[E]</a>
-        <div id="editR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>" title="Rollenzuordnung bearbeiten" class="editpersonrole">
+        <a href="#" onClick="$('#editR<?php echo $rolle["rolle_id"];?>P<?php echo $person["rel_id"];?>').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten" >[E]</a>
+        <div id="editR<?php echo $rolle["rolle_id"];?>P<?php echo $person["rel_id"];?>" title="Rollenzuordnung bearbeiten" class="editpersonrole">
          <noscript><h4>Rollenzuordnung bearbeiten</h4></noscript>
          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
            <li>Person: <?php echo htmlspecialchars($person["email"],ENT_QUOTES);?></li>
-           <li><label for="von">von:</label> <input type="text" name="von" value="<?=htmlspecialchars($person["von"]);?>" class="datepicker"/></li>
-           <li><label for="bis">bis:</label> <input type="text" name="bis" value="<?=htmlspecialchars($person["bis"]);?>" class="datepicker"/></li>
+           <li><label for="von">von:</label> <input type="text" name="von" value="<?php echo htmlspecialchars($person["von"]);?>" class="datepicker"/></li>
+           <li><label for="bis">bis:</label> <input type="text" name="bis" value="<?php echo htmlspecialchars($person["bis"]);?>" class="datepicker"/></li>
            <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
-           <li><label for="beschlussAm"   >beschlossen am:</label> <input type="text" name="beschlussAm" value="<?=htmlspecialchars($person["beschlussAm"]);?>"/></li>
-           <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value="<?=htmlspecialchars($person["beschlussDurch"]);?>"/></li>
-           <li><label for="kommentar"     >Kommentar:</label> <textarea name="kommentar"><?=htmlspecialchars($person["kommentar"]);?></textarea></li>
+           <li><label for="beschlussAm"   >beschlossen am:</label> <input type="text" name="beschlussAm" value="<?php echo htmlspecialchars($person["beschlussAm"]);?>"/></li>
+           <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value="<?php echo htmlspecialchars($person["beschlussDurch"]);?>"/></li>
+           <li><label for="kommentar"     >Kommentar:</label> <textarea name="kommentar"><?php echo htmlspecialchars($person["kommentar"]);?></textarea></li>
           </ul>
           <input type="hidden" name="id" value="<?php echo $person["rel_id"];?>"/>
           <input type="hidden" name="person_id" value="<?php echo $person["id"];?>"/>
@@ -343,7 +343,7 @@ foreach ($current_personen as $person):
           <input type="hidden" name="action" value="rolle_person.update"/>
           <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Zuordnung bearbeiten"/>
-          <input type="reset" name="reset" value="Abbrechen" onClick="$('#editR<?=$rolle["rolle_id"];?>P<?=$person["rel_id"];?>').dialog('close');"/>
+          <input type="reset" name="reset" value="Abbrechen" onClick="$('#editR<?php echo $rolle["rolle_id"];?>P<?php echo $person["rel_id"];?>').dialog('close');"/>
          </form>
         </div>
         <?php $script[]="\$('#editR{$rolle['rolle_id']}P{$person["rel_id"]}').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
@@ -369,17 +369,17 @@ endforeach;
 endif;
 ?>
       </div>
-      <a href="#" onClick="$('div.tr.personinactive.forrole<?=$rolle["rolle_id"];?>').toggle(); return false;" titel="inaktive Personenzuordnungen anzeigen/ausblenden" >[inaktive Personen anzeigen/ausblenden]</a>
+      <a href="#" onClick="$('div.tr.personinactive.forrole<?php echo $rolle["rolle_id"];?>').toggle(); return false;" titel="inaktive Personenzuordnungen anzeigen/ausblenden" >[inaktive Personen anzeigen/ausblenden]</a>
       <?php $script[] = "\$('div.tr.personinactive.forrole{$rolle['rolle_id']}').hide();"; ?>
-      <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>Pmass').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten (Mehrfacheintragung)" >[Mehrfacheintragung]</a>
-      <div id="insertR<?=$rolle["rolle_id"];?>Pmass" title="Rollenzuordnung bearbeiten (Mehrfacheintragung)" class="editpersonrole">
+      <a href="#" onClick="$('#insertR<?php echo $rolle["rolle_id"];?>Pmass').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten (Mehrfacheintragung)" >[Mehrfacheintragung]</a>
+      <div id="insertR<?php echo $rolle["rolle_id"];?>Pmass" title="Rollenzuordnung bearbeiten (Mehrfacheintragung)" class="editpersonrole">
        <noscript><h4>Rollenzuordnung hinzufügen (Mehrfacheintragung)</h4></noscript>
        <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
         <ul>
          <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
          <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
          <li><label for="email">eMail-Adressen (zeilenweise):</label><textarea name="email"></textarea></li>
-         <li><label for="von">von:</label> <input type="text" name="von" value="<?=date("Y-m-d");?>" class="datepicker"/></li>
+         <li><label for="von">von:</label> <input type="text" name="von" value="<?php echo date("Y-m-d");?>" class="datepicker"/></li>
          <li><label for="bis">bis:</label> <input type="text" name="bis" value="" class="datepicker"/></li>
          <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
          <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
@@ -391,12 +391,12 @@ endif;
         <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
         <input type="hidden" name="action" value="rolle_person.bulkinsert"/>
         <input type="submit" name="submit" value="Personen-Rollenzuordnung hinzufügen"/>
-        <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?=$rolle["rolle_id"];?>Pmass').dialog('close');"/>
+        <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?php echo $rolle["rolle_id"];?>Pmass').dialog('close');"/>
        </form>
       </div>
       <?php $script[]="\$('#insertR{$rolle['rolle_id']}Pmass').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
-      <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>Pmass').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten (Mehrfachaustragung)" >[Mehrfachaustragung]</a>
-      <div id="deleteR<?=$rolle["rolle_id"];?>Pmass" title="Rollenzuordnung bearbeiten (Mehrfachaustragung)" class="editpersonrole">
+      <a href="#" onClick="$('#deleteR<?php echo $rolle["rolle_id"];?>Pmass').dialog('open'); return false;" titel="Rollenzuordnung bearbeiten (Mehrfachaustragung)" >[Mehrfachaustragung]</a>
+      <div id="deleteR<?php echo $rolle["rolle_id"];?>Pmass" title="Rollenzuordnung bearbeiten (Mehrfachaustragung)" class="editpersonrole">
        <noscript><h4>Rollenzuordnung entfernen (Mehrfachaustragung)</h4></noscript>
        <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
         <ul>
@@ -410,7 +410,7 @@ endif;
         <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
         <input type="hidden" name="action" value="rolle_person.bulkdisable"/>
         <input type="submit" name="submit" value="Personen-Rollenzuordnung entfernen"/>
-        <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>Pmass').dialog('close');"/>
+        <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?php echo $rolle["rolle_id"];?>Pmass').dialog('close');"/>
        </form>
       </div>
       <?php $script[]="\$('#deleteR{$rolle['rolle_id']}Pmass').dialog({ autoOpen: false, width: 1000, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
@@ -418,20 +418,20 @@ endif;
       <div class="table">
       <div class="tr">
        <div class="th">
-        <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>GRP').dialog('open'); return false;" titel="Gruppen-Rollenzuordnung einfügen" >[NEU]</a>
-        <div id="insertR<?=$rolle["rolle_id"];?>GRP" title="Gruppen-Rollenzuordnung einfügen">
+        <a href="#" onClick="$('#insertR<?php echo $rolle["rolle_id"];?>GRP').dialog('open'); return false;" titel="Gruppen-Rollenzuordnung einfügen" >[NEU]</a>
+        <div id="insertR<?php echo $rolle["rolle_id"];?>GRP" title="Gruppen-Rollenzuordnung einfügen">
          <noscript><h4>Gruppen-Rollenzuordnung einfügen</h4></noscript>
          <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
            <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
            <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
-           <li>Gruppe: <select name="gruppe_id" size="1"><?php foreach ($alle_gruppen as $gruppe):?><option value="<?php echo $gruppe["id"];?>"><?php echo htmlspecialchars($gruppe["name"]);?></option><? endforeach; ?></select></li>
+           <li>Gruppe: <select name="gruppe_id" size="1"><?php foreach ($alle_gruppen as $gruppe):?><option value="<?php echo $gruppe["id"];?>"><?php echo htmlspecialchars($gruppe["name"]);?></option><?php  endforeach; ?></select></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_gruppe.insert"/>
           <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Gruppen-Rollenzuordnung einfügen"/>
-          <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?=$rolle["rolle_id"];?>GRP').dialog('close');"/>
+          <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?php echo $rolle["rolle_id"];?>GRP').dialog('close');"/>
          </form>
         </div>
         <?php $script[] = "\$('#insertR{$rolle['rolle_id']}GRP').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
@@ -449,8 +449,8 @@ foreach ($current_gruppen as $gruppe):
 ?>
       <div class="tr">
        <div class="td">
-        <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>GRP<?=$gruppe["id"];?>').dialog('open'); return false;" titel="Gruppen-Rollenzuordnung entfernen" >[X]</a>
-        <div id="deleteR<?=$rolle["rolle_id"];?>GRP<?=$gruppe["id"];?>" title="Gruppen-Rollenzuordnung entfernen">
+        <a href="#" onClick="$('#deleteR<?php echo $rolle["rolle_id"];?>GRP<?php echo $gruppe["id"];?>').dialog('open'); return false;" titel="Gruppen-Rollenzuordnung entfernen" >[X]</a>
+        <div id="deleteR<?php echo $rolle["rolle_id"];?>GRP<?php echo $gruppe["id"];?>" title="Gruppen-Rollenzuordnung entfernen">
           <noscript><h4>Gruppen-Rollenzuordnung entfernen</h4></noscript>
           <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
@@ -463,7 +463,7 @@ foreach ($current_gruppen as $gruppe):
           <input type="hidden" name="action" value="rolle_gruppe.delete"/>
           <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Gruppen-Rollenzuordnung entfernen"/>
-          <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>GRP<?=$gruppe["id"];?>').dialog('close');"/>
+          <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?php echo $rolle["rolle_id"];?>GRP<?php echo $gruppe["id"];?>').dialog('close');"/>
           </form>
      
         </div>
@@ -480,20 +480,20 @@ endif;
      <h4>Mailinglisten</h4>
       <div class="table">
       <div class="tr"><div class="th">
-        <a href="#" onClick="$('#insertR<?=$rolle["rolle_id"];?>ML').dialog('open'); return false;" titel="Mailinglisten-Rollenzuordnung einfügen" >[NEU]</a>
-         <div id="insertR<?=$rolle["rolle_id"];?>ML" title="Mailinglisten-Rollenzuordnung einfügen">
+        <a href="#" onClick="$('#insertR<?php echo $rolle["rolle_id"];?>ML').dialog('open'); return false;" titel="Mailinglisten-Rollenzuordnung einfügen" >[NEU]</a>
+         <div id="insertR<?php echo $rolle["rolle_id"];?>ML" title="Mailinglisten-Rollenzuordnung einfügen">
           <noscript><h4>Mailinglisten-Rollenzuordnung einfügen</h4></noscript>
           <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
           <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
           <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
-          <li>Mailingliste: <select name="mailingliste_id" size="1"><?php foreach ($alle_mailinglisten as $mailingliste):?><option value="<?php echo $mailingliste["id"];?>"><?php echo htmlspecialchars($mailingliste["address"]);?></option><? endforeach; ?></select></li>
+          <li>Mailingliste: <select name="mailingliste_id" size="1"><?php foreach ($alle_mailinglisten as $mailingliste):?><option value="<?php echo $mailingliste["id"];?>"><?php echo htmlspecialchars($mailingliste["address"]);?></option><?php  endforeach; ?></select></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
           <input type="hidden" name="action" value="rolle_mailingliste.insert"/>
           <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Mailinglisten-Rollenzuordnung einfügen"/>
-          <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?=$rolle["rolle_id"];?>ML').dialog('close');"/>
+          <input type="reset" name="reset" value="Abbrechen" onClick="$('#insertR<?php echo $rolle["rolle_id"];?>ML').dialog('close');"/>
           </form>
          </div>
          <?php $script[] = "\$('#insertR{$rolle['rolle_id']}ML').dialog({ autoOpen: false, width: 900, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}R{$rolle['rolle_id']}') } });"; ?>
@@ -509,8 +509,8 @@ foreach ($current_mailinglisten as $mailingliste):
 ?>
       <div class="tr">
        <div class="td">
-        <a href="#" onClick="$('#deleteR<?=$rolle["rolle_id"];?>ML<?=$mailingliste["id"];?>').dialog('open'); return false;" titel="Mailinglisten-Rollenzuordnung entfernen" >[X]</a>
-        <div id="deleteR<?=$rolle["rolle_id"];?>ML<?=$mailingliste["id"];?>" title="Mailinglisten-Rollenzuordnung entfernen">
+        <a href="#" onClick="$('#deleteR<?php echo $rolle["rolle_id"];?>ML<?php echo $mailingliste["id"];?>').dialog('open'); return false;" titel="Mailinglisten-Rollenzuordnung entfernen" >[X]</a>
+        <div id="deleteR<?php echo $rolle["rolle_id"];?>ML<?php echo $mailingliste["id"];?>" title="Mailinglisten-Rollenzuordnung entfernen">
           <noscript><h4>Mailinglisten-Rollenzuordnung entfernen</h4></noscript>
           <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
           <ul>
@@ -523,7 +523,7 @@ foreach ($current_mailinglisten as $mailingliste):
           <input type="hidden" name="action" value="rolle_mailingliste.delete"/>
           <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
           <input type="submit" name="submit" value="Mailinglisten-Rollenzuordnung entfernen"/>
-          <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?=$rolle["rolle_id"];?>ML<?=$mailingliste["id"];?>').dialog('close');"/>
+          <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteR<?php echo $rolle["rolle_id"];?>ML<?php echo $mailingliste["id"];?>').dialog('close');"/>
           </form>
      
         </div>
@@ -540,20 +540,20 @@ endif;
 
    </div>
   <?php $script[] = "\$('#editG{$gremium['id']}R{$rolle['rolle_id']}').dialog({ autoOpen: false, width: 1300, height: 'auto', position: { my: 'center', at: 'center', of: \$('#editG{$gremium['id']}') } });"; ?>
-   <a href="#" onClick="$('#deleteG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('open'); return false;" titel="Rollen entfernen" >[X]</a>
-   <div id="deleteG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>" title="Rolle löschen">
+   <a href="#" onClick="$('#deleteG<?php echo $gremium["id"];?>R<?php echo $rolle["rolle_id"];?>').dialog('open'); return false;" titel="Rollen entfernen" >[X]</a>
+   <div id="deleteG<?php echo $gremium["id"];?>R<?php echo $rolle["rolle_id"];?>" title="Rolle löschen">
      <noscript><h4>Rolle entfernen</h4></noscript>
      <form action="<?php echo $_SERVER["PHP_SELF"];?>#gremium" method="POST" enctype="multipart/form-data">
      <ul>
      <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
      <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
-     <li>Gremium existent/aktiv?: <? if ($rolle["rolle_active"]): ?>Ja<? else: ?>Nein<? endif; ?></li>
+     <li>Gremium existent/aktiv?: <?php  if ($rolle["rolle_active"]): ?>Ja<?php  else: ?>Nein<?php  endif; ?></li>
      <li>Aktion: <select name="action" size="1"><option value="rolle_gremium.disable" selected="selected">Rolle deaktivieren</option><option value="rolle_gremium.delete">Rolle löschen</option></select></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
      <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
      <input type="submit" name="submit" value="Rolle löschen"/>
-     <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteG<?=$gremium["id"];?>R<?=$rolle["rolle_id"];?>').dialog('close');"/>
+     <input type="reset" name="reset" value="Abbrechen" onClick="$('#deleteG<?php echo $gremium["id"];?>R<?php echo $rolle["rolle_id"];?>').dialog('close');"/>
      </form>
 
    </div>
@@ -594,7 +594,7 @@ endforeach;
 </div>
 <hr/>
 <ul class="pageselect">
-<?php if ($_COOKIE["gremium_start"] > 0): ?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=0#gremium">&lt;&lt;</a></li><? endif; ?>
+<?php if ($_COOKIE["gremium_start"] > 0): ?><li><a href="<?php echo htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=0#gremium">&lt;&lt;</a></li><?php  endif; ?>
 <?php
 if ($_COOKIE["gremium_start"] > $_COOKIE["gremium_length"]) {
   $prev = $_COOKIE["gremium_start"] - $_COOKIE["gremium_length"];
@@ -609,23 +609,23 @@ if ((count($struct_gremien) > $_COOKIE["gremium_start"] + 2 * $_COOKIE["gremium_
 if ($_COOKIE["gremium_length"] > 0):
  for($i = $_COOKIE["gremium_length"] ; $i < count($struct_gremien); $i = $i +  $_COOKIE["gremium_length"]):
   if ($i < $_COOKIE["gremium_start"] || $i > $_COOKIE["gremium_start"]): 
-?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=<?=$i;?>#gremium" title="<?=htmlspecialchars($struct_gremien[$i]["display_name"]);?>"><?=$i;?></a></li><?
+?><li><a href="<?php echo htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=<?php echo $i;?>#gremium" title="<?php echo htmlspecialchars($struct_gremien[$i]["display_name"]);?>"><?php echo $i;?></a></li><?php
   endif;
   if ($i < $prev && $i + $_COOKIE["gremium_length"] > $prev): 
-?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=<?=$prev;?>#gremium" title="<?=htmlspecialchars($struct_gremien[$prev]["display_name"]);?>">&lt;</a></li><?
+?><li><a href="<?php echo htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=<?php echo $prev;?>#gremium" title="<?php echo htmlspecialchars($struct_gremien[$prev]["display_name"]);?>">&lt;</a></li><?php
   endif;
   if ($i <= $_COOKIE["gremium_start"] && $i + $_COOKIE["gremium_length"] > $_COOKIE["gremium_start"]): 
-?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=<?=$_COOKIE["gremium_start"];?>#gremium">[<?=$_COOKIE["gremium_start"];?>]</a></li><?
+?><li><a href="<?php echo htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=<?php echo $_COOKIE["gremium_start"];?>#gremium">[<?php echo $_COOKIE["gremium_start"];?>]</a></li><?php
   endif;
   if ($i < $next && $i + $_COOKIE["gremium_length"] > $next): 
-?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=<?=$next;?>#gremium" title="<?=htmlspecialchars($struct_gremien[$next]["display_name"]);?>">&gt;</a></li><?
+?><li><a href="<?php echo htmlentities($_SERVER["PHP_SELF"]);?>?gremium_start=<?php echo $next;?>#gremium" title="<?php echo htmlspecialchars($struct_gremien[$next]["display_name"]);?>">&gt;</a></li><?php
   endif;
  endfor;
 endif; ?>
-<?php if ($_COOKIE["gremium_start"] + $_COOKIE["gremium_length"] < count($struct_gremien)): ?><li><a href="<?=htmlentities($_SERVER["PHP_SELF"])?>?gremium_start=<?=count($struct_gremien) - $_COOKIE["gremium_length"];?>#gremium">&gt;&gt;</a></li><? endif; ?>
+<?php if ($_COOKIE["gremium_start"] + $_COOKIE["gremium_length"] < count($struct_gremien)): ?><li><a href="<?php echo htmlentities($_SERVER["PHP_SELF"])?>?gremium_start=<?php echo count($struct_gremien) - $_COOKIE["gremium_length"];?>#gremium">&gt;&gt;</a></li><?php  endif; ?>
 </ul>
-<form action="<?=htmlentities($_SERVER["PHP_SELF"]);?>#gremium" method="POST" enctype="multipart/form-data">
-Einträge je Seite: <input type="text" name="gremium_length" value="<?=htmlentities($_COOKIE["gremium_length"]);?>"/>
+<form action="<?php echo htmlentities($_SERVER["PHP_SELF"]);?>#gremium" method="POST" enctype="multipart/form-data">
+Einträge je Seite: <input type="text" name="gremium_length" value="<?php echo htmlentities($_COOKIE["gremium_length"]);?>"/>
 <input type="submit" name="submit" value="Auswählen"/><input type="reset" name="reset" value="Zurücksetzen"/>
 </form>
 </div>

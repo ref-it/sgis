@@ -171,7 +171,7 @@ require_once "../template/header.tpl";
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
 <table>
 <tr><th></th><th>Seite</th><th>Änderung</th></tr>
-<?
+<?php
 
 global $wikiUrl;
 $url = parse_url($wikiUrl);
@@ -198,7 +198,7 @@ endforeach;
 <a href="<?php echo $logoutUrl; ?>">Logout</a> &bull;
 <a href="index.php">Selbstauskunft</a> &bull;
 <a href="admin.php">Verwaltung</a>
-<?
+<?php
 require_once "../template/footer.tpl";
 
 # vim: set expandtab tabstop=8 shiftwidth=8 :

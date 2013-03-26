@@ -8,7 +8,7 @@ include SGISBASE."/template/header.tpl";
 
 Sie haben keine Berechtigung, das studentische Gremieninformationssystem zu nutzen.
 
-<a href="<?=htmlentities($logoutUrl)?>">Abmelden</a>
+<a href="<?php echo htmlentities($logoutUrl); ?>">Abmelden</a>
 
 <?php
 
