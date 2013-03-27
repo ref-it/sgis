@@ -95,6 +95,7 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
   $mailingliste["members"] = Array();
   $mailingliste["numMembers"] = 0;
 }
+unset($mailingliste);
 while (count($fetchRequests) > 0) {
   $fetchResults = multiCurlRequest($fetchRequests);
   $newFetchRequests = Array();
@@ -135,6 +136,7 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
     die("Fehler bei Mailingliste {$mailingliste["address"]} : {$mailingliste["numMembers"]} Mitglieder erwartet, aber nur ".count($mailingliste["members"])." gefunden.");
   }
 }
+unset($mailingliste);
 
 function parseMembersPage($output, $url, &$members) {
   $matches = Array();
@@ -170,31 +172,30 @@ function parseChunksPage($output, $url) {
 <table>
 <tr><th></th><th>Mailingliste</th><th>Einfügen</th><th>Entfernen</th> <!-- <th>IST</th><th>SOLL</th> --> </tr>
 <?php
-
-foreach ($alle_mailinglisten as $mailingliste):
+foreach($alle_mailinglisten as $mailingliste) {
   echo "<tr>";
-  echo "<td><input class=\"mls\" type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($mailingliste["address"])."\"></td>";
-  echo "<td><a href=\"".htmlspecialchars($mailingliste["url"])."\">".htmlspecialchars($mailingliste["address"])."</a></td>\n";
+  echo "<td valign=\"top\"><input class=\"mls\" type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($mailingliste["address"])."\"></td>";
+  echo "<td valign=\"top\"><a href=\"".htmlspecialchars($mailingliste["url"])."\">".htmlspecialchars($mailingliste["address"])."</a></td>\n";
   $members = $mailingliste["members"];
   $dbmembers = getMailinglistePerson($mailingliste["id"]);
   $addmembers = array_diff($dbmembers, $members);
   $delmembers = array_diff($members, $dbmembers);
-  echo "<td>";
-if (count($addmembers) > 0):
-  echo "<ul>";
-foreach ($addmembers as $member):
-  echo "<li>$member <input type=\"hidden\" name=\"addmember[".htmlspecialchars($mailingliste["address"])."][]\" value=\"".htmlspecialchars($member)."\"></li>";
-endforeach;
-  echo "</ul>";
-endif;
-  echo "</td><td>";
-if (count($delmembers) > 0):
-  echo "<ul>";
-foreach ($delmembers as $member):
-  echo "<li>$member <input type=\"hidden\" name=\"delmember[".htmlspecialchars($mailingliste["address"])."][]\" value=\"".htmlspecialchars($member)."\"></li>";
-endforeach;
-  echo "</ul>";
-endif;
+  echo "<td valign=\"top\">";
+  if (count($addmembers) > 0) {
+    echo "<ul>";
+    foreach ($addmembers as $member) {
+      echo "<li>$member <input type=\"hidden\" name=\"addmember[".htmlspecialchars($mailingliste["address"])."][]\" value=\"".htmlspecialchars($member)."\"></li>";
+    }
+    echo "</ul>";
+  }
+  echo "</td><td valign=\"top\">";
+  if (count($delmembers) > 0) {
+    echo "<ul>";
+    foreach ($delmembers as $member) {
+      echo "<li>$member <input type=\"hidden\" name=\"delmember[".htmlspecialchars($mailingliste["address"])."][]\" value=\"".htmlspecialchars($member)."\"></li>";
+    }
+    echo "</ul>";
+  }
 /*
   echo "</td><td>";
 if (count($members) > 0):
@@ -214,7 +215,7 @@ endforeach;
 endif;
 */
   echo "</td></tr>";
-endforeach;
+}
 
 ?></table>
 
