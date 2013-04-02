@@ -79,7 +79,7 @@ asort($filter["active"]);
 	 (nicht erlaubt für Dummy-eMail-Adressen auf Mailinglisten und sonstige Ausnahmen nutzen)</li>
      <li><label for="csv"       >Datei importieren:        </label>
          <input type="file" name="csv" accept="text/comma-separated-values"><br/>
-         (optional, Trennung durch Komma, Texttrenner: ", Spalten: Name, eMail, erste Zeile ist Kopfzeile, "Login-Erlaubt"-Wert wird aus Eingabe übernommen.)</li>
+         (optional, Trennung durch Komma, Texttrenner: ", Spalten: Name, eMail, RZ-Login erste Zeile ist Kopfzeile, "Login-Erlaubt"-Wert wird aus Eingabe übernommen.)</li>
      </ul>
      <input type="hidden" name="action" value="person.insert"/>
      <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
