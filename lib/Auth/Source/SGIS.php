@@ -13,25 +13,11 @@ require_once SGISBASE.'/lib/Auth/UserPassBaseCookie.php';
 class sspmod_sgis_Auth_Source_SGIS extends sspmod_sgis_Auth_UserPassBaseCookie {
 
         /**
-         * The database object.
+         * The config object.
          *
-         * @var PDO
+         * @var config
          */
-        private $pdo;
-
-        /**
-        * The database prefix.
-         *
-         * @var prefix
-         */
-        private $prefix;
-
-        /**
-         * The password verifier object
-         *
-         * @var PasswordLib
-         */
-        private $pwObj;
+        private $config;
 
         /**
          * Initialize this filter, parse configuration
@@ -57,59 +43,59 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_sgis_Auth_UserPassBaseCookie {
                         throw new SimpleSAML_Error_Exception($this->authId . ': Missing required \'prefix\' option.');
                 }
 
-                $this->pdo = new PDO((string) $config["dsn"], (string) $config["username"], (string) $config["password"]);
-		$this->prefix = $config['prefix'];
-		$this->pwObj = new PasswordLib\PasswordLib();
+                $this->config = $config;
         }
 
-	// This function receives the username and password the user entered, and is expected to return the attributes of that user. If the username or password is incorrect, it should throw an error saying so.
-	function login($username, $password) {
-		$prefix = $this->prefix;
+        // This function receives the username and password the user entered, and is expected to return the attributes of that user. If the username or password is incorrect, it should throw an error saying so.
+        function login($username, $password) {
+                $pdo = new PDO((string) $this->config["dsn"], (string) $this->config["username"], (string) $this->config["password"]);
+                $prefix = $this->config['prefix'];
 
-		$query = $this->pdo->prepare("SELECT id, canLogin, password, email, username, name FROM {$prefix}person WHERE username = ?");
-		if (!$query->execute(Array($username))) throw new SimpleSAML_Error_Exception($this->authId . ': database error.');
-		if ($query->rowCount() != 1) {
-			// no such user
-			throw new SimpleSAML_Error_Error('WRONGUSERPASS');
-		}
-		$user = $query->fetch(PDO::FETCH_ASSOC);
+                $query = $pdo->prepare("SELECT id, canLogin, password, email, username, name FROM {$prefix}person WHERE username = ?");
+                if (!$query->execute(Array($username))) throw new SimpleSAML_Error_Exception($this->authId . ': database error.');
+                if ($query->rowCount() != 1) {
+                        // no such user
+                        throw new SimpleSAML_Error_Error('WRONGUSERPASS');
+                }
+                $user = $query->fetch(PDO::FETCH_ASSOC);
 
-		$query = $this->pdo->prepare("SELECT DISTINCT g.name FROM {$prefix}gruppe g INNER JOIN {$prefix}rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN {$prefix}rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
-		$query->execute(array($user["id"]));
-		$grps = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
+                $query = $pdo->prepare("SELECT DISTINCT g.name FROM {$prefix}gruppe g INNER JOIN {$prefix}rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN {$prefix}rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
+                $query->execute(array($user["id"]));
+                $grps = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
 
-		$canLogin = (bool) $user["canLogin"];
-		if (($canLogin && in_array("cannotLogin", $grps)) || (!$canLogin && !in_array("canLogin", $grps)))
-			throw new SimpleSAML_Error_Error('WRONGUSERPASS');
+                $canLogin = (bool) $user["canLogin"];
+                if (($canLogin && in_array("cannotLogin", $grps)) || (!$canLogin && !in_array("canLogin", $grps)))
+                        throw new SimpleSAML_Error_Error('WRONGUSERPASS');
 
-		$passwordHash = $user["password"];
-		if (empty($passwordHash))
-			throw new SimpleSAML_Error_Error('WRONGUSERPASS');
-		if (!$this->pwObj->verifyPasswordHash($password, $passwordHash))
-			throw new SimpleSAML_Error_Error('WRONGUSERPASS');
+                $passwordHash = $user["password"];
+                if (empty($passwordHash))
+                        throw new SimpleSAML_Error_Error('WRONGUSERPASS');
+                $pwObj = new PasswordLib\PasswordLib();
+                if (!$pwObj->verifyPasswordHash($password, $passwordHash))
+                        throw new SimpleSAML_Error_Error('WRONGUSERPASS');
 
-		# Login ok
+                # Login ok
                 $attributes = Array();
                 $attributes["mail"] = Array($user["email"]);
                 $attributes["eduPersonPrincipalName"] = Array($user["username"]);
-		if (!empty($user["name"])) {
-	                $attributes["displayName"] = Array($user["name"]);
-		} else {
-	                $attributes["displayName"] = Array($user["email"]);
-		}
-		$query = $this->pdo->prepare("SELECT DISTINCT m.address FROM {$prefix}mailingliste m INNER JOIN {$prefix}rel_rolle_mailingliste rrm ON m.id = rrm.mailingliste_id INNER JOIN {$prefix}rel_mitgliedschaft rm ON rrm.rolle_id = rm.rolle_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ?");
-		$query->execute(array($user["id"]));
-		$mailinglists = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
+                if (!empty($user["name"])) {
+                        $attributes["displayName"] = Array($user["name"]);
+                } else {
+                        $attributes["displayName"] = Array($user["email"]);
+                }
+                $query = $pdo->prepare("SELECT DISTINCT m.address FROM {$prefix}mailingliste m INNER JOIN {$prefix}rel_rolle_mailingliste rrm ON m.id = rrm.mailingliste_id INNER JOIN {$prefix}rel_mitgliedschaft rm ON rrm.rolle_id = rm.rolle_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ?");
+                $query->execute(array($user["id"]));
+                $mailinglists = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
                 $attributes["mailinglists"] = array_unique($mailinglists);
 
-		$query = $this->pdo->prepare("UPDATE {$prefix}person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
-		$query->execute(Array($user["id"]));
+                $query = $pdo->prepare("UPDATE {$prefix}person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
+                $query->execute(Array($user["id"]));
 
-		$grps[] = "sgis";
-		$grps[] = "user";
+                $grps[] = "sgis";
+                $grps[] = "user";
                 $attributes["groups"] = array_unique($grps);
 
-		return $attributes;
-	}
+                return $attributes;
+        }
 
 }

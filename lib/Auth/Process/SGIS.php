@@ -9,18 +9,11 @@
 class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
 
         /**
-        * The database object.
+        * The config object.
          *
-         * @var PDO
+         * @var config
          */
-        private $pdo;
-
-        /**
-        * The database prefix.
-         *
-         * @var prefix
-         */
-        private $prefix;
+        private $config;
 
         /**
          * Initialize this filter, parse configuration
@@ -46,9 +39,7 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                         throw new SimpleSAML_Error_Exception($this->authId . ': Missing required \'prefix\' option.');
                 }
 
-                $this->pdo = new PDO((string) $config["dsn"], (string) $config["username"], (string) $config["password"]);
-		$this->prefix = $config['prefix'];
-		$this->config = $config;
+                $this->config = $config;
         }
 
 
@@ -64,9 +55,10 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                 $attributes = &$request['Attributes'];
                 $mail = $attributes["mail"][0];
                 $unirzlogin = $attributes["eduPersonPrincipalName"][0];
-		$prefix = $this->prefix;
+                $prefix = $this->config['prefix'];
+                $pdo = new PDO((string) $this->config["dsn"], (string) $this->config["username"], (string) $this->config["password"]);
                 
-                $query = $this->pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM {$prefix}person p WHERE p.unirzlogin = ?");
+                $query = $pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM {$prefix}person p WHERE p.unirzlogin = ?");
                 $query->execute(array($unirzlogin));
                 $user = $query->fetchAll(PDO::FETCH_ASSOC);
                 $valid = false;
@@ -74,20 +66,20 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                   $user = $user[0];
                   $valid = true;
                 } else { // new user
-                  $query = $this->pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM {$prefix}person p WHERE p.email = ?");
+                  $query = $pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM {$prefix}person p WHERE p.email = ?");
                   $query->execute(array($mail));
                   $user = $query->fetchAll(PDO::FETCH_ASSOC);
                   if (count($user) > 0) {
                     $user = $user[0];
                     if (empty($user["unirzlogin"])) {
-                      $query = $this->pdo->prepare("UPDATE {$prefix}person SET unirzlogin = ? WHERE id = ?");
+                      $query = $pdo->prepare("UPDATE {$prefix}person SET unirzlogin = ? WHERE id = ?");
                       $query->execute(Array($unirzlogin, $user["id"]));
                       $valid = true;
                     }
                   }
                 }
                 if ($valid) {
-                  $query = $this->pdo->prepare("SELECT g.name FROM {$prefix}gruppe g INNER JOIN {$prefix}rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN {$prefix}rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
+                  $query = $pdo->prepare("SELECT g.name FROM {$prefix}gruppe g INNER JOIN {$prefix}rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN {$prefix}rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
                   $query->execute(array($user["id"]));
                   $grps = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
                   $grps[] = "sgis";
@@ -102,26 +94,26 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                   if (!empty($user["name"])) {
                     $attributes["displayName"] = Array($user["name"]);
                   }
-                  $query = $this->pdo->prepare("UPDATE {$prefix}person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
+                  $query = $pdo->prepare("UPDATE {$prefix}person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
                   $query->execute(Array($user["id"]));
                   $attributes["groups"] = array_unique(array_merge($attributes["groups"], $grps));
-                  $query = $this->pdo->prepare("SELECT DISTINCT m.address FROM {$prefix}mailingliste m INNER JOIN {$prefix}rel_rolle_mailingliste rrm ON m.id = rrm.mailingliste_id INNER JOIN {$prefix}rel_mitgliedschaft rm ON rrm.rolle_id = rm.rolle_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ?");
-		  $query->execute(Array($user["id"]));
+                  $query = $pdo->prepare("SELECT DISTINCT m.address FROM {$prefix}mailingliste m INNER JOIN {$prefix}rel_rolle_mailingliste rrm ON m.id = rrm.mailingliste_id INNER JOIN {$prefix}rel_mitgliedschaft rm ON rrm.rolle_id = rm.rolle_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ?");
+                  $query->execute(Array($user["id"]));
                   $mailinglists = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
                   $attributes["mailinglists"] = array_unique($mailinglists);
                 }
                 if (!isset($attributes["displayName"])) {
                   $attributes["displayName"] = $attributes["eduPersonPrincipalName"];
                 }
-		# if sgis user and no username/password is set, we ask the user to do it now
-		if ($valid && empty($user["username"]) && (! (isset($request['isPassive']) && $request['isPassive'] == true))) {
-			// Save state and redirect
-			$request['sgis:person_id'] = $user["id"];
-			$request['sgis:config'] = $this->config;
-			$id  = SimpleSAML_Auth_State::saveState($request, 'sgis:requestusernamepassword');
-			$url = SimpleSAML_Module::getModuleURL('sgis/getusernamepassword.php');
-			SimpleSAML_Utilities::redirect($url, array('StateId' => $id));
-		}
+                # if sgis user and no username/password is set, we ask the user to do it now
+                if ($valid && empty($user["username"]) && (! (isset($request['isPassive']) && $request['isPassive'] == true))) {
+                        // Save state and redirect
+                        $request['sgis:person_id'] = $user["id"];
+                        $request['sgis:config'] = $this->config;
+                        $id  = SimpleSAML_Auth_State::saveState($request, 'sgis:requestusernamepassword');
+                        $url = SimpleSAML_Module::getModuleURL('sgis/getusernamepassword.php');
+                        SimpleSAML_Utilities::redirect($url, array('StateId' => $id));
+                }
 
         }
 
