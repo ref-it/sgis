@@ -40,6 +40,9 @@ if (array_key_exists('password', $_REQUEST)) {
 	$password = '';
 }
 
+$errorCode = NULL;
+$errorParams = NULL;
+
 if (!empty($_REQUEST['username']) || !empty($password)) {
 	/* Either username or password set - attempt to log in. */
 
@@ -64,7 +67,13 @@ if (!empty($_REQUEST['username']) || !empty($password)) {
 		setcookie($source->getAuthId() . '-password', $passwordCookie, $params['expire'], $params['path'], $params['domain'], $params['secure'], $params['httponly']);
 	}
 
-	$errorCode = sspmod_sgis_Auth_UserPassBaseCookie::handleLogin($authStateId, $username, $password);
+	try {
+	  sspmod_sgis_Auth_UserPassBaseCookie::handleLogin($authStateId, $username, $password);
+	} catch (SimpleSAML_Error_Error $e) {
+		/* Login failed. Extract error code and parameters, to display the error. */
+		$errorCode = $e->getErrorCode();
+		$errorParams = $e->getParameters();
+	}
 } else {
 	if ($source->getRememberPasswordEnabled()) {
 		$credentials = false;
@@ -72,11 +81,15 @@ if (!empty($_REQUEST['username']) || !empty($password)) {
 			$credentials = sspmod_sgis_Auth_UserPassBaseCookie::decryptCookie($authStateId, $_COOKIE[$source->getAuthId() . '-password']);
 		}
 		if ($credentials !== false) {
-			sspmod_sgis_Auth_UserPassBaseCookie::handleLogin($authStateId, $credentials["username"], $credentials["password"]);
+	    try {
+			  sspmod_sgis_Auth_UserPassBaseCookie::handleLogin($authStateId, $credentials["username"], $credentials["password"]);
+	    } catch (SimpleSAML_Error_Error $e) {
+				/* Login failed. Extract error code and parameters, to display the error. */
+				$errorCode = $e->getErrorCode();
+				$errorParams = $e->getParameters();
+			}
 		}
 	}
-
-	$errorCode = NULL;
 }
 
 $globalConfig = SimpleSAML_Configuration::getInstance();
@@ -98,6 +111,7 @@ $t->data['rememberPasswordEnabled'] = $source->getRememberUsernameEnabled();
 $t->data['rememberPasswordChecked'] = $source->getRememberUsernameChecked();
 $t->data['links'] = $source->getLoginLinks();
 $t->data['errorcode'] = $errorCode;
+$t->data['errorparams'] = $errorParams;
 
 if (isset($state['SPMetadata'])) {
 	$t->data['SPMetadata'] = $state['SPMetadata'];
