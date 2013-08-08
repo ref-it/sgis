@@ -31,3 +31,12 @@ function requireGroup($group) {
     die();
   }
 }
+
+function getUsername() {
+  global $attributes;
+  if (isset($attributes["eduPersonPrincipalName"]) && isset($attributes["eduPersonPrincipalName"][0])) 
+    return $attributes["eduPersonPrincipalName"][0];
+  if (isset($attributes["mail"]) && isset($attributes["mail"][0])) 
+    return $attributes["mail"][0];
+  return NULL;
+}

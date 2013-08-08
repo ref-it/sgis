@@ -59,6 +59,34 @@ if ($r === false) {
   require SGISBASE.'/lib/inc.db.rolle.php';
 }
 
+# Log
+
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}log");
+if ($r === false) {
+  $pdo->query("CREATE TABLE {$DB_PREFIX}log (
+                id INT NOT NULL AUTO_INCREMENT,
+                action VARCHAR(254) NOT NULL,
+                evtime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                responsible VARCHAR(254),
+                PRIMARY KEY(id)
+               ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
+}
+
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}log_property");
+if ($r === false) {
+  $pdo->query("CREATE TABLE {$DB_PREFIX}log_property (
+                id INT NOT NULL AUTO_INCREMENT,
+                log_id INT NOT NULL,
+                name VARCHAR(128) NOT NULL,
+                value LONGTEXT,
+                INDEX(log_id),
+                INDEX(name),
+                INDEX(name, value(256)),
+                PRIMARY KEY(id),
+                FOREIGN KEY (log_id) REFERENCES {$DB_PREFIX}log(id) ON DELETE CASCADE
+              ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
+}
+
 # gesteuerte Objekte
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}mailingliste");
@@ -128,6 +156,25 @@ if ($r === false) {
                 FOREIGN KEY (person_id) REFERENCES {$DB_PREFIX}person(id) ON DELETE CASCADE,
                 PRIMARY KEY (id) ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.mitgliedschaft.php';
+}
+
+function logThisAction() {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");
+  $query->execute(Array($_REQUEST["action"], getUsername())) or httperror(print_r($query->errorInfo(),true));
+  $logId = $pdo->lastInsertId();
+  foreach ($_REQUEST as $key => $value) {
+    $key = "request_$key";
+    logAppend($logId, $key, $value);
+  }
+  return $logId;
+}
+
+function logAppend($logId, $key, $value) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log_property (log_id, name, value) VALUES (?, ?, ?)");
+  if (is_array($value)) $value = print_r($value, true);
+  $query->execute(Array($logId, $key, $value)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function getPersonDetailsByMail($mail) {

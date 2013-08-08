@@ -26,6 +26,7 @@ if (isset($_POST["action"])) {
  if (!isset($_REQUEST["nonce"]) || $_REQUEST["nonce"] !== $nonce) {
   $msgs[] = "Formular veraltet - CRSP Schutz aktiviert.";
  } else {
+  $logId = logThisAction();
   switch ($_POST["action"]):
   case "mailingliste.insert":
    $ret = dbMailinglisteInsert($_POST["address"], $_POST["url"], $_POST["password"]);
@@ -186,9 +187,12 @@ if (isset($_POST["action"])) {
    }
   break;
   default:
+   logAppend($logId, "__result", "invalid action");
    die("Aktion nicht bekannt.");
   endswitch;
  }
+ logAppend($logId, "__result", $ret ? "ok" : "failed");
+ logAppend($logId, "__result_msg", $msgs);
  if ($ret && !isset($_REQUEST["ajax"])) {
   $query = "";
   foreach ($msgs as $msg) {
@@ -258,14 +262,23 @@ endforeach;
 
 $script[] = '$( "#tabs" ).tabs();';
 $script[] = 'function xpAjaxErrorHandler (jqXHR, textStatus, errorThrown) {
+      $("#waitDialog").dialog("close");
       alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText);
 };';
-$script[] = '$( "form" ).submit(function (ev) {
+$script[] = '
+$(function() {
+  dlg = $("<div id=\"waitDialog\" title=\"Bitte warten\">Bitte warten, die Daten werden verarbeitet. Dies kann einen Moment dauern.</div>");
+  dlg.appendTo("body");
+  dlg.dialog({ autoOpen: false, height: "auto", modal: true, width: "auto", closeOnEscape: false });
+});';
+$script[] = '
+$( "form" ).submit(function (ev) {
     var action = $(this).attr("action");
     if ($(this).find("input[name=action]").length + $(this).find("select[name=action]").length == 0) { return true; }
     var close = $(this).find("input[type=reset]");
     var data = new FormData(this);
     data.append("ajax", 1);
+    $("#waitDialog").dialog("open");
     $.ajax({
       url: action,
       data: data,
@@ -275,6 +288,11 @@ $script[] = '$( "form" ).submit(function (ev) {
       type: "POST"
     })
     .success(function (values, status, req) {
+       $("#waitDialog").dialog("close");
+       if (typeof(values) == "string") {
+         alert(values);
+         return;
+       }
        var txt = "Die Daten wurden erfolgreich gespeichert.\nSoll die Seite mit den geänderten Daten neu geladen werden?";
        if (values.msgs && values.msgs.length > 0) {
          if (values.ret) {
