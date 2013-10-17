@@ -14,6 +14,15 @@ function checkResult($url, $output) {
   // password ok check
   if (strpos($output, '<INPUT TYPE="password" NAME="adminpw" SIZE="30">') !== FALSE)
     die("Fehler beim Abruf von $url - falsches Passwort.");
+  if (strpos($output, 'Fehler beim Abonnieren:') !== FALSE) {
+?><script>
+w = window.open('','_blank','dependent=yes');
+w.document.open();
+w.document.write(unescape('<? echo rawurlencode($output); ?>'));
+w.document.close();
+</script><?php
+    die("Fehler beim Abruf von $url - Person konnte nicht gefügt werden.");
+  }
 }
 
 if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0 && $validnonce) {
