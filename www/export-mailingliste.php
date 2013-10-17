@@ -178,6 +178,8 @@ foreach($alle_mailinglisten as $mailingliste) {
   echo "<td valign=\"top\"><a href=\"".htmlspecialchars($mailingliste["url"])."\">".htmlspecialchars($mailingliste["address"])."</a></td>\n";
   $members = $mailingliste["members"];
   $dbmembers = getMailinglistePerson($mailingliste["id"]);
+  foreach ($dbmembers as $i => $e) { $dbmembers[$i] = strtolower($e); }
+  foreach ($members as $i => $e) { $members[$i] = strtolower($e); }
   $addmembers = array_diff($dbmembers, $members);
   $delmembers = array_diff($members, $dbmembers);
   echo "<td valign=\"top\">";
