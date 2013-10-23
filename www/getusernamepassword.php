@@ -9,7 +9,7 @@
  * @version $Id$
  */
 
-define(SGISBASE, dirname(dirname(__FILE__)));
+define('SGISBASE', dirname(dirname(__FILE__)));
 require_once SGISBASE.'/externals/password-lib/lib/PasswordLib/PasswordLib.php';
 
 $globalConfig = SimpleSAML_Configuration::getInstance();
