@@ -98,6 +98,7 @@ class OC_USER_SGIS {
                 $this->backend->setPassword($uid, $password);
             } else {
                 $this->backend->createUser($uid, $password);
+                OC_Group::addToGroup($uid, "sgis");
             }
         } elseif ($exists && $this->backend->checkPassword($uid, $password)) {
             # incorrect new password combined with correct old password -> erase old password from local backend
