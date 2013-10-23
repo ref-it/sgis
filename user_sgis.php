@@ -100,6 +100,7 @@ class OC_USER_SGIS {
                 $this->backend->createUser($uid, $password);
                 OC_Group::addToGroup($uid, "sgis");
             }
+            OC_User::enableUser($uid);
         } elseif ($exists && $this->backend->checkPassword($uid, $password)) {
             # incorrect new password combined with correct old password -> erase old password from local backend
             $this->backend->setPassword($uid, self::randomstring());
@@ -137,7 +138,7 @@ class OC_USER_SGIS {
         } else {
             # OwnCloud has only email field and groups
             OC_Preferences::setValue($uid, 'settings', 'email', $reply["person"]["email"]);
-            if ($reply["person"]["canLogin"]) {
+            if ($reply["canLogin"]) {
                 OC_User::enableUser($uid);
             } else {
                 OC_User::disableUser($uid);
