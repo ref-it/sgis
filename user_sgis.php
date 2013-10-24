@@ -138,11 +138,14 @@ class OC_USER_SGIS {
         } else {
             # OwnCloud has only email field and groups
             OC_Preferences::setValue($uid, 'settings', 'email', $reply["person"]["email"]);
-            OC_Preferences::setValue($uid, 'files', 'quota', '10MB');
+//            OC_Preferences::setValue($uid, 'files', 'quota', 10 * 1024 * 1024 * 1024);
             if ($reply["canLogin"]) {
                 OC_User::enableUser($uid);
             } else {
                 OC_User::disableUser($uid);
+            }
+            if (!empty($reply["person"]["name"])) {
+                OC_User::setDisplayName($uid, $reply["person"]["name"]);
             }
         }
         # Group management deferred, as addToGroup -> OC_Filesystem-Hook -> Fails due to OC_Failsystem::init not called.
