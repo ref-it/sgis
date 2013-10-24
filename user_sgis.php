@@ -138,6 +138,7 @@ class OC_USER_SGIS {
         } else {
             # OwnCloud has only email field and groups
             OC_Preferences::setValue($uid, 'settings', 'email', $reply["person"]["email"]);
+            OC_Preferences::setValue($uid, 'files', 'quota', '10MB');
             if ($reply["canLogin"]) {
                 OC_User::enableUser($uid);
             } else {
