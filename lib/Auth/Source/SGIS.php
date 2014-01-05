@@ -48,6 +48,9 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_sgis_Auth_UserPassBaseCookie {
 
         // This function receives the username and password the user entered, and is expected to return the attributes of that user. If the username or password is incorrect, it should throw an error saying so.
         function login($username, $password) {
+                # username needs to match ^[a-z][-a-z0-9\._]*\$
+                $username  = preg_replace('/^[^a-z]*/', '', preg_replace('/[^-a-z0-9\._]/', '', strtolower($username)));
+
                 $pdo = new PDO((string) $this->config["dsn"], (string) $this->config["username"], (string) $this->config["password"]);
                 $prefix = $this->config['prefix'];
 
