@@ -30,7 +30,8 @@ $errorCode = NULL;
 if (array_key_exists('yes', $_REQUEST)) {
     $person_id = $state["sgis:person_id"];
     $config    = $state["sgis:config"];
-    $username  = $_REQUEST["username"];
+    # username needs to match ^[a-z][-a-z0-9]*\$
+    $username  = preg_replace('/^[^a-z]*/', '', preg_replace('/[^-a-z0-9]/', '', strtolower($_REQUEST["username"])));
     $password  = $_REQUEST["password"];
     $pdo = new PDO((string) $config["dsn"], (string) $config["username"], (string) $config["password"]);
     $prefix = $config["prefix"];
