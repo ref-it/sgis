@@ -216,8 +216,8 @@ function getPersonMailingliste($personId) {
 
 function setPersonUsername($personId, $username) {
   global $pdo, $DB_PREFIX;
-  # username needs to match ^[a-z][-a-z0-9\._]*\$
-  $username  = preg_replace('/^[^a-z]*/', '', preg_replace('/[^-a-z0-9\._]/', '', strtolower($username)));
+  # username needs to match ^[a-z][-a-z0-9_]*\$
+  $username  = preg_replace('/^[^a-z]*/', '', preg_replace('/[^-a-z0-9_]/', '', strtolower($username)));
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET username = ? WHERE id = ?");
   return $query->execute(Array($username, $personId)) or httperror(print_r($query->errorInfo(),true));
 }
