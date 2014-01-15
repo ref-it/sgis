@@ -112,25 +112,25 @@ function cmpPerson($a, $b) {
 }
 
 foreach ($mapping as $wiki => $data) {
-  $text = Array("====== studentische Mitglieder (Ilmenau) ======");
+  $text = Array();
   foreach ($data as $gremium_id => $data2) {
     $g = $name_gremien[$gremium_id];
     $gname = preg_replace("/\s+/"," ",trim("{$g["gremium_name"]} {$g["gremium_fakultaet"]} {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]}"));
-    $text[] = "===== $gname =====";
+    $text[] = "====== $gname (studentische Mitglieder) (Ilmenau) ======";
     foreach ($data2 as $rolle_id => $personen) {
       $text[] = "";
       $r = $name_rollen[$gremium_id][$rolle_id];
-      $text[] = "==== {$r["rolle_name"]} ====";
+      $text[] = "===== {$r["rolle_name"]} =====";
       if (!empty($personen["active"])) {
         uasort($personen["active"], 'cmpPerson');
         foreach($personen["active"] as $person) {
           $text[] = person2string($person);
-        } 
+        }
         $text[] = "";
       }
       if (!empty($personen["inactive"])) {
         uasort($personen["inactive"], 'cmpPerson');
-        $text[] = "=== ehemalige/zukünftige ===";
+        $text[] = "==== ehemalige/zukünftige ====";
         foreach($personen["inactive"] as $person) {
           $text[] = person2string($person);
         }
