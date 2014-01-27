@@ -46,6 +46,7 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["adminpw"] = $password;
       $postFields["send_reminders"] = 0; // no password reminder
       $postFields["admin_notify_mchanges"] = 1; // tell konsul about new/lost members
+      $postFields["include_rfc2369_headers"] = 1; // add List-Id Header
       $writeRequests[] = Array("url" => $url."/general", "post" => $postFields);
 
       $postFields = Array();
