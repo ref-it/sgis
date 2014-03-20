@@ -44,7 +44,7 @@ class SGIS_AuthPluginDavical {
     * if correct new password is provided update davical password cache
     */
   public function auth($username, $password) {
-    if ($this->pdo === NULL) { return false; }
+    if ($this->pdo === NULL) { return $this->checkDavicalLocalLogin($username, $password); };
     $username = strtolower($username);
 
     $principal = new Principal('username',$username);
@@ -65,8 +65,12 @@ class SGIS_AuthPluginDavical {
     # check if username is set in sGIS
     $user = $this->get_sgis_user_details($username);
     if ($user === false) {
-      dbg_error_log( "SGIS", "User %s does not exist.", $username );
-      return false;
+      if (!$isSGIS) {
+        return $this->checkDavicalLocalLogin($username, $password);
+      } else {
+        dbg_error_log( "SGIS", "User %s does not exist.", $username );
+        return false;
+      }
     }
 
     # check password
@@ -81,6 +85,8 @@ class SGIS_AuthPluginDavical {
           
          $principal->Update( array('password' => ''));
         }
+      } else {
+        return $this->checkDavicalLocalLogin($username, $password);
       }
       return false;
     }
@@ -298,6 +304,15 @@ class SGIS_AuthPluginDavical {
     return $pass;
   }
 
+
+  private function checkDavicalLocalLogin($username, $password) {
+    if ( $principal = new Principal('username', $username) ) {
+      if ( $principal->user_active && session_validate_password( $password, $principal->password ) ) {
+        return $principal;
+      }
+    }
+    return false;
+  }
 }
 
 /**
