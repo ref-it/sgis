@@ -50,6 +50,7 @@ function fetchGroupMembers($groupId) {
     $response = $spi->send();
     if ($response->getStatus() != 200) {
       echo "<pre>";
+      echo "Request body:\n" . $spi->getBody()."\n";
       echo "Response status: " . $response->getStatus() . "\n";
       echo "Human-readable reason phrase: " . $response->getReasonPhrase() . "\n";
       echo "Response HTTP version: " . $response->getVersion() . "\n";
@@ -84,6 +85,13 @@ function setGroupMembers($groupId, $members) {
     $response = $spi->send();
     if ($response->getStatus() != 200) {
       echo "<pre>";
+      echo "Request body:\n" . $spi->getBody() . "\n";
+      echo "Request body:\n" . urldecode($spi->getBody()) . "\n";
+      echo "Request url:\n" . urldecode($spi->getUrl()) . "\n";
+      echo "Request headers:\n";
+      foreach ($spi->getHeaders() as $k => $v) {
+          echo "\t{$k}: {$v}\n";
+      }
       echo "Response status: " . $response->getStatus() . "\n";
       echo "Human-readable reason phrase: " . $response->getReasonPhrase() . "\n";
       echo "Response HTTP version: " . $response->getVersion() . "\n";
@@ -115,7 +123,7 @@ foreach ($mapping as $group_id => $data) {
   sort($member);
   if (isset($_POST["commit"]) && is_array($_POST["commit"]) && in_array($group_id, $_POST["commit"]) && $validnonce) {
     setGroupMembers($group_id, $member);
-  } elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && isset($_POST["commit"][$wiki])) {
+  } elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && in_array($group_id, $_POST["commit"])) {
     die("<b class=\"msg\">CSRF Schutz.</b><br/>");
   }
 }
@@ -146,10 +154,12 @@ foreach ($mapping as $group_id => $data):
   $data["oldmember"] = array_unique(fetchGroupMembers($group_id));
   $data["+member"] = array_diff($data["member"], $data["oldmember"]);
   $data["-member"] = array_diff($data["oldmember"], $data["member"]);
+  $data["=member"] = array_intersect($data["oldmember"], $data["member"]);
   sort($data["member"]);
   sort($data["oldmember"]);
   sort($data["+member"]);
   sort($data["-member"]);
+  sort($data["=member"]);
   echo "<tr>";
   echo " <td><input ".((count($data["+member"]) + count($data["-member"]) != 0) ? "class=\"mls\"" : "")." type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($group_id)."\"></td>";
   echo " <td><a href=\"".htmlspecialchars($sPiBase."/group/".$group_id)."\">".htmlspecialchars($group_id)."</a></td>\n";
@@ -160,6 +170,8 @@ foreach ($mapping as $group_id => $data):
    echo "<li><a href=\"mailto:".htmlspecialchars($email)."\">+".htmlspecialchars($email)."</a></li>";
   foreach ($data["-member"] as $email)
    echo "<li><a href=\"mailto:".htmlspecialchars($email)."\">-".htmlspecialchars($email)."</a></li>";
+#  foreach ($data["=member"] as $email)
+#   echo "<li><a href=\"mailto:".htmlspecialchars($email)."\">".htmlspecialchars($email)."</a></li>";
   echo "</ul>";
   echo " </td>";
   echo "</tr>";
