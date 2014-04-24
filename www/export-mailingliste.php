@@ -164,7 +164,7 @@ function parseLettersPage($output, $url) {
   $matches = Array();
   $match = preg_quote("a href=\"$url?letter=","/")."(.)".preg_quote("\"","/");
   $matches = Array();
-  preg_match_all( "/$match/", $output, $matches);
+  preg_match_all( "/$match/i", $output, $matches);
   return $matches[1];
 }
 
@@ -172,7 +172,7 @@ function parseChunksPage($output, $url) {
   // chunks required
   $match = preg_quote("a href=\"$url?letter=","/").".".preg_quote("&chunk=","/")."([0-9]*)".preg_quote("\"","/");
   $matches = Array();
-  preg_match_all( "/$match/", $output, $matches);
+  preg_match_all( "/$match/i", $output, $matches);
   return $matches[1];
 }
 
