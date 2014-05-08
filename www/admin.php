@@ -57,21 +57,21 @@ if (isset($_POST["action"])) {
    $msgs[] = "Person wurde deaktiviert.";
   break;
   case "person.update":
-   $ret = dbPersonUpdate($_POST["id"],$_POST["name"],$_POST["email"],$_POST["unirzlogin"],$_POST["username"],$_POST["password"],$_POST["canlogin"]);
+   $ret = dbPersonUpdate($_POST["id"],trim($_POST["name"]),trim($_POST["email"]),trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"]);
    $msgs[] = "Person wurde aktualisiert.";
   break;
   case "person.insert":
    $quiet = isset($_FILES["csv"]) && !empty($_FILES["csv"]["tmp_name"]);
    $ret = true;
    if (!empty($_POST["email"])) {
-     $ret = dbPersonInsert($_POST["name"],$_POST["email"],$_POST["unirzlogin"],$_POST["username"],$_POST["password"],$_POST["canlogin"], $quiet);
+     $ret = dbPersonInsert(trim($_POST["name"]),trim($_POST["email"]),trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"], $quiet);
      $msgs[] = "Person {$_POST["name"]} wurde ".($ret ? "": "nicht ")."angelegt.";
    }
    if ($quiet) {
      if (($handle = fopen($_FILES["csv"]["tmp_name"], "r")) !== FALSE) {
        fgetcsv($handle, 1000, ",");
        while (($data = fgetcsv($handle, 0, ",", '"')) !== FALSE) {
-         $ret2 = dbPersonInsert($data[0],$data[1],(string)$data[2],"","",$_POST["canlogin"], $quiet);
+         $ret2 = dbPersonInsert(trim($data[0]),trim($data[1]),trim((string)$data[2]),"","",$_POST["canlogin"], $quiet);
          $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".($ret2 ? "": "nicht ")."angelegt.";
          $ret = $ret && $ret2;
        }
