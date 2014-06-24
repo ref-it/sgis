@@ -98,6 +98,7 @@ foreach ($mapping as $wiki => $data) {
       $r = $name_rollen[$gremium_id][$rolle_id];
       $text[] = "===== {$r["rolle_name"]} =====";
       if (!empty($personen["active"])) {
+        $text[] = "==== aktuelle in {$r["rolle_name"]} in $gname ====";
         uasort($personen["active"], 'cmpPerson');
         foreach($personen["active"] as $person) {
           $text[] = person2string($person);
@@ -106,7 +107,7 @@ foreach ($mapping as $wiki => $data) {
       }
       if (!empty($personen["inactive"])) {
         uasort($personen["inactive"], 'cmpPerson');
-        $text[] = "==== ehemalige/zukünftige ====";
+        $text[] = "==== ehemalige/zukünftige in {$r["rolle_name"]} in $gname ====";
         foreach($personen["inactive"] as $person) {
           $text[] = person2string($person);
         }
