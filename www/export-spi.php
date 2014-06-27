@@ -48,8 +48,19 @@ function fetchGroupMembers($groupId) {
   try {
     $spi = getClient($groupId);
     $response = $spi->send();
+
+    $error = false;
     if ($response->getStatus() != 200) {
+      $error = true;
+    } else {
+      $ret = json_decode($response->getBody(), true);
+      if (!is_array($ret)) {
+        $error = true;
+      }
+    }
+    if ($error) {
       echo "<pre>";
+      echo "Request URI: " . $spi->getUrl()."\n";
       echo "Request body:\n" . $spi->getBody()."\n";
       echo "Response status: " . $response->getStatus() . "\n";
       echo "Human-readable reason phrase: " . $response->getReasonPhrase() . "\n";
@@ -71,7 +82,7 @@ function fetchGroupMembers($groupId) {
       echo "</pre>";
       die(__LINE__."@".__FILE__.': bad reply reading '.$groupId );
     }
-    return json_decode($response->getBody(), true);
+    return $ret;
   } catch (Exception $e) {
     die(__LINE__."@".__FILE__.': Exception reading '.$groupId.': ' . $e->getMessage() );
   }
