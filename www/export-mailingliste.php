@@ -11,6 +11,11 @@ if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
 }
 
 function checkResult($url, $output) {
+  if ($output == "") {
+    echo "empty reply\n";
+    var_dump($output);
+    die();
+  }
   // password ok check
   if (strpos($output, '<INPUT TYPE="password" NAME="adminpw" SIZE="30">') !== FALSE)
     die("Fehler beim Abruf von $url - falsches Passwort.");
@@ -156,7 +161,10 @@ function parseMembersPage($output, $url, &$members) {
   }
   // num total member
   $match = preg_quote("<td COLSPAN=\"11\" BGCOLOR=\"#dddddd\"><center><em>","/")."([0-9]*) Mitglieder insgesamt(, [0-9]* werden angezeigt)?".preg_quote("</em></center></td>","/");
-  if (!(preg_match( "/$match/", $output, $matches) === 1)) { die("Fehler beim Abruf von $url - keine Mitgliederanzahl - falsche Sprache?"); }
+  if (!(preg_match( "/$match/", $output, $matches) === 1)) {
+     echo "got \"$output\"\n";
+        die("Fehler beim Abruf von $url - keine Mitgliederanzahl - falsche Sprache?");
+   }
   return $matches[1]; // numMembers
 }
 
