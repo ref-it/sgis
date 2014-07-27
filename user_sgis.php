@@ -30,6 +30,15 @@ class OC_USER_SGIS {
     protected static $me = NULL;
     protected $testedUsers = Array();
 
+    static private function forceLog($msg) {
+        $out = ob_get_contents();
+        ob_end_clean();
+        echo $msg."<br/>\n";
+        flush();
+        ob_start();
+        echo $out;
+    }
+
     public function __construct() 
     {
         $this->url = OCP\Config::getAppValue('user_sgis', 'sgis_url', '');
@@ -53,6 +62,10 @@ class OC_USER_SGIS {
     */
     public function checkPassword($uid, $password)
     {
+        static $recur = 0;
+        if ($recur > 0) return false;
+        $recur++;
+
         OC_Log::write('OC_USER_SGIS', "Entering checkPassword() for UID: $uid", OC_Log::DEBUG);
         if (OC_User::userExists($uid)) {
             if (OC_Group::inGroup($uid, $this->group)) {
@@ -61,13 +74,19 @@ class OC_USER_SGIS {
                 } catch (Exception $e) {
                 }
             }
-            return $this->backend->checkPassword($uid, $password);
+            $ret = $this->backend->checkPassword($uid, $password);
         } else {
-            return $this->sgisLoginCheck($uid, $password, false) ? $uid : false;
+            $ret = $this->sgisLoginCheck($uid, $password, false) ? $uid : false;
         }
+        $recur--;
+        return $ret;
     }
 
     public function userExists($uid) {
+        static $recur = 0;
+        if ($recur > 0) return false;
+        $recur++;
+
         try {
             if ($this->backend->userExists($uid) && OC_Group::inGroup($uid, $this->group) && !isset($this->testedUsers[$uid])) {
                 $nonce = self::randomstring();
@@ -84,6 +103,7 @@ class OC_USER_SGIS {
             }
         } catch (Exception $e) {
         }
+        $recur--;
         return $this->backend->userExists($uid);
     }
 
@@ -110,7 +130,15 @@ class OC_USER_SGIS {
     }
 
     public function __call($name, $arguments) {
-        return call_user_func_array(Array($this->backend, $name), $arguments);
+        static $recur = NULL;
+        if ($recur === NULL) $recur = Array();
+        if (isset($recur[$name])) return false;
+        $recur[$name] = true;
+
+        $ret = call_user_func_array(Array($this->backend, $name), $arguments);
+
+        unset($recur[$name]);
+        return $ret;
     }
 
     # asks SGIS for details
