@@ -120,7 +120,8 @@ class OC_USER_SGIS {
                 $this->backend->createUser($uid, $password);
                 OC_Group::addToGroup($uid, "sgis");
             }
-            OC_User::enableUser($uid);
+            if (!OC_User::isEnabled($uid))
+                OC_User::enableUser($uid);
         } elseif ($exists && $this->backend->checkPassword($uid, $password)) {
             # incorrect new password combined with correct old password -> erase old password from local backend
             $this->backend->setPassword($uid, self::randomstring());
@@ -168,9 +169,11 @@ class OC_USER_SGIS {
             OC_Preferences::setValue($uid, 'settings', 'email', $reply["person"]["email"]);
 //            OC_Preferences::setValue($uid, 'files', 'quota', 10 * 1024 * 1024 * 1024);
             if ($reply["canLogin"]) {
-                OC_User::enableUser($uid);
+                if (!OC_User::isEnabled($uid))
+                    OC_User::enableUser($uid);
             } else {
-                OC_User::disableUser($uid);
+                if (OC_User::isEnabled($uid))
+                    OC_User::disableUser($uid);
             }
             if (!empty($reply["person"]["name"])) {
                 OC_User::setDisplayName($uid, $reply["person"]["name"]);
