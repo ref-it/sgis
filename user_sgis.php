@@ -3,8 +3,8 @@
 /**
  * ownCloud - user_sgis
  *
- * @author Andreas Böhler
- * @copyright 2012 Andreas Böhler <andreas (at) aboehler (dot) at>
+ * @author Michael Braun
+ * @copyright 2014 Michael Braun <michael-dev (at) fami-braun (dot) de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
