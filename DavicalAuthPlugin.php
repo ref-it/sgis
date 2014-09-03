@@ -6,7 +6,7 @@
 * @subpackage   davical
 * @author    Michael Braun <michael-dev@fami-braun.de>
 * @copyright Michael Braun
-* @license   http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
+* @license   http://opensource.org/licenses/AGPL-3.0
 */
 
 require_once(dirname(__FILE__).'/externals/password-lib/lib/PasswordLib/PasswordLib.php');
