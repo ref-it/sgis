@@ -63,7 +63,7 @@ class SGIS_AuthPluginDavical {
     }
 
     # check if username is set in sGIS
-    $user = $this->get_sgis_user_details($username);
+    $user = $this->get_sgis_user_details($principal);
     if ($user === false) {
       if (!$isSGIS) {
         return $this->checkDavicalLocalLogin($username, $password);
@@ -180,12 +180,15 @@ class SGIS_AuthPluginDavical {
   }
 
   /* return sgis user row, update canLogin by group membership state */
-  private function get_sgis_user_details($username) {
+  private function get_sgis_user_details($principal) {
+    $username = $principal->username();
+
     $this->userQuery->execute(Array($username)) or die(print_r($this->userQuery->errorInfo(),true));
     if ($this->userQuery->rowCount() == 0) {
       return false;
     }
     $userRow = $this->userQuery->fetch(PDO::FETCH_ASSOC) or die(print_r($this->userQuery->errorInfo(),true));
+    $grps = $this->get_sgis_groups($principal);
 
     if ($userRow["canLogin"]) {
       $canLogin = !in_array("cannotLogin", $grps);
@@ -205,7 +208,7 @@ class SGIS_AuthPluginDavical {
     $grps = $this->get_sgis_groups($principal);
     $this->sgis_update_groups($principal, $grps);
 
-    $userRow = $this->get_sgis_user_details($username);
+    $userRow = $this->get_sgis_user_details($principal);
     if ($userRow === false) {
       dbg_error_log( "SGIS", "cleanup: User %s is not a valid username", $username );
       $principal->Update(array(
