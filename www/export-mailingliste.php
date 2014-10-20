@@ -3,7 +3,11 @@
 global $ADMINGROUP;
 
 require_once "../lib/inc.all.php";
-requireGroup($ADMINGROUP);
+if (isset($_REQUEST["autoExportPW"])) {
+  requireExportAutoPW();
+} else {
+  requireGroup($ADMINGROUP);
+}
 
 $validnonce = false;
 if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
