@@ -1,6 +1,6 @@
 <?php
 
-function requireAutoExportPW() {
+function requireExportAutoPW() {
   global $autoExportPW;
 
   if (isset($_REQUEST["autoExportPW"]) && md5($_REQUEST["autoExportPW"]) === $autoExportPW)
