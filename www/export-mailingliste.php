@@ -249,6 +249,10 @@ endif;
 <a href="#" onClick="$('.mls').attr('checked',false); return false;">keine auswählen</a>
 <input type="submit" value="Anwenden" name="submit"/>
 <input type="reset" value="Zurücksetzen" name="reset"/>
+<?php
+if (isset($_REQUEST["autoExportPW"]))
+  echo "<input type=\"hidden\" name=\"autoExportPW\" value=\"".htmlspecialchars($_REQUEST["autoExportPW"])."\">"
+?>
 
 </form>
 <hr/>

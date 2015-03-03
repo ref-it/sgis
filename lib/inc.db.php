@@ -536,5 +536,28 @@ function getGruppePerson($grpId) {
   return $query->fetchAll(PDO::FETCH_COLUMN);
 }
 
+function getDBDump() {
+  global $pdo, $DB_PREFIX;
+  $tables = Array("person" => "id",
+                  "gruppe" => "id",
+                  "gremium" => "id",
+                  "log" => "id",
+                  "log_property" => "id",
+                  "mailingliste" => "id",
+                  "rel_mitgliedschaft" => "id",
+                  "rel_rolle_gruppe" => "rolle_id, gruppe_id",
+                  "rel_rolle_mailingliste" => "rolle_id, mailingliste_id",
+                  "rolle" => "id",
+                 );
+  $ret = Array();
+  foreach ($tables as $t => $s) {
+    $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}{$t} ORDER BY {$s}");
+    $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+    $ret[$t] = $query->fetchAll(PDO::FETCH_ASSOC);
+  }
+  ksort($ret);
+  return $ret;
+}
+
 # vim: set expandtab tabstop=8 shiftwidth=8 :
 

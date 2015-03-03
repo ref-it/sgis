@@ -102,8 +102,8 @@ function setGroupMembers($groupId, $members) {
     if ($response->getStatus() != 200) {
       echo "<pre>";
       echo "Request body:\n" . $spi->getBody() . "\n";
-      echo "Request body:\n" . urldecode($spi->getBody()) . "\n";
-      echo "Request url:\n" . urldecode($spi->getUrl()) . "\n";
+      echo "Request body (decoded):\n" . urldecode($spi->getBody()) . "\n";
+      echo "Request url (decoded):\n" . urldecode($spi->getUrl()) . "\n";
       echo "Request headers:\n";
       foreach ($spi->getHeaders() as $k => $v) {
           echo "\t{$k}: {$v}\n";
@@ -123,8 +123,8 @@ function setGroupMembers($groupId, $members) {
                (empty($c['path'])? '': ", path: {$c['path']}") .
                ", secure: " . ($c['secure']? 'yes': 'no') . "\n";
       }
-      echo "Response body:\n" . $response->getBody();
-      var_dump($response->getBody());
+      echo "Response body:\n" . htmlspecialchars($response->getBody());
+#      var_dump($response->getBody());
       echo "</pre>";
       die(__LINE__."@".__FILE__.': bad reply writing '.$groupId );
     }
@@ -201,6 +201,10 @@ endforeach;
 <a href="#" onClick="$('.mls').attr('checked',false); return false;">keine Änderungen auswählen</a>
 <input type="submit" value="Anwenden" name="submit"/>
 <input type="reset" value="Zurücksetzen" name="reset"/>
+<?php
+if (isset($_REQUEST["autoExportPW"]))
+  echo "<input type=\"hidden\" name=\"autoExportPW\" value=\"".htmlspecialchars($_REQUEST["autoExportPW"])."\">"
+?>
 
 </form>
 <hr/>

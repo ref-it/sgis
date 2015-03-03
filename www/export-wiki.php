@@ -1,6 +1,7 @@
 <?php
 global $ADMINGROUP;
 require_once "../lib/inc.all.php";
+
 if (isset($_REQUEST["autoExportPW"])) {
   requireExportAutoPW();
 } else {
@@ -173,6 +174,10 @@ endforeach;
 <a href="#" onClick="$('.mls').attr('checked',false); return false;">keine Änderungen auswählen</a>
 <input type="submit" value="Anwenden" name="submit"/>
 <input type="reset" value="Zurücksetzen" name="reset"/>
+<?php
+if (isset($_REQUEST["autoExportPW"]))
+  echo "<input type=\"hidden\" name=\"autoExportPW\" value=\"".htmlspecialchars($_REQUEST["autoExportPW"])."\">"
+?>
 
 </form>
 <hr/>
