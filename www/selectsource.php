@@ -27,6 +27,7 @@ if (array_key_exists("SimpleSAML_Auth_Default.id", $state)) {
 }
 
 $source = NULL;
+$isSourceFromReq = false;
 if (array_key_exists('source', $_REQUEST)) {
 	$source = $_REQUEST['source'];
 } else {
@@ -34,18 +35,22 @@ if (array_key_exists('source', $_REQUEST)) {
 		$k = explode('-', $k, 2);
 		if (count($k) === 2 && $k[0] === 'src') {
 			$source = base64_decode($k[1]);
+      $isSourceFromReq = true;
 		}
 	}
 }
 if ($as->getRememberSourceEnabled() && $source === NULL && array_key_exists($as->getAuthId() . '-source', $_COOKIE)) {
 	$source = $_COOKIE[$as->getAuthId() . '-source'];
 }
-if ($source !== NULL && $as->getRememberSourceEnabled()) {
+if ($source !== NULL && $as->getRememberSourceEnabled() && $isSourceFromReq) {
 	$sessionHandler = SimpleSAML_SessionHandler::getSessionHandler();
 	$params = $sessionHandler->getCookieParams();
 	$params['expire'] = time();
 	$params['expire'] += (isset($_REQUEST['remember_source']) && $_REQUEST['remember_source'] == 'Yes' ? 31536000 : -300);
 	setcookie($as->getAuthId() . '-source', $source, $params['expire'], $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+}
+if (count($state[sspmod_sgis_Auth_Source_MultiAuth::SOURCESID]) == 1) {
+  $source = $state[sspmod_sgis_Auth_Source_MultiAuth::SOURCESID][0]['source'];
 }
 
 if ($source !== NULL) {

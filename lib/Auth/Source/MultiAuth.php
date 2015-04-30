@@ -66,45 +66,45 @@ class sspmod_sgis_Auth_Source_MultiAuth extends SimpleSAML_Auth_Source {
 		/* Call the parent constructor first, as required by the interface. */
 		parent::__construct($info, $config);
 
-                if (!array_key_exists('sources', $config)) {
-                        throw new Exception('The required "sources" config option was not found');
-                }
+		if (!array_key_exists('sources', $config)) {
+			throw new Exception('The required "sources" config option was not found');
+		}
 
-                $globalConfiguration = SimpleSAML_Configuration::getInstance();
-                $defaultLanguage = $globalConfiguration->getString('language.default', 'en');
-                $authsources = SimpleSAML_Configuration::getConfig('authsources.php');
-                $this->sources = array();
-                foreach($config['sources'] as $source => $info) {
+		$globalConfiguration = SimpleSAML_Configuration::getInstance();
+		$defaultLanguage = $globalConfiguration->getString('language.default', 'en');
+		$authsources = SimpleSAML_Configuration::getConfig('authsources.php');
+		$this->sources = array();
+		foreach($config['sources'] as $source => $info) {
 
-                        if (is_int($source)) { // Backwards compatibility 
-                                $source = $info;
-                                $info = array();
-                        }
+			if (is_int($source)) { // Backwards compatibility
+				$source = $info;
+				$info = array();
+			}
 
-                        if (array_key_exists('text', $info)) {
-                                $text = $info['text'];
-                        } else {
-                                $text = array($defaultLanguage => $source);
-                        }
+			if (array_key_exists('text', $info)) {
+				$text = $info['text'];
+			} else {
+				$text = array($defaultLanguage => $source);
+			}
 
-                        if (array_key_exists('css-class', $info)) {
-                                $css_class = $info['css-class'];
-                        } else {
-                                /* Use the authtype as the css class */
-                                $authconfig = $authsources->getArray($source, NULL);
-                                if (!array_key_exists(0, $authconfig) || !is_string($authconfig[0])) {
-                                        $css_class = "";
-                                } else {
-                                        $css_class = str_replace(":", "-", $authconfig[0]);
-                                }
-                        }
+			if (array_key_exists('css-class', $info)) {
+				$css_class = $info['css-class'];
+			} else {
+				/* Use the authtype as the css class */
+				$authconfig = $authsources->getArray($source, NULL);
+				if (!array_key_exists(0, $authconfig) || !is_string($authconfig[0])) {
+					$css_class = "";
+				} else {
+					$css_class = str_replace(":", "-", $authconfig[0]);
+				}
+			}
 
-                        $this->sources[] = array(
-                                'source' => $source,
-                                'text' => $text,
-                                'css_class' => $css_class,
-                        );
-                }
+			$this->sources[] = array(
+				'source' => $source,
+				'text' => $text,
+				'css_class' => $css_class,
+			);
+		}
 
 		// Get the remember source config options
 		if (isset($config['remember.source.enabled'])) {
@@ -218,11 +218,11 @@ class sspmod_sgis_Auth_Source_MultiAuth extends SimpleSAML_Auth_Source {
 		assert('is_array($state)');
 
 		if ($this->rememberSourceEnabled) {
-	                $sessionHandler = SimpleSAML_SessionHandler::getSessionHandler();
-        	        $params = $sessionHandler->getCookieParams();
-                	$params['expire'] = time();
-                	$params['expire'] += -300;
-                	setcookie($this->getAuthId() . '-source', "", $params['expire'], $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+			$sessionHandler = SimpleSAML_SessionHandler::getSessionHandler();
+			$params = $sessionHandler->getCookieParams();
+			$params['expire'] = time();
+			$params['expire'] += -300;
+			setcookie($this->getAuthId() . '-source', "", $params['expire'], $params['path'], $params['domain'], $params['secure'], $params['httponly']);
 		}
 
 		/* Get the source that was used to authenticate */
@@ -253,7 +253,7 @@ class sspmod_sgis_Auth_Source_MultiAuth extends SimpleSAML_Auth_Source {
 		/* We save the cookies for 90 days. */
 		$saveUntil = time() + 60*60*24*90;
 
-		/* The base path for cookies. 
+		/* The base path for cookies.
 		This should be the installation directory for simpleSAMLphp. */
 		$config = SimpleSAML_Configuration::getInstance();
 		$cookiePath = '/' . $config->getBaseUrl();
