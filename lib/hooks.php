@@ -2,8 +2,8 @@
 /**
  * ownCloud - user_sgis
  *
- * @author Sixto Martin <smartin@yaco.es>
- * @copyright 2012 Yaco Sistemas // CONFIA
+ * @author Michael Braun
+ * @copyright 2014 Michael Braun <michael-dev@fami-braun.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
