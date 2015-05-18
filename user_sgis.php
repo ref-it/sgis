@@ -118,7 +118,7 @@ class OC_USER_SGIS {
                 $this->backend->setPassword($uid, $password);
             } else {
                 $this->backend->createUser($uid, $password);
-                OC_Group::addToGroup($uid, "sgis");
+                OC_Group::addToGroup($uid, $this->group);
             }
             if (!OC_User::isEnabled($uid))
                 OC_User::enableUser($uid);
@@ -194,6 +194,7 @@ class OC_USER_SGIS {
     }
 
     protected function update_groups($uid, $groups, $addToGroups = true) {
+        #syslog(LOG_ERR, "sgis-owncloud: $uid ".join(",",$groups)." ".($addToGroups?"+":"-"));
         $old_groups = OC_Group::getUserGroups($uid);
         foreach($old_groups as $group) {
             if (in_array(strtolower($group), array_map('strtolower', $groups))) continue;
