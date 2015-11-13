@@ -20,14 +20,11 @@ $name_rollen = Array();
 
 // group roles by wiki page, skip empty wiki pages, and list all persons
 foreach ($rollen as $rolle) {
-  $wiki = $rolle["gremium_wiki_members"];
+  $wiki = cleanID($rolle["gremium_wiki_members"]);
   if (empty($wiki)) continue;
-  if (substr($wiki,0,6) != ":sgis:") {
+  if (substr($wiki,0,5) != "sgis:") {
     $gname = preg_replace("/\s+/"," ",trim("{$rolle["gremium_name"]} {$rolle["gremium_fakultaet"]} {$rolle["gremium_studiengang"]} {$rolle["gremium_studiengangabschluss"]}"));
     echo "Gremium: ".htmlentities($gname)." hat ungültigen Wiki-Eintrag, der nicht mit :sgis: beginnt.<br/>\n";
-  }
-  if (substr($wiki,0,1) != ":") {
-    $wiki = ":".$wiki;
   }
   $gremium_id = $rolle["gremium_id"];
   $rolle_id = $rolle["rolle_id"];
