@@ -17,8 +17,8 @@
          (gängiges Kürzel verwenden, beispw. EI)</li>
      <li><label for="studiengangabschluss">Stg-Abschluss:</label><input type="text" name="studiengangabschluss" value=""/><br/>
          (Bachelor oder Master, leer lassen falls Gremium alle Abschlüsse abdeckt)</li>
-     <li><label for="wiki_members">Wiki-Seite mit Mitgliederliste:</label><input type="text" name="wiki_members" value=""/><br/>
-         (beispw. :sgis:mitglieder:studierendenrat)</li>
+     <li><label for="wiki_members">Wiki-Seite mit Mitgliederliste:</label><input type="text" name="wiki_members" value="" placeholder=":sgis:<name>"/><br/>
+         (beginnt immer mit ":sgis:", beispw. :sgis:mitglieder:studierendenrat)</li>
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
          <select name="active" size="1" selected="selected"><option value="1" >Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
      </li>
@@ -176,7 +176,7 @@ endif;
      <li><label for="fakultaet">Fakultät:</label><input type="text" name="fakultaet" value="<?php echo htmlspecialchars($gremium["fakultaet"],ENT_QUOTES);?>" /></li>
      <li><label for="studiengang">Studiengang:</label><input type="text" name="studiengang" value="<?php echo htmlspecialchars($gremium["studiengang"],ENT_QUOTES);?>" /></li>
      <li><label for="studiengangabschluss">Stg-Abschluss:</label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" /></li>
-     <li><label for="wiki_members">Wiki-Seite für Mitglieder:</label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" /></li>
+     <li><label for="wiki_members">Wiki-Seite für Mitglieder:</label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" /> <br/><i>(Wenn gesetzt beginnt immer mit :sgis:)</i></li>
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
          <select name="active" size="1"><option value="1" <?php  if ($gremium["active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <?php  if (!$gremium["active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
      </li>
