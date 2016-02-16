@@ -12,11 +12,13 @@ header("Content-Type: text/html; charset=UTF-8");
   <link href="css/sgis.css" rel="stylesheet" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link href="css/bootstrap-select.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" type="text/css" href="css/datatables.min.css"/>
   <script src="js/jquery-1.12.0.min.js"></script>
   <script src="js/jquery-ui.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
   <script src="js/bootstrap-select.min.js"></script>
   <script src="js/i18n-bootstrap-select/defaults-de_DE.min.js"></script>
+  <script type="text/javascript" src="js/datatables.min.js"></script>
  </head>
  <body>
  <div class="container">
