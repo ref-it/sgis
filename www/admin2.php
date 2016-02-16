@@ -5,26 +5,12 @@ ob_start('ob_gzhandler');
 
 require_once "../lib/inc.all.php";
 requireGroup($ADMINGROUP);
-if (!isset($_REQUEST["tab"]) && !isset($_REQUEST["ajax"])) {
-  require "../template/header.tpl";
-}
-
-$alle_mailinglisten = getMailinglisten();
-$alle_gremien = getAlleRolle();
-$alle_personen = getAllePerson();
-$alle_gruppen = getAlleGruppe();
-$script = Array();
-
-if (isset($_GET["msgs"])) {
- $msgs = $_GET["msgs"];
-} else {
- $msgs = Array();
-}
 
 if (isset($_POST["action"])) {
+ $msgs = Array();
  $ret = false;
  if (!isset($_REQUEST["nonce"]) || $_REQUEST["nonce"] !== $nonce) {
-  $msgs[] = "Formular veraltet - CRSP Schutz aktiviert.";
+  $msgs[] = "Formular veraltet - CSRF Schutz aktiviert.";
  } else {
   $logId = logThisAction();
   switch ($_POST["action"]):
@@ -194,27 +180,64 @@ if (isset($_POST["action"])) {
    logAppend($logId, "__result", "invalid action");
    die("Aktion nicht bekannt.");
   endswitch;
- }
+ } /* switch */
+
  logAppend($logId, "__result", $ret ? "ok" : "failed");
  logAppend($logId, "__result_msg", $msgs);
- if ($ret && !isset($_REQUEST["ajax"])) {
-  $query = "";
-  foreach ($msgs as $msg) {
-   $query .= "&msgs[]=".urlencode($msg);
-  }
-  header("Location: ".$_SERVER["PHP_SELF"]."?".$query);
-  exit;
- }
+
+ $result = Array();
+ $result["msgs"] = $msgs;
+ $result["ret"] = $ret;
+
+ header("Content-Type: text/json; charset=UTF-8");
+ echo json_encode($result);
+ exit;
 }
 
-if (isset($_REQUEST["ajax"])) {
-  $result = Array();
-  $result["msgs"] = $msgs;
-  $result["ret"] = $ret;
+require "../template/header.tpl";
+require "../template/admin.tpl";
 
-  header("Content-Type: text/json; charset=UTF-8");
-  echo json_encode($result);
-  exit;
+if (!isset($_REQUEST["tab"])) {
+  $_REQUEST["tab"] = "person";
+}
+
+switch($_REQUEST["tab"]) {
+  case "person":
+  require "../template/admin_personen.tpl";
+  break;
+  case "gremium":
+  require "../template/admin_gremien.php";
+  break;
+  case "gruppe":
+  require "../template/admin_gruppen.php";
+  break;
+  case "mailingliste":
+  require "../template/admin_mailinglisten.php";
+  break;
+  case "export":
+  require "../template/admin_export.php";
+  break;
+  case "help":
+  require "../template/admin_help.php";
+  break;
+  default:
+  die("invalid tab name");
+}
+
+require "../template/footer.tpl";
+
+exit;
+
+$alle_mailinglisten = getMailinglisten();
+$alle_gremien = getAlleRolle();
+$alle_personen = getAllePerson();
+$alle_gruppen = getAlleGruppe();
+$script = Array();
+
+if (isset($_GET["msgs"])) {
+ $msgs = $_GET["msgs"];
+} else {
+ $msgs = Array();
 }
 
 // Person filter
@@ -353,12 +376,6 @@ if (isset($_REQUEST["tab"])) {
   case "mailingliste":
   require "../template/admin_mailinglisten.php";
   break;
-  case "export":
-  require "../template/admin_export.php";
-  break;
-  case "help":
-  require "../template/admin_help.php";
-  break;
   default:
   die("invalid tab name");
   }
@@ -403,20 +420,29 @@ if (!$scripting) {
 
 <div id="export">
 <a name="export"></a>
-
-<?php
-require "../template/admin_export.php";
-
-?>
+<noscript><h3>Export</h3></noscript>
+<ul>
+ <li><a href="export-mailingliste.php">Mailinglisten</a></li>
+ <li><a href="export-wiki.php">Mitgliederlisten im Wiki</a></li>
+ <li><a href="export-spi.php">Mitgliederlisten im sPi</a></li>
+ <li>Kalender (DAViCal) &rArr; wird beim Login automatisch synchronisiert, zu übernehmende Gruppen müssen manuell im DAViCal angelegt (eingerichtet) werden</li>
+ <li>OwnCloud &rArr; wird beim Login automatisch synchronisiert, Gruppen werden automatisch angelegt, Gruppenordner (und deren Eigentümer für Quota) müssen jedoch manuell erstellt und frei gegeben werden.</li>
+ <li><a href="export-ods.php">Download von Personen/Mitgliedschaften als ODS</a></li>
+ <li>Gremienbescheinigung als PDF</li>
+</ul>
 </div>
 
 <div id="hilfe">
 <a name="hilfe"></a>
+<noscript><h3>Hilfe</h3></noscript>
 
-<?php
-  require "../template/admin_help.php";
-
-?>
+<ul>
+ <li>Datenschema: Person &rArr; Rolle in Gremium während Zeitraum &rArr; Gruppen und Mailinglisten
+ <li>Erfasst wird, wer wann in welchem Gremium aktiv war. Daher sollen Zeiten vergangener Gremienaktivität nicht gelöscht, sonder für etwaige spätere Gremienbescheinigungen vorgehalten werden.</li>
+ <li>UniRZ-Login vs. eMail: Die Koppelung Uni-Account und Person im sGIS erfolgt wahlweise über die eMail-Adresse oder das Uni-Login. Das Uni-Login wird bevorzugt verwendet, um sicherzustellen, dass auch nach einer erneuten Vergabe der eMail-Adresse an eine andere Person diese nicht auf die alten Daten zugreifen kann.
+ <li>Nutzername/Passwort: für Login unabhängig vom Uni-Login (sGIS-Login), beispw. auch im Kalender oder OwnCloud
+ <li>Login-erlaubt: alte Datensätze (von nicht-mehr-Studenten) und Dummy-Datensätze (beispw. für stura@tu-ilmenau.de) können darüber gesperrt werden. Dies bewirkt, dass die jeweiligen Inhaber nicht über die sGIS-Zugangsdaten Zugriffs aufs Wiki usw. bekommen. Wenn (nicht) erlaubt, kann über die Gruppe (canLogin) cannotLogin eine zeitlich beschränkte Ausnahme definiert werden.
+</ul>
 
 </div>
 </div>

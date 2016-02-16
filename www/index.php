@@ -23,10 +23,13 @@ if (isset($_POST["action"]) && ($_POST["action"] == "pwchange")) {
     if (empty($person["username"]) && isset($_POST["username"]) && ($_POST["username"] !== $person["username"])) {
       setPersonUsername($person["id"], $_POST["username"]);
     }
-    if (isset($_POST["password"]) && ($_POST["password"] == $_POST["password2"])) {
+    if (isset($_POST["password"]) && ($_POST["password"] == $_POST["password2"]) && !empty($_POST["password"])) {
       setPersonPassword($person["id"], $_POST["password"]);
+      $success = true;
+    } else {
+      $success = false;
     }
-    header("Location: ".$_SERVER["PHP_SELF"]."?src=pwchange");
+    header("Location: ".$_SERVER["PHP_SELF"]."?src=pwchange&success=".($success ? 1 : 0));
     exit;
   }
 }

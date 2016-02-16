@@ -4,92 +4,177 @@ global $attributes, $logoutUrl, $ADMINGROUP, $nonce;
 
 require "../template/header.tpl";
 
-if (isset($_REQUEST["src"]) && $_REQUEST["src"] == "pwchange") {
-  echo "<b>Das Passwort und/oder Nutzername wurde(n) erfolgreich geändert.<br>\n";
-}
-
 ?>
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">
+        <span class="hidden-xs">Selbstauskunft Studentisches Gremieninformationssystem (sGIS)</span>
+        <span class="visible-xs-inline">sGIS Selbstauskunft</span>
+      </a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#" class="showtab" data-tab="person">Person</a></li>
+        <li><a href="#" class="showtab" data-tab="gremium">Gremienmitgliedschaften</a></li>
+        <li><a href="#" class="showtab" data-tab="gruppe">Gruppenrechte</a></li>
+        <li><a href="#" class="showtab" data-tab="mailingliste">Mailinglisten</a></li>
+        <li><a href="#" class="showtab" data-tab="pwaendern">Nutzername und Passwort ändern</a></li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
 <script>
 $(function() {
-$( "#tabs" ).tabs();
+  $( "div.sgistab" ).hide();
+  $( ".showtab" ).on('click.sgis', function() {
+    $( "div.sgistab" ).hide();
+    $tabname = $(this).data('tab');
+    $( "#" + $tabname).show();
+  });
+  $( "#person").show();
 });
 </script>
 
-<h2>Selbstauskunft studentisches Gremieninformationssystem (sGIS)</h2>
+<?php
+if (isset($_REQUEST["src"]) && $_REQUEST["src"] == "pwchange" && ((int) $_REQUEST["success"])):
+?>
+<div class="alert alert-success fade in">
+  <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+  <b>Das Passwort und/oder Nutzername wurde(n) erfolgreich geändert.
+</div>
+<?php
+endif;
 
-<div id="tabs">
- <ul>
-  <li><a href="#person">Person</a></li>
-  <li><a href="#gremium">Gremienmitgliedschaften</a></li>
-  <li><a href="#gruppe">Gruppenrechte</a></li>
-  <li><a href="#mailingliste">Mailinglisten</a></li>
-  <li><a href="#pwaendern">Nutzername und Passwort ändern</a></li>
- </ul>
-
-<div id="person">
-<a name="person"></a>
-<noscript><h3>Person</h3></noscript>
-<table>
-  <tr>
-   <th align="left">ID</th>
-   <td><?php echo htmlspecialchars($person["id"]); ?></td>
-  </tr>
-  <tr>
-   <th align="left">Name</th>
-   <td><?php echo htmlspecialchars($person["name"]); ?></td>
-  </tr>
-  <tr>
-   <th align="left">eMail</th>
-   <td><?php echo htmlspecialchars($person["email"]); ?></td>
-  </tr>
-  <tr>
-   <th align="left">Login-Name</th>
-   <td><?php echo htmlspecialchars($person["username"]); ?></td>
-  </tr>
-  <tr>
-   <th align="left">Login-Passwort</th>
-   <td><?php echo (empty($person["password"]) ? "nicht gesetzt" : "gesetzt"); ?></td>
-  </tr>
-  <tr>
-   <th align="left">UniRZ-Login</th>
-   <td><?php echo htmlspecialchars($person["unirzlogin"]); ?></td>
-  </tr>
-  <tr>
-   <th align="left">letztes Login</th>
-   <td><?php echo htmlspecialchars($person["lastLogin"]); ?></td>
-  </tr>
-  <tr>
-   <th align="left">Login erlaubt?</th>
-   <td><?php echo htmlspecialchars($person["canLogin"] ? "ja" : "nein"); ?></td>
- </tr>
-</table>
-
-Angehörige der TU Ilmenau können E-Mail-Weiterleitungen auf <a href="https://webmail.tu-ilmenau.de/smartsieve/">Webmail der TU Ilmenau</a> konfigurieren.
-
+if (isset($_REQUEST["src"]) && $_REQUEST["src"] == "pwchange" && (!(int) $_REQUEST["success"])):
+?>
+<div class="alert alert-danger fade in">
+  <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+  <b>Das Passwort und/oder Nutzername konnte(n) nicht geändert werden.
 </div>
 
-<div id="gremium">
-<a name="gremium"></a>
-<noscript><h3>Gremienmitgliedschaften</h3></noscript>
-<table>
-<tr><th>Rolle</th><th>Gremium</th><th>Fakultät</th><th>Studiengang</th><th>Zeitraum</th><th>Beschluss</th></tr>
+<?php
+endif;
+?>
+
+<div id="person" class="sgistab">
+<div class="panel panel-default">
+<div class="panel-heading">Person</div>
+<div class="panel-body">
+<div class="form-horizontal" role="form">
+
+<?php
+
+foreach ([
+  "id" => "ID",
+  "name" => "Name",
+  "email" => "eMail",
+  "username" => "Login-Name",
+  "password" => "Login-Password",
+  "unirzlogin" => "UniRZ-Login",
+  "lastLogin" => "letztes Login",
+  "canLogin" => "Login erlaubt?",
+ ] as $key => $desc):
+
+?>
+
+  <div class="form-group">
+    <label class="control-label col-sm-2"><?php echo htmlspecialchars($desc); ?></label>
+    <div class="col-sm-10">
+      <div class="form-control">
+      <?php
+        switch($key) {
+          case "password":
+            echo (empty($person["$key"]) ? "nicht gesetzt" : "gesetzt");
+            break;
+          case "canLogin":
+
+            $grps = Array();
+            foreach ($gruppen as $grp) {
+              $grps[] = $grp["name"];
+            }
+            if ($person[$key]) {
+              $canLogin = !in_array("cannotLogin", $grps);
+            } else {
+              $canLogin = in_array("canLogin", $grps);
+            }
+
+            if ($person[$key] && !$canLogin) {
+              echo "grundsätzlich ja, aber derzeit gesperrt.";
+            }
+            else if (!$person[$key] && $canLogin) {
+              echo "grundsätzlich nicht, aber derzeit erlaubt.";
+            }
+            else {
+              echo htmlspecialchars($person["$key"] ? "ja" : "nein");
+            }
+            break;
+          default:
+            echo htmlspecialchars($person["$key"]);
+            break;
+        }
+      ?>
+      </div>
+    </div>
+  </div>
+
+<?php
+
+endforeach;
+
+?>
+
+</div> <!-- form -->
+Angehörige der TU Ilmenau können E-Mail-Weiterleitungen auf <a href="https://webmail.tu-ilmenau.de/smartsieve/">Webmail der TU Ilmenau</a> konfigurieren.
+
+</div></div> <!-- panel -->
+</div>
+
+<div id="gremium" class="sgistab">
+
+<div class="panel panel-default">
+<div class="panel-heading">Gremienmitgliedschaften</div>
+<div class="panel-body">
+
+<table class="table table-striped">
+<tr><th>Tätigkeit</th><th>Zeitraum</th><th class="hidden-xs">Beschluss</th></tr>
 <?php
 if (count($gremien) == 0):
 ?>
-<tr><td colspan="6"><i>Keine Gremienmitgliedschaften.</td></tr>
+<tr><td colspan="3"><i>Keine Gremienmitgliedschaften.</td></tr>
 <?php
 else:
 foreach($gremien as $gremium):
 ?>
 <tr>
- <td><?php echo htmlspecialchars($gremium["rolle_name"]);?></td>
- <td><?php echo htmlspecialchars($gremium["gremium_name"]);?></td>
- <td><?php echo htmlspecialchars($gremium["gremium_fakultaet"]);?></td>
- <td><?php echo htmlspecialchars($gremium["gremium_studiengang"]);
-  if (!empty($gremium["gremium_studiengangabschluss"])) {
-    echo " (".htmlspecialchars($gremium["gremium_studiengangabschluss"]).")";
+ <td><?php echo htmlspecialchars($gremium["rolle_name"]);?> in 
+ <nobr><?php
+
+   echo htmlspecialchars($gremium["gremium_name"])." ";
+
+  if (!empty($gremium["gremium_studiengang"])) {
+   echo htmlspecialchars($gremium["gremium_studiengang"])." ";
   }
-?></td>
+
+  if (!empty($gremium["gremium_studiengangabschluss"])) {
+    echo " (".htmlspecialchars($gremium["gremium_studiengangabschluss"]).") ";
+  }
+
+  if (!empty($gremium["gremium_fakultaet"])) {
+   echo " Fak. ".htmlspecialchars($gremium["gremium_fakultaet"])." ";
+  }
+
+?></nobr></td>
  <td>
 <?php
   if (empty($gremium["von"]) && empty($gremium["bis"])) {
@@ -103,7 +188,7 @@ foreach($gremien as $gremium):
   }
 ?>
  </td>
- <td>
+ <td class="hidden-xs">
 <?php
    echo htmlspecialchars($gremium["beschlussAm"])." ".htmlspecialchars($gremium["beschlussDurch"]);
 ?>
@@ -114,37 +199,46 @@ endforeach;
 endif;
 ?>
 </table>
+
+  </div> </div> <!--panel -->
 </div>
 
-<div id="gruppe">
-<a name="gruppe"></a>
-<noscript><h3>Gruppenrechte</h3></noscript>
+<div id="gruppe" class="sgistab">
+
+<div class="panel panel-default">
+<div class="panel-heading">Gruppenrechte</div>
+<div class="panel-body">
 
 <?php
 if (count($gruppen) == 0):
 ?><i>Keine Gruppen.</i><?php
 else:
-?><ul><?php
+?><ul class="list-group"><?php
 foreach($gruppen as $gruppe):
-?> <li><?php echo htmlspecialchars($gruppe["name"]); ?></li>
+?> <li class="list-group-item"><?php echo htmlspecialchars($gruppe["name"]); ?></li>
 <?php
 endforeach;
 ?></ul><?php
 endif;
 ?>
+
+</div></div> <!-- panel -->
+
 </div>
 
-<div id="mailingliste">
-<a name="mailingliste"></a>
-<noscript><h3>Mailinglisten</h3></noscript>
+<div id="mailingliste" class="sgistab">
+
+<div class="panel panel-default">
+<div class="panel-heading">Mailinglisten</div>
+<div class="panel-body">
 
 <?php
 if (count($mailinglisten) == 0):
 ?><i>Keine Mailinglisten.</i><?php
 else:
-?><ul><?php
+?><ul class="list-group"><?php
 foreach($mailinglisten as $mailingliste):
-?> <li> <?php
+?> <li class="list-group-item"> <?php
 if (!empty($mailingliste["url"])) echo "<a href=\"".htmlspecialchars($mailingliste["url"])."\">";
 echo htmlspecialchars($mailingliste["address"]); 
 if (!empty($mailingliste["url"])) echo "</a>";
@@ -154,38 +248,73 @@ endforeach;
 ?></ul><?php
 endif;
 ?>
+
+  </div></div> <!-- panel -->
+
 </div>
 
-<div id="pwaendern">
-<a name="pwaendern"></a>
-<noscript><h3>Nutzername und Passwort ändern</h3></noscript>
+<div id="pwaendern" class="sgistab">
+
+<div class="panel panel-default">
+<div class="panel-heading">Nutzername und Passwort ändern</div>
+<div class="panel-body">
 
 Bitte geben deine neuen Zugangsdaten für das sGIS ein:
 
-<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="POST">
+<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="POST" class="form-horizontal" role="form">
 
-<ul>
- <li> <label for="username"  style="width:225px; display: inline-block;">Nutzername</label> <input type="text" name="username" value="<?php echo htmlspecialchars($person["username"]);?>" <?php if (!empty($person["username"]))echo " readonly=readonly "; ?>/>
-   <br/><i>Der Nutzername kann nur einmalig eingestellt werden (d.h. wenn noch nicht gesetzt).</i>
- </li>
- <li> <label for="password"  style="width:225px; display: inline-block;">Passwort</label> <input type="password" name="password" value=""/> </li>
- <li> <label for="password2" style="width:225px; display: inline-block;">Passwort (Wiederholung)</label> <input type="password" name="password2" value=""/> </li>
-</ul>
+  <div class="form-group">
+    <label class="control-label col-sm-2" for="username">Nutzername:</label>
+    <div class="col-sm-10">
+      <input class="form-control" type="text" name="username" value="<?php echo htmlspecialchars($person["username"]);?>" <?php if (!empty($person["username"]))echo " readonly=readonly "; ?> placeholder="Nutzername festlegen"/>
+      <br/><i>Der Nutzername kann nur einmalig eingestellt werden (d.h. wenn noch nicht gesetzt).</i>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-sm-2" for="password">Passwort:</label>
+    <div class="col-sm-10">
+      <input class="form-control" type="password" name="password" value="" placeholder="Passwort eingeben" required/>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-sm-2" for="password2"><nobr>Passwort (Wiederholung):</nobr></label>
+    <div class="col-sm-10">
+      <input class="form-control" type="password" name="password2" value="" placeholder="Passwortwiederholung eingeben" required/>
+    </div>
+  </div>
 
 <input type="hidden" name="action" value="pwchange"/>
 <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
 
-<input type="submit" name="submit" value="Speichern"/>
-<input type="reset" name="reset" value="Abbruch"/>
-
+<div class="pull-right">
+<input type="submit" name="submit" value="Speichern" class="btn btn-primary"/>
+<input type="reset" name="reset" value="Abbruch" class="btn btn-danger"/>
+</div>
 
 </form>
 
-</div>
+</div></div> <!-- panel -->
+
 </div>
 
-<hr/>
-<a href="<?php echo $logoutUrl; ?>">Logout</a> &bull; <a href="admin.php">Verwaltung</a>
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="<?php echo $logoutUrl; ?>">Logout</a></li>
+<?php if (hasGroup($AUTHGROUP)): ?>
+        <li><a href="admin.php">Verwaltung</a></li>
+<?php endif; ?>
+      </ul>
+    </div>
+
+  </div><!-- /.container-fluid -->
+</nav>
 
 <?php
 require "../template/footer.tpl";
+
+// vim:set filetype=php:

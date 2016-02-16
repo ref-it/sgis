@@ -25,7 +25,7 @@ function requireGroup($group) {
 
   requireAuth();
 
-  if (count(array_intersect(explode(",",$group), $attributes["groups"])) == 0) {
+  if (!hasGroup($group)) {
     header('HTTP/1.0 401 Unauthorized');
     include SGISBASE."/template/permission-denied.tpl";
     die();
@@ -40,3 +40,14 @@ function getUsername() {
     return $attributes["mail"][0];
   return NULL;
 }
+
+function hasGroup($group) {
+  global $attributes;
+
+  if (count(array_intersect(explode(",",$group), $attributes["groups"])) == 0) {
+    return false;
+  }
+
+  return true;
+}
+
