@@ -20,4 +20,5 @@ require_once 'XML/RPC2/Client.php';
 require_once 'Text/Diff.php';
 require_once 'Text/Diff/Renderer.php';
 require_once 'Text/Diff/Renderer/unified.php';
+require_once 'ssp.class.php';
 

@@ -14,6 +14,39 @@ if (isset($_POST["action"])) {
  } else {
   $logId = logThisAction();
   switch ($_POST["action"]):
+  case "person.table":
+   header("Content-Type: text/json; charset=UTF-8");
+   $columns = array(
+     array( 'db' => 'id',                 'dt' => 'id' ),
+     array( 'db' => 'email',              'dt' => 'email' ),
+     array( 'db' => 'name',               'dt' => 'name' ),
+     array( 'db' => 'username',           'dt' => 'username' ),
+//     array( 'db' => 'password', 'dt' => 3 ),
+     array( 'db' => 'unirzlogin',         'dt' => 'unirzlogin',
+       'formatter' => function( $d, $row ) {
+         return str_replace("@tu-ilmenau.de","",$d);
+       }
+     ),
+     array( 'db' => 'lastLogin',          'dt' => 'lastLogin',
+       'formatter' => function( $d, $row ) {
+         return $d ? date( 'Y-m-d', strtotime($d)) : "";
+       }
+     ),
+     array( 'db'    => 'canLoginCurrent', 'dt'    => 'canLogin',
+       'formatter' => function( $d, $row ) {
+         return (!$d) ? "ja" : "nein";
+       }
+     ),
+     array( 'db'    => 'active',          'dt'    => 'active',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}person_current", /* primary key */ "id", $columns )
+   );
+  exit;
   case "mailingliste.insert":
    $ret = dbMailinglisteInsert($_POST["address"], $_POST["url"], $_POST["password"]);
    $msgs[] = "Mailingliste wurde erstellt.";
@@ -205,6 +238,12 @@ switch($_REQUEST["tab"]) {
   case "person":
   require "../template/admin_personen.tpl";
   break;
+  case "person.edit":
+  require "../template/admin_personen_edit.tpl";
+  break;
+  case "person.delete":
+  require "../template/admin_personen_delete.tpl";
+  break;
   case "gremium":
   require "../template/admin_gremien.php";
   break;
@@ -224,246 +263,8 @@ switch($_REQUEST["tab"]) {
   die("invalid tab name");
 }
 
+require "../template/admin_footer.tpl";
 require "../template/footer.tpl";
 
 exit;
 
-$alle_mailinglisten = getMailinglisten();
-$alle_gremien = getAlleRolle();
-$alle_personen = getAllePerson();
-$alle_gruppen = getAlleGruppe();
-$script = Array();
-
-if (isset($_GET["msgs"])) {
- $msgs = $_GET["msgs"];
-} else {
- $msgs = Array();
-}
-
-// Person filter
-$activefilter = Array();
-$activefilter["name"] = Array();
-$activefilter["email"] = Array();
-$activefilter["unirzlogin"] = Array();
-$activefilter["username"] = Array();
-$activefilter["lastLogin"] = Array();
-$activefilter["canLogin"] = Array(1);
-$activefilter["active"] = Array();
-
-if (isset($_COOKIE["filter_personen"]) && !isset($_REQUEST["filter_personen_set"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_personen"]), true);
-if (isset($_REQUEST["filter_personen"])) { if (is_array($_REQUEST["filter_personen_name"])) { $activefilter["name"] = $_REQUEST["filter_personen_name"]; } else {   $activefilter["name"] = Array(); } }
-if (isset($_REQUEST["filter_personen_name"])) { if (is_array($_REQUEST["filter_personen_name"])) { $activefilter["name"] = $_REQUEST["filter_personen_name"]; } else {   $activefilter["name"] = Array(); } }
-if (isset($_REQUEST["filter_personen_email"])) { if (is_array($_REQUEST["filter_personen_email"])) { $activefilter["email"] = $_REQUEST["filter_personen_email"]; } else { $activefilter["email"] = Array(); } }
-if (isset($_REQUEST["filter_personen_unirzlogin"])) { if (is_array($_REQUEST["filter_personen_unirzlogin"])) { $activefilter["unirzlogin"] = $_REQUEST["filter_personen_unirzlogin"]; } else { $activefilter["unirzlogin"] = Array(); } }
-if (isset($_REQUEST["filter_personen_username"])) { if (is_array($_REQUEST["filter_personen_username"])) { $activefilter["username"] = $_REQUEST["filter_personen_username"]; } else { $activefilter["username"] = Array(); } }
-if (isset($_REQUEST["filter_personen_lastLogin"])) { if (is_array($_REQUEST["filter_personen_lastLogin"])) { $activefilter["lastLogin"] = $_REQUEST["filter_personen_lastLogin"]; } else { $activefilter["lastLogin"] = Array(); } }
-if (isset($_REQUEST["filter_personen_canLogin"])) { if (is_array($_REQUEST["filter_personen_canLogin"])) { $activefilter["canLogin"] = $_REQUEST["filter_personen_canLogin"]; } else { $activefilter["canLogin"] = Array(1); } }
-if (isset($_REQUEST["filter_personen_active"])) { if (is_array($_REQUEST["filter_personen_active"])) { $activefilter["active"] = $_REQUEST["filter_personen_active"]; } else { $activefilter["active"] = Array(); } }
-setcookie("filter_personen", base64_encode(json_encode($activefilter)), 0);
-$_COOKIE["filter_personen"] = base64_encode(json_encode($activefilter));
-
-// Gremium filter
-$activefilter = Array();
-$activefilter["name"] = Array();
-$activefilter["fakultaet"] = Array();
-$activefilter["studiengang"] = Array();
-$activefilter["studiengangabschluss"] = Array();
-$activefilter["active"] = Array(1);
-$activefilter["mitglieder"] = Array();
-$activefilter["problem"] = Array();
-
-if (isset($_COOKIE["filter_gremien"]) && !isset($_REQUEST["filter_gremien_set"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
-if (isset($_REQUEST["filter_gremien_name"])) { if (is_array($_REQUEST["filter_gremien_name"])) { $activefilter["name"] = $_REQUEST["filter_gremien_name"]; } else {   $activefilter["name"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_fakultaet"])) { if (is_array($_REQUEST["filter_gremien_fakultaet"])) { $activefilter["fakultaet"] = $_REQUEST["filter_gremien_fakultaet"]; } else { $activefilter["fakultaet"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_studiengang"])) { if (is_array($_REQUEST["filter_gremien_studiengang"])) { $activefilter["studiengang"] = $_REQUEST["filter_gremien_studiengang"]; } else { $activefilter["studiengang"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_studiengangabschluss"])) { if (is_array($_REQUEST["filter_gremien_studiengangabschluss"])) { $activefilter["studiengangabschluss"] = $_REQUEST["filter_gremien_studiengangabschluss"]; } else { $activefilter["studiengangabschluss"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_active"])) { if (is_array($_REQUEST["filter_gremien_active"])) { $activefilter["active"] = $_REQUEST["filter_gremien_active"]; } else { $activefilter["active"] = Array(1); } }
-if (isset($_REQUEST["filter_gremien_mitglieder"])) { if (is_array($_REQUEST["filter_gremien_mitglieder"])) { $activefilter["mitglieder"] = $_REQUEST["filter_gremien_mitglieder"]; } else {   $activefilter["mitglieder"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_problem"])) { if (is_array($_REQUEST["filter_gremien_problem"])) { $activefilter["problem"] = $_REQUEST["filter_gremien_problem"]; } else {   $activefilter["problem"] = Array(); } }
-setcookie("filter_gremien", base64_encode(json_encode($activefilter)), 0);
-$_COOKIE["filter_gremien"] = base64_encode(json_encode($activefilter));
-
-foreach ($msgs as $msg):
-  echo "<b class=\"msg\">".htmlspecialchars($msg)."</b>\n";
-endforeach;
-
-$script[] = '$( "#tabs" ).tabs();';
-$script[] = 'function xpAjaxErrorHandler (jqXHR, textStatus, errorThrown) {
-      $("#waitDialog").dialog("close");
-      alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText);
-};';
-$script[] = '
-$(function() {
-  dlg = $("<div id=\"waitDialog\" title=\"Bitte warten\">Bitte warten, die Daten werden verarbeitet. Dies kann einen Moment dauern.</div>");
-  dlg.appendTo("body");
-  dlg.dialog({ autoOpen: false, height: "auto", modal: true, width: "auto", closeOnEscape: false });
-});';
-$script[] = '
-$( "form" ).submit(function (ev) {
-    var action = $(this).attr("action");
-    if ($(this).find("input[name=action]").length + $(this).find("select[name=action]").length == 0) { return true; }
-    var close = $(this).find("input[type=reset]");
-    var data = new FormData(this);
-    data.append("ajax", 1);
-    $("#waitDialog").dialog("open");
-    $.ajax({
-      url: action,
-      data: data,
-      cache: false,
-      contentType: false,
-      processData: false,
-      type: "POST"
-    })
-    .success(function (values, status, req) {
-       $("#waitDialog").dialog("close");
-       if (typeof(values) == "string") {
-         alert(values);
-         return;
-       }
-       var txt = "Die Daten wurden erfolgreich gespeichert.\nSoll die Seite mit den geänderten Daten neu geladen werden?";
-       if (values.msgs && values.msgs.length > 0) {
-         if (values.ret) {
-           txt = values.msgs.join("\n")+"\n"+txt;
-         } else {
-           alert(values.msgs.join("\n"));
-         }
-       }
-       if (values.ret && confirm(txt)) {
-         var q = "&x=" + Math.random();
-         if (action.indexOf("?") != -1) {
-           var actions = action.split("?", 2);
-           action = actions[0] + "?" + q + "&" + actions[1];
-         } else if (action.indexOf("#") != -1) {
-           var actions = action.split("#", 2);
-           action = actions[0] + "?" + q + "#" + actions[1];
-         } else {
-           action = action + "?" + q;
-         }
-         self.location.replace(action);
-       } else {
-         if (values.ret && close.length == 1) {
-           close.click();
-         }
-       }
-     })
-    .error(xpAjaxErrorHandler);
-    return false;
-   });';
-
-global $scripting;
-if (isset($_REQUEST["javascript"])) {
-  setcookie("javascript",$_REQUEST["javascript"]);
-  $_COOKIE["javascript"] = $_REQUEST["javascript"];
-}
-$scripting = (isset($_COOKIE["javascript"]) && ($_COOKIE["javascript"] == 1));
-
-function addTabHead($name, $titel) {
- global $scripting;
- ?> <li aria-controls="<?php echo htmlspecialchars($name);?>"><a href="<?php echo htmlspecialchars($scripting ? $_SERVER["PHP_SELF"]."?tab=".urlencode($name) : "#$name"); ?>"><?php echo htmlspecialchars($titel);?></a></li> <?php
-}
-
-if (isset($_REQUEST["tab"])) {
-  switch($_REQUEST["tab"]) {
-  case "person":
-  require "../template/admin_personen.php";
-  break;
-  case "gremium":
-  require "../template/admin_gremien.php";
-  break;
-  case "gruppe":
-  require "../template/admin_gruppen.php";
-  break;
-  case "mailingliste":
-  require "../template/admin_mailinglisten.php";
-  break;
-  default:
-  die("invalid tab name");
-  }
-?>
-  <script type="text/javascript">
-    <?php  echo implode("\n", array_unique($script)); ?>
-  </script>
-<?php
-  exit;
-}
-
-if (!$scripting) {
-?><script type="text/javascript">
-   self.location.replace("<?php echo $_SERVER["PHP_SELF"];?>?javascript=1");
-  </script>
-<?php
-}
-
-
-?>
-
-<h2>Verwaltung studentisches Gremieninformationssystem (sGIS)</h2>
-
-<div id="tabs">
- <ul>
-  <?php  addTabHead("person", "Personen"); ?>
-  <?php  addTabHead("gremium", "Gremien und Rollen"); ?>
-  <?php  addTabHead("gruppe", "Gruppen"); ?>
-  <?php  addTabHead("mailingliste", "Mailinglisten"); ?>
-  <li><a href="#export">Export</a></li>
-  <li><a href="#hilfe">Hilfe</a></li>
- </ul>
-
-<?php
-if (!$scripting) {
-  require "../template/admin_personen.php";
-  require "../template/admin_gremien.php";
-  require "../template/admin_gruppen.php";
-  require "../template/admin_mailinglisten.php";
-}
-?>
-
-<div id="export">
-<a name="export"></a>
-<noscript><h3>Export</h3></noscript>
-<ul>
- <li><a href="export-mailingliste.php">Mailinglisten</a></li>
- <li><a href="export-wiki.php">Mitgliederlisten im Wiki</a></li>
- <li><a href="export-spi.php">Mitgliederlisten im sPi</a></li>
- <li>Kalender (DAViCal) &rArr; wird beim Login automatisch synchronisiert, zu übernehmende Gruppen müssen manuell im DAViCal angelegt (eingerichtet) werden</li>
- <li>OwnCloud &rArr; wird beim Login automatisch synchronisiert, Gruppen werden automatisch angelegt, Gruppenordner (und deren Eigentümer für Quota) müssen jedoch manuell erstellt und frei gegeben werden.</li>
- <li><a href="export-ods.php">Download von Personen/Mitgliedschaften als ODS</a></li>
- <li>Gremienbescheinigung als PDF</li>
-</ul>
-</div>
-
-<div id="hilfe">
-<a name="hilfe"></a>
-<noscript><h3>Hilfe</h3></noscript>
-
-<ul>
- <li>Datenschema: Person &rArr; Rolle in Gremium während Zeitraum &rArr; Gruppen und Mailinglisten
- <li>Erfasst wird, wer wann in welchem Gremium aktiv war. Daher sollen Zeiten vergangener Gremienaktivität nicht gelöscht, sonder für etwaige spätere Gremienbescheinigungen vorgehalten werden.</li>
- <li>UniRZ-Login vs. eMail: Die Koppelung Uni-Account und Person im sGIS erfolgt wahlweise über die eMail-Adresse oder das Uni-Login. Das Uni-Login wird bevorzugt verwendet, um sicherzustellen, dass auch nach einer erneuten Vergabe der eMail-Adresse an eine andere Person diese nicht auf die alten Daten zugreifen kann.
- <li>Nutzername/Passwort: für Login unabhängig vom Uni-Login (sGIS-Login), beispw. auch im Kalender oder OwnCloud
- <li>Login-erlaubt: alte Datensätze (von nicht-mehr-Studenten) und Dummy-Datensätze (beispw. für stura@tu-ilmenau.de) können darüber gesperrt werden. Dies bewirkt, dass die jeweiligen Inhaber nicht über die sGIS-Zugangsdaten Zugriffs aufs Wiki usw. bekommen. Wenn (nicht) erlaubt, kann über die Gruppe (canLogin) cannotLogin eine zeitlich beschränkte Ausnahme definiert werden.
-</ul>
-
-</div>
-</div>
-
-<script type="text/javascript">
-<?php echo implode("\n", array_unique($script)); ?>
-</script>
-
-<hr/>
-<a href="<?php echo $logoutUrl; ?>">Logout</a> &bull;
-<a href="index.php">Selbstauskunft</a>
-
-<?php
-if ($scripting):
-?>
-<noscript>
-  &bull; <a href="<?php echo $_SERVER["PHP_SELF"];?>?javascript=0">JavaScript deaktivieren.</a>
-</noscript>
-<?php
-endif;
-?>
-
-<?php
-require "../template/footer.tpl";

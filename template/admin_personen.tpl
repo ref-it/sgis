@@ -7,85 +7,86 @@
 
 # see https://datatables.net/examples/styling/bootstrap.html
 
-$alle_personen = getAllePerson();
-
 $metadata = [
   "id" => "ID",
   "name" => "Name",
   "email" => "eMail",
-  "unirzlogin" => "UniRZ-Login",
-  "username" => "Benutzername",
-  "lastLogin" => "letztes Login",
-  "canLogin" => "Login erlaubt?",
-  "active" => "aktuell Gremienaktiv?",
+  "unirzlogin" => "Uni",
+  "username" => "sGIS",
+  "lastLogin" => "Login",
+  "canLogin" => "Sperre",
+  "active" => "aktiv",
  ];
 
 ?>
-<table class="table table-striped">
+<!-- <table id="mainpersontable" class="table table-striped table-bordered display" width="100%" cellspacing="0"> -->
+<table id="mainpersontable" class="display" width="100%" cellspacing="0">
+
  <thead>
-  <tr>
+  <tr><th>Aktion</th>
 <?php
-foreach (array_values($metadata) as $headline):
+foreach (array_values($metadata) as $i => $headline):
 ?>
-   <th><?php echo htmlentities($headline); ?></th>
+   <th><?php
+    if ($i >= 6) echo "<small>";
+    echo htmlentities($headline);
+    if ($i >= 6) echo "</small>";
+?>
+   </th>
 <?php
 endforeach;
 ?>
   </tr>
  </thead>
  <tbody>
-<?php
-foreach ($alle_personen as $person):
-?>
-  <tr>
-<?php
-foreach (array_keys($metadata) as $key):
-?>
-     <td>
-<?php
-        switch($key) {
-          case "password":
-            echo (empty($person["$key"]) ? "nicht gesetzt" : "gesetzt");
-            break;
-          case "canLogin":
-
-            $grps = Array();
-            foreach (getPersonGruppe($person["id"]) as $grp) {
-              $grps[] = $grp["name"];
-            }
-            if ($person[$key]) {
-              $canLogin = !in_array("cannotLogin", $grps);
-            } else {
-              $canLogin = in_array("canLogin", $grps);
-            }
-
-            if ($person[$key] && !$canLogin) {
-              echo "grundsätzlich ja, aber derzeit gesperrt.";
-            }
-            else if (!$person[$key] && $canLogin) {
-              echo "grundsätzlich nicht, aber derzeit erlaubt.";
-            }
-            else {
-              echo htmlspecialchars($person["$key"] ? "ja" : "nein");
-            }
-            break;
-          case "active":
-              echo htmlspecialchars($person["$key"] ? "ja" : "nein");
-            break;
-          default:
-            echo htmlspecialchars($person["$key"]);
-            break;
-         }
-?></td>
-<?php
-endforeach; # fields
-?>
-   </tr>
-<?php
-endforeach; # personen
-?>
  </tbody>
 </table>
+
+<script>
+$(document).ready(function() {
+    $('#mainpersontable').DataTable( {
+       "order": [[ 1, "asc" ]],
+       "stateSave": true,
+       "responsive": true,
+       "processing": true,
+       "serverSide": true,
+       "deferRender": true,
+       "ajax": {
+            "url": <?php echo json_encode($_SERVER["PHP_SELF"]); ?>,
+            "type": "POST",
+            "data": function ( d ) {
+                d.nonce = <?php echo json_encode($nonce); ?>;
+                d.action = "person.table";
+                // d.custom = $('#myInput').val();
+                // etc
+            },
+        },
+        "language": {
+          "url": "js/dataTables.german.lang.json"
+//        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/German.json"
+        },
+        "columns": [
+            { "data": "id",
+              "render":  function ( data, type, full, meta ) {
+                var p1 = $("<a/>").attr("target","_blank").attr("href","?tab=person.delete&person_id=" + encodeURIComponent(full.id)).text("[X]").wrap("<div>").parent().html();
+                var p2 = $("<a/>").attr("target","_blank").attr("href","?tab=person.edit&person_id=" + encodeURIComponent(full.id)).text("[E]").wrap("<div>").parent().html();
+                var p3 = $("<a/>").attr("target","_blank").attr("href","index.php?mail=" + encodeURIComponent(full.email)).text("[D]").wrap("<div>").parent().html();
+                return p1+" "+p2+" "+p3;
+              },
+              "orderable": false,
+              "searchable": false,
+            },
+<?php
+foreach (array_keys($metadata) as $field):
+?>
+            { "data": <?php echo json_encode($field); ?> },
+<?php
+endforeach;
+?>
+        ],
+    } );
+} );
+</script>
 
 <?php
 

@@ -159,6 +159,37 @@ if ($r === false) {
   require SGISBASE.'/lib/inc.db.mitgliedschaft.php';
 }
 
+# dataTables view
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_is_active");
+if ($r === false) {
+  $pdo->query("CREATE VIEW {$DB_PREFIX}person_is_active AS
+     SELECT DISTINCT rm.person_id as person_id
+       FROM {$DB_PREFIX}rel_mitgliedschaft rm
+      WHERE (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE);")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_can_login");
+if ($r === false) {
+  $pdo->query("CREATE VIEW {$DB_PREFIX}person_can_login AS
+SELECT DISTINCT p.id as person_id, p.canLogin XOR (rm.gremium_id IS NOT NULL) as canLoginCurrent
+       FROM {$DB_PREFIX}person p
+            JOIN {$DB_PREFIX}gruppe g ON (p.canLogin OR g.name = 'canLogin') AND (NOT p.canLogin OR g.name = 'cannotLogin')
+            LEFT JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rrg.gruppe_id = g.id
+            LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON p.id = rm.person_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) AND rrg.rolle_id = rm.rolle_id;")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_current");
+if ($r === false) {
+  $pdo->query("CREATE VIEW {$DB_PREFIX}person_current AS
+SELECT p.*, ap.person_id IS NOT NULL as active, lp.canLoginCurrent as canLoginCurrent
+   FROM {$DB_PREFIX}person p
+        LEFT JOIN {$DB_PREFIX}person_is_active ap ON ap.person_id = p.id
+        LEFT JOIN {$DB_PREFIX}person_can_login lp ON lp.person_id = p.id;")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+
 function logThisAction() {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");
@@ -176,6 +207,14 @@ function logAppend($logId, $key, $value) {
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log_property (log_id, name, value) VALUES (?, ?, ?)");
   if (is_array($value)) $value = print_r($value, true);
   $query->execute(Array($logId, $key, $value)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function getPersonDetailsById($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}person WHERE id = ?");
+  $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  if ($query->rowCount() == 0) return false;
+  return $query->fetch(PDO::FETCH_ASSOC);
 }
 
 function getPersonDetailsByMail($mail) {

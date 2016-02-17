@@ -28,3 +28,72 @@
   </div><!-- /.container-fluid -->
 </nav>
 
+
+<!-- Modal -->
+<div class="modal fade" id="waitDialog" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Bitte warten...</h4>
+      </div>
+      <div class="modal-body">
+        <p>Bitte warten, die Daten werden verarbeitet. Dies kann einen Moment dauern.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="text/javascript">
+function xpAjaxErrorHandler (jqXHR, textStatus, errorThrown) {
+      $("#waitDialog").modal("hide");
+      alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText);
+};
+$(function () {
+  $( "form" ).submit(function (ev) {
+    var action = $(this).attr("action");
+    if ($(this).find("input[name=action]").length + $(this).find("select[name=action]").length == 0) { return true; }
+    var close = $(this).find("input[type=reset]");
+    var data = new FormData(this);
+    data.append("ajax", 1);
+    $("#waitDialog").modal("show");
+    $.ajax({
+      url: action,
+      data: data,
+      cache: false,
+      contentType: false,
+      processData: false,
+      type: "POST"
+    })
+    .success(function (values, status, req) {
+       $("#waitDialog").modal("hide");
+       if (typeof(values) == "string") {
+         alert(values);
+         return;
+       }
+       var txt;
+       if (values.ret) {
+         txt = "Die Daten wurden erfolgreich gespeichert.";
+       } else {
+         txt = "Die Daten konnten nicht gespeichert werden.";
+       }
+       if (values.msgs && values.msgs.length > 0) {
+           txt = values.msgs.join("\n")+"\n"+txt;
+       }
+       alert(txt);
+       if (values.ret) {
+        self.opener.location.reload();
+        self.close();
+       }
+     })
+    .error(xpAjaxErrorHandler);
+    return false;
+   });
+});
+</script>
