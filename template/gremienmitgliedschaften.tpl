@@ -5,6 +5,7 @@
 <table class="table table-striped">
 <tr><th>Tätigkeit</th><th>Zeitraum</th><th class="hidden-xs">Beschluss</th></tr>
 <?php
+$hasInactiveAssignments = false;
 if (count($gremien) == 0):
 ?>
 <tr><td colspan="3"><i>Keine Gremienmitgliedschaften.</td></tr>
@@ -15,6 +16,7 @@ foreach($gremien as $gremium):
 <tr
 <?php
 if (!$gremium["active"]):
+  $hasInactiveAssignments = true;
 ?>
   class="gremiumrolleinactive"
 <?php
@@ -64,9 +66,11 @@ endif;
 ?>
 </table>
 
+<?php if ($hasInactiveAssignments): ?>
 <label class="checkbox">
   <input checked data-toggle="toggle" type="checkbox" id="gremiumrolletoggle"> Inaktive Zuordnungen anzeigen
 </label>
+<?php endif; ?>
 
   </div> </div> <!--panel -->
 

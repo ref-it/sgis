@@ -37,3 +37,9 @@ div.tfoot { display:table-footer-group; }
         display: none;
     }
 }
+
+a[href^="mailto"]:before {
+ font-family: FontAwesome;
+ content: "\f003";
+}
+

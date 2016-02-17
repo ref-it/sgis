@@ -5,6 +5,7 @@
 <table class="table table-striped">
 <tr><th>Rolle</th><th>Aktiv</th><th class="hidden-xs">Personen</th></tr>
 <?php
+$hasInactiveRole = false;
 if (count($rollen) == 0):
 ?>
 <tr><td colspan="3"><i>Keine Rollen.</td></tr>
@@ -15,6 +16,7 @@ foreach($rollen as $rolle):
 <tr
 <?php
 if (!$rolle["active"]):
+  $hasInactiveRole = true;
 ?>
   class="rollerolleinactive"
 <?php
@@ -32,7 +34,7 @@ endif;
  $personen = [];
  foreach (getRollePersonen($rolle["id"]) as $p) {
    if (!$p["active"]) continue;
-   $personen[] = "<a target=\"_blank\" href=\"?tab=person.edit&amp;person_id=".$p["id"]."\">".htmlspecialchars($p["email"])."</a>";
+   $personen[] = "<a target=\"_blank\" href=\"?tab=person.edit&amp;person_id=".$p["id"]."\">".htmlspecialchars($p["name"])."</a>";
  }
  echo join(", ", $personen);
 ?>
@@ -44,9 +46,11 @@ endif;
 ?>
 </table>
 
+<?php if ($hasInactiveRole): ?>
 <label class="checkbox">
-  <input checked data-toggle="toggle" type="checkbox" id="rollerolletoggle"> Inaktive Rollen anzeigen
+  <input data-toggle="toggle" type="checkbox" id="rollerolletoggle"> Inaktive Rollen anzeigen
 </label>
+<?php endif; ?>
 
   </div> </div> <!--panel -->
 

@@ -14,6 +14,7 @@ header("Content-Type: text/html; charset=UTF-8");
   <link href="css/bootstrap-select.min.css" rel="stylesheet"/>
   <link href="css/bootstrap-toggle.min.css" rel="stylesheet"/>
   <link rel="stylesheet" type="text/css" href="css/datatables.min.css"/>
+  <link rel="stylesheet" href="css/font-awesome.min.css">
 <!--  <link href="css/dataTables.bootstrap.min.css" rel="stylesheet" /> -->
   <link href="css/jquery.dataTables.min.css" rel="stylesheet" />
   <script src="js/jquery-1.12.0.min.js"></script>
