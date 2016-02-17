@@ -5,9 +5,11 @@ global $attributes, $logoutUrl, $AUTHGROUP, $ADMINGROUP, $nonce;
 require_once "../lib/inc.all.php";
 
 $mail = getUserMail();
+$somebodyElse = false;
 if (isset($_REQUEST["mail"]) && ($mail != $_REQUEST["mail"])) {
   requireGroup($ADMINGROUP);
   $mail = $_REQUEST["mail"];
+  $somebodyElse = true;
 } else {
   requireGroup($AUTHGROUP);
 }

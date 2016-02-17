@@ -47,6 +47,16 @@ $(function() {
 </script>
 
 <?php
+if ($somebodyElse):
+?>
+ <div class="panel panel-default">
+  <div class="panel-heading"><?php echo htmlspecialchars($person["name"]); ?></div>
+ </div>
+<?php
+endif;
+?>
+
+<?php
 if (isset($_REQUEST["src"]) && $_REQUEST["src"] == "pwchange" && ((int) $_REQUEST["success"])):
 ?>
 <div class="alert alert-success fade in">
