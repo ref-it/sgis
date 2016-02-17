@@ -190,6 +190,32 @@ SELECT p.*, ap.person_id IS NOT NULL as active, lp.canLoginCurrent as canLoginCu
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}gremium_has_members");
+if ($r === false) {
+  $pdo->query("CREATE VIEW {$DB_PREFIX}gremium_has_members AS
+SELECT DISTINCT rm.gremium_id FROM {$DB_PREFIX}rel_mitgliedschaft rm WHERE (von IS NULL OR von <= CURRENT_DATE) AND (bis IS NULL OR bis >= CURRENT_DATE)
+   ")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}gremium_has_members_in_inactive_roles");
+if ($r === false) {
+  $pdo->query("CREATE VIEW {$DB_PREFIX}gremium_has_members_in_inactive_roles AS
+SELECT DISTINCT rm.gremium_id FROM {$DB_PREFIX}rel_mitgliedschaft rm INNER JOIN {$DB_PREFIX}rolle r ON r.id = rm.rolle_id WHERE (NOT r.active) AND (von IS NULL OR von <= CURRENT_DATE) AND (bis IS NULL OR bis >= CURRENT_DATE)
+   ")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}gremium_current");
+if ($r === false) {
+  $pdo->query("CREATE VIEW {$DB_PREFIX}gremium_current AS
+    SELECT g.*, (gu.gremium_id IS NOT NULL) as has_members, (gui.gremium_id IS NOT NULL) as has_members_in_inactive_roles
+      FROM {$DB_PREFIX}gremium g
+           LEFT JOIN {$DB_PREFIX}gremium_has_members gu ON gu.gremium_id = g.id
+           LEFT JOIN {$DB_PREFIX}gremium_has_members_in_inactive_roles gui ON gui.gremium_id = g.id
+   ")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+
 function logThisAction() {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");

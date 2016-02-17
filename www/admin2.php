@@ -47,6 +47,34 @@ if (isset($_POST["action"])) {
      SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}person_current", /* primary key */ "id", $columns )
    );
   exit;
+  case "gremium.table":
+   header("Content-Type: text/json; charset=UTF-8");
+   $columns = array(
+     array( 'db' => 'id',                    'dt' => 'id' ),
+     array( 'db' => 'name',                  'dt' => 'name' ),
+     array( 'db' => 'fakultaet',             'dt' => 'fakultaet' ),
+     array( 'db' => 'studiengang',           'dt' => 'studiengang' ),
+     array( 'db' => 'studiengangabschluss',  'dt' => 'studiengangabschluss' ),
+     array( 'db' => 'has_members',           'dt' => 'has_members',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+     array( 'db' => 'has_members_in_inactive_roles', 'dt' => 'has_members_in_inactive_roles',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+     array( 'db'    => 'active',          'dt'    => 'active',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}gremium_current", /* primary key */ "id", $columns )
+   );
+  exit;
   case "mailingliste.insert":
    $ret = dbMailinglisteInsert($_POST["address"], $_POST["url"], $_POST["password"]);
    $msgs[] = "Mailingliste wurde erstellt.";
@@ -245,7 +273,7 @@ switch($_REQUEST["tab"]) {
   require "../template/admin_personen_delete.tpl";
   break;
   case "gremium":
-  require "../template/admin_gremien.php";
+  require "../template/admin_gremien.tpl";
   break;
   case "gruppe":
   require "../template/admin_gruppen.php";

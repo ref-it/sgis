@@ -22,7 +22,18 @@ div.thead { display:table-header-group; }
 div.tfoot { display:table-footer-group; }
 @media not print {
  .printonly { display: none; }
-};
+}
 @media print {
  .notprint { display: none; }
-};
+}
+@media screen and (max-width: 1767px) {
+    .dataTables_wrapper .dataTables_paginate li.paginate_button.previous {
+        display: inline-block;
+    }
+    .dataTables_wrapper .dataTables_paginate li.paginate_button.next {
+        display: inline-block;
+    }
+    .dataTables_wrapper .dataTables_paginate li.paginate_button {
+        display: none;
+    }
+}
