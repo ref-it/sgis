@@ -20,5 +20,9 @@ div.th { display:table-cell; font-weight: bold; text-align: center; }
 div.tbody { display:table-row-group; }
 div.thead { display:table-header-group; }
 div.tfoot { display:table-footer-group; }
-
-
+@media not print {
+ .printonly { display: none; }
+};
+@media print {
+ .notprint { display: none; }
+};

@@ -151,6 +151,12 @@ Angehörige der TU Ilmenau können E-Mail-Weiterleitungen auf <a href="https://w
 </div>
 
 <div id="gremium" class="sgistab">
+ <h3 class="printonly">
+  Auskunft über <?php echo htmlspecialchars($person["name"]); ?><br/>
+ </h3>
+ <h4 class="printonly">
+  <?php echo htmlspecialchars($person["email"]); ?>
+ </h4>
 <?php require "../template/gremienmitgliedschaften.tpl"; ?>
 </div>
 
