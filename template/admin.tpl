@@ -88,6 +88,7 @@ $(function () {
        alert(txt);
        if (values.ret) {
         self.opener.location.reload();
+        self.opener.focus();
         self.close();
        }
      })

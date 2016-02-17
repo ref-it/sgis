@@ -275,6 +275,12 @@ switch($_REQUEST["tab"]) {
   case "gremium":
   require "../template/admin_gremien.tpl";
   break;
+  case "gremium.edit":
+  require "../template/admin_gremium_edit.tpl";
+  break;
+  case "gremium.delete":
+  require "../template/admin_gremium_delete.tpl";
+  break;
   case "gruppe":
   require "../template/admin_gruppen.php";
   break;
