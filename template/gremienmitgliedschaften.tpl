@@ -12,7 +12,15 @@ if (count($gremien) == 0):
 else:
 foreach($gremien as $gremium):
 ?>
-<tr>
+<tr
+<?php
+if (!$gremium["active"]):
+?>
+  class="gremiumrolleinactive"
+<?php
+endif;
+?>
+>
  <td><?php echo htmlspecialchars($gremium["rolle_name"]);?> in 
  <nobr><?php
 
@@ -56,7 +64,23 @@ endif;
 ?>
 </table>
 
+<label class="checkbox">
+  <input checked data-toggle="toggle" type="checkbox" id="gremiumrolletoggle"> Inaktive Zuordnungen anzeigen
+</label>
+
   </div> </div> <!--panel -->
+
+
+<script>
+$("#gremiumrolletoggle").on("change.gremiumrolle", function() {
+  if ($(this).is(":checked")) {
+    $("tr.gremiumrolleinactive").show();
+  } else {
+    $("tr.gremiumrolleinactive").hide();
+  }
+});
+$("#gremiumrolletoggle").trigger("change");
+</script>
 
 <?php
 
