@@ -19,7 +19,30 @@ $metadata = [
  ];
 
 ?>
-<!-- <table id="mainpersontable" class="table table-striped table-bordered display" width="100%" cellspacing="0"> -->
+
+<div class="panel panel-default">
+ <div class="panel-heading">Filter <span class="visible-xs-inline">: Personen anzeigen</span></div>
+ <div class="panel-body">
+  <div class="hidden-xs col-sm-4">
+    Personen anzeigen:
+  </div>
+  <div class="col-xs-12 col-sm-4">
+   <select class="selectpicker tablefilter" data-column="7">
+    <option value="0">Nur gesperrte</option>
+    <option value="1">Nur ungesperrte</option>
+    <option value="" selected>Alle</option>
+   </select>
+  </div>
+  <div class="col-xs-12 col-sm-4">
+   <select class="selectpicker tablefilter" data-column="8">
+    <option value="1">Nur aktive</option>
+    <option value="0">Nur inaktive</option>
+    <option value="" selected>Alle</option>
+   </select>
+  </div>
+ </div> <!-- panel-body -->
+</div> <!-- panel -->
+
 <table id="mainpersontable" class="display" width="100%" cellspacing="0">
 
  <thead>
@@ -43,7 +66,7 @@ endforeach;
 </table>
 
 <script>
-$(document).ready(function() {
+$(function() {
     $('#mainpersontable').DataTable( {
        "order": [[ 1, "asc" ]],
        "stateSave": true,
@@ -85,6 +108,16 @@ endforeach;
 ?>
         ],
     } );
+    $('.tablefilter').on('change.tablefilter', function () {
+      var $table = $('#mainpersontable').DataTable();
+      var colIdx = $(this).data('column');
+      var flt = $(this).val();
+      $table
+        .columns( colIdx )
+        .search( flt )
+        .draw();
+     });
+    $('.tablefilter').trigger('change');
 } );
 </script>
 

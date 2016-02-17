@@ -5,7 +5,7 @@ $gremien = getPersonRolle($person["id"]);
 
 ?>
 
-<form method="POST" action="<?php echo $_SERVER["PHP_SELF"];?>" enctype="multipart/form-data">
+<form method="POST" action="<?php echo $_SERVER["PHP_SELF"];?>" enctype="multipart/form-data" class="ajax">
 <input type="hidden" name="id" value="<?php echo $person["id"];?>"/>
 <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
 

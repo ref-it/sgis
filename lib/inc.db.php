@@ -355,6 +355,10 @@ function dbPersonUpdate($id,$name,$email,$unirzlogin,$username,$password,$canlog
   if (empty($name)) $name = NULL;
   if (empty($unirzlogin)) $unirzlogin = NULL;
   if (empty($username)) $username = NULL;
+  if (!isValidEmail($email)) {
+    httperror("Ungültige eMail-Adresse");
+    return false;
+  }
   $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET name = ?, email = ?, unirzlogin = ?, username = ?, canLogin = ? WHERE id = ?");
   $ret1 = $query->execute(Array($name, $email, $unirzlogin, $username, $canlogin, $id)) or httperror(print_r($query->errorInfo(),true));
@@ -369,12 +373,21 @@ function dbPersonUpdate($id,$name,$email,$unirzlogin,$username,$password,$canlog
   return $ret1 && $ret2 && $ret3;
 }
 
+function isValidEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL)
+        && preg_match('/@.+\./', $email);
+}
+
 function dbPersonInsert($name,$email,$unirzlogin,$username,$password,$canlogin, $quiet=false) {
   global $pdo, $DB_PREFIX, $pwObj;
   if (empty($name)) $name = NULL;
   if (empty($unirzlogin)) $unirzlogin = NULL;
   if (empty($username)) $username = NULL;
   if (empty($password)) { $passwordHash = NULL;  } else { $passwordHash = @$pwObj->createPasswordHash($password); }
+  if (!isValidEmail($email)) {
+    httperror("Ungültige eMail-Adresse");
+    return false;
+  }
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person (name, email, unirzlogin, username, password, canLogin) VALUES (?, ?, ?, ?, ?, ?)");
   $ret = $query->execute(Array($name, $email, $unirzlogin, $username, $passwordHash, $canlogin));
   if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
@@ -388,6 +401,15 @@ function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschl
   if (empty($beschlussAm)) $beschlussAm = NULL;
   if (empty($beschlussDurch)) $beschlussDurch = NULL;
   if (empty($kommentar)) $kommentar = NULL;
+  if ($von !== NULL && $bis !== NULL) {
+    $query = $pdo->prepare("SELECT ? :: DATE <= ? :: DATE AS valid");
+    $query->execute(Array($von, $bis)) or httperror (print_r($query->errorInfo(),true));
+    $validDates = (bool) $query->fetchColumn();
+    if (!$validDates) {
+      httperror("Ungültige Bereichsangabe (von > bis)");
+      return false;
+    }
+  }
   $query = $pdo->prepare("SELECT gremium_id FROM {$DB_PREFIX}rolle WHERE id = ?");
   $query->execute(Array($rolle_id)) or httperror (print_r($query->errorInfo(),true));
   $gremium_id = $query->fetchColumn();
@@ -402,6 +424,16 @@ function dbPersonUpdateRolle($id, $person_id,$rolle_id,$von,$bis,$beschlussAm,$b
   if (empty($beschlussAm)) $beschlussAm = NULL;
   if (empty($beschlussDurch)) $beschlussDurch = NULL;
   if (empty($kommentar)) $kommentar = NULL;
+  if ($von !== NULL && $bis !== NULL) {
+    $query = $pdo->prepare("SELECT ? :: DATE <= ? :: DATE AS valid");
+    $query->execute(Array($von, $bis)) or httperror (print_r($query->errorInfo(),true));
+    $validDates = (bool) $query->fetchColumn();
+    if (!$validDates) {
+      httperror("Ungültige Bereichsangabe (von > bis)");
+      return false;
+    }
+  }
+
   $query = $pdo->prepare("SELECT gremium_id FROM {$DB_PREFIX}rolle WHERE id = ?");
   $query->execute(Array($rolle_id)) or httperror (print_r($query->errorInfo(),true));
   $gremium_id = $query->fetchColumn();

@@ -56,10 +56,9 @@ function xpAjaxErrorHandler (jqXHR, textStatus, errorThrown) {
       alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText);
 };
 $(function () {
-  $( "form" ).submit(function (ev) {
+  $( "form.ajax" ).submit(function (ev) {
     var action = $(this).attr("action");
     if ($(this).find("input[name=action]").length + $(this).find("select[name=action]").length == 0) { return true; }
-    var close = $(this).find("input[type=reset]");
     var data = new FormData(this);
     data.append("ajax", 1);
     $("#waitDialog").modal("show");

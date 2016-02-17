@@ -12,6 +12,7 @@ header("Content-Type: text/html; charset=UTF-8");
   <link href="css/sgis.css" rel="stylesheet" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link href="css/bootstrap-select.min.css" rel="stylesheet"/>
+  <link href="css/bootstrap-toggle.min.css" rel="stylesheet"/>
   <link rel="stylesheet" type="text/css" href="css/datatables.min.css"/>
 <!--  <link href="css/dataTables.bootstrap.min.css" rel="stylesheet" /> -->
   <link href="css/jquery.dataTables.min.css" rel="stylesheet" />
@@ -20,6 +21,7 @@ header("Content-Type: text/html; charset=UTF-8");
   <script src="js/bootstrap.min.js"></script>
   <script src="js/bootstrap-select.min.js"></script>
   <script src="js/i18n-bootstrap-select/defaults-de_DE.min.js"></script>
+  <script src="js/bootstrap-toggle.min.js"></script>
   <script type="text/javascript" src="js/datatables.min.js"></script>
  </head>
  <body>
