@@ -47,6 +47,28 @@ if (isset($_POST["action"])) {
      SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}person_current", /* primary key */ "id", $columns )
    );
   exit;
+  case "mailingliste.table":
+   header("Content-Type: text/json; charset=UTF-8");
+   $columns = array(
+     array( 'db' => 'id',                    'dt' => 'id' ),
+     array( 'db' => 'address',               'dt' => 'address' ),
+     array( 'db' => 'url',                   'dt' => 'url' ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}mailingliste", /* primary key */ "id", $columns )
+   );
+  exit;
+  case "gruppe.table":
+   header("Content-Type: text/json; charset=UTF-8");
+   $columns = array(
+     array( 'db' => 'id',                    'dt' => 'id' ),
+     array( 'db' => 'name',                  'dt' => 'name' ),
+     array( 'db' => 'beschreibung',          'dt' => 'beschreibung' ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}gruppe", /* primary key */ "id", $columns )
+   );
+  exit;
   case "gremium.table":
    header("Content-Type: text/json; charset=UTF-8");
    $columns = array(
@@ -294,10 +316,10 @@ switch($_REQUEST["tab"]) {
   require "../template/admin_rel_mitgliedschaft_delete.tpl";
   break;
   case "gruppe":
-  require "../template/admin_gruppen.php";
+  require "../template/admin_gruppen.tpl";
   break;
   case "mailingliste":
-  require "../template/admin_mailinglisten.php";
+  require "../template/admin_mailinglisten.tpl";
   break;
   case "export":
   require "../template/admin_export.php";

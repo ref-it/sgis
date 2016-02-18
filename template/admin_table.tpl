@@ -36,7 +36,6 @@ $(function() {
         },
         "language": {
           "url": "js/dataTables.german.lang.json"
-//        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/German.json"
         },
         "columns": [
             { "data": "id",
@@ -67,6 +66,11 @@ foreach (array_keys($metadata) as $i => $field):
 <?php elseif($field == "email"): ?>
               "render":  function ( data, type, full, meta ) {
                 var p = $("<a/>").attr("href","mailto:"+data).text(data).wrap("<div>").parent().html();
+                return p;
+              },
+<?php elseif($field == "url"): ?>
+              "render":  function ( data, type, full, meta ) {
+                var p = $("<a/>").attr("href",data).attr('target','_blank').text(data).wrap("<div>").parent().html();
                 return p;
               },
 <?php endif; ?>
