@@ -41,14 +41,15 @@ $(function() {
         "columns": [
             { "data": "id",
               "render":  function ( data, type, full, meta ) {
-                var p1 = $("<a/>").attr("target","_blank").attr("href","?tab=<?php echo $obj; ?>.delete&<?php echo $obj; ?>_id=" + encodeURIComponent(full.id)).text("[X]").wrap("<div>").parent().html();
-                var p2 = $("<a/>").attr("target","_blank").attr("href","?tab=<?php echo $obj; ?>.edit&<?php echo $obj; ?>_id=" + encodeURIComponent(full.id)).text("[E]").wrap("<div>").parent().html();
+                var p1 = $("<a/>").attr("target","_blank").attr("href","?tab=<?php echo $obj; ?>.delete&<?php echo $obj; ?>_id=" + encodeURIComponent(full.id)).html("<i class=\"fa fa-trash fa-fw\"></i>").wrap("<div>").parent().html();
+                var p2 = $("<a/>").attr("target","_blank").attr("href","?tab=<?php echo $obj; ?>.edit&<?php echo $obj; ?>_id=" + encodeURIComponent(full.id)).html("<i class=\"fa fa-pencil fa-fw\"></i>").wrap("<div>").parent().html();
 <?php if ($obj == "person"): ?>
-                var p3 = $("<a/>").attr("target","_blank").attr("href","index.php?mail=" + encodeURIComponent(full.email)).text("[D]").wrap("<div>").parent().html();
-                return p1+" "+p2+" "+p3;
+                var p3 = $("<a/>").attr("target","_blank").attr("href","index.php?mail=" + encodeURIComponent(full.email)).html("<i class=\"fa fa-info fa-fw\"></i>").wrap("<div>").parent().html();
+                var p = p1+" "+p2+" "+p3;
 <?php else: ?>
-                return p1+" "+p2;
+                var p = p1+" "+p2;
 <?php endif; ?>
+                return "<div class=\"nobr\">"+p+"</div>";
               },
               "orderable": false,
               "searchable": false,

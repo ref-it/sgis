@@ -287,6 +287,12 @@ switch($_REQUEST["tab"]) {
   case "rolle.delete":
   require "../template/admin_rolle_delete.tpl";
   break;
+  case "rel_mitgliedschaft.edit":
+  require "../template/admin_rel_mitgliedschaft_edit.tpl";
+  break;
+  case "rel_mitgliedschaft.delete":
+  require "../template/admin_rel_mitgliedschaft_delete.tpl";
+  break;
   case "gruppe":
   require "../template/admin_gruppen.php";
   break;

@@ -24,21 +24,21 @@ $metadata = [
    <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("has_members", array_keys($metadata)); ?>">
     <option value="1">Nur mit Mitgliedern</option>
     <option value="0">Nur ohne Mitglieder</option>
-    <option value="" selected>Alle</option>
+    <option value="" selected>Alle (Mitglieder)</option>
    </select>
   </div>
   <div class="col-xs-12 col-sm-3">
    <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("has_members_in_inactive_roles", array_keys($metadata)); ?>">
     <option value="1">Nur mit Mitgliedern in deaktivierten Rollen</option>
     <option value="0">Nur ohne Mitglieder in deaktivierten Rollen</option>
-    <option value="" selected>Alle</option>
+    <option value="" selected>Alle (Mitglieder in deaktivierten Rollen)</option>
    </select>
   </div>
   <div class="col-xs-12 col-sm-3">
    <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("active", array_keys($metadata)); ?>">
     <option value="1" selected>Nur aktive</option>
     <option value="0">Nur inaktive</option>
-    <option value="">Alle</option>
+    <option value="">Alle (aktiv)</option>
    </select>
   </div>
  </div> <!-- panel-body -->

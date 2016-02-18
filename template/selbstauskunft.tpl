@@ -157,7 +157,11 @@ Angehörige der TU Ilmenau können E-Mail-Weiterleitungen auf <a href="https://w
  <h4 class="printonly">
   <?php echo htmlspecialchars($person["email"]); ?>
  </h4>
-<?php require "../template/gremienmitgliedschaften.tpl"; ?>
+<?php
+ $gremienmitgliedschaften_edit = false;
+ $gremienmitgliedschaften_link = false;
+ require "../template/gremienmitgliedschaften.tpl";
+?>
 </div>
 
 <div id="gruppe" class="sgistab">
@@ -272,6 +276,7 @@ Bitte geben deine neuen Zugangsdaten für das sGIS ein:
 </nav>
 
 <?php
+
 require "../template/footer.tpl";
 
 // vim:set filetype=php:

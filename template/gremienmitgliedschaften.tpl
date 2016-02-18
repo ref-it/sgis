@@ -3,12 +3,16 @@
 <div class="panel-body">
 
 <table class="table table-striped">
-<tr><th>Tätigkeit</th><th>Zeitraum</th><th class="hidden-xs">Beschluss</th></tr>
+<tr>
+ <?php if ($gremienmitgliedschaften_edit): ?>
+  <th></th>
+ <?php endif; ?>
+<th>Tätigkeit</th><th>Zeitraum</th><th class="hidden-xs">Beschluss</th></tr>
 <?php
 $hasInactiveAssignments = false;
 if (count($gremien) == 0):
 ?>
-<tr><td colspan="3"><i>Keine Gremienmitgliedschaften.</td></tr>
+<tr><td colspan="<?php echo $gremienmitgliedschaften_edit ? 4 : 3; ?>"><i>Keine Gremienmitgliedschaften.</td></tr>
 <?php
 else:
 foreach($gremien as $gremium):
@@ -23,10 +27,35 @@ if (!$gremium["active"]):
 endif;
 ?>
 >
- <td><?php echo htmlspecialchars($gremium["rolle_name"]);?> in 
+<?php if ($gremienmitgliedschaften_edit): ?>
+ <td class="nobr">
+  <a target="_blank" href="?tab=rel_mitgliedschaft.edit&amp;rel_id=<?php echo $gremium["id"]; ?>">
+  <i class="fa fa-pencil fa-fw"></i>
+ </a>
+  <a target="_blank" href="?tab=rel_mitgliedschaft.delete&amp;rel_id=<?php echo $gremium["id"]; ?>">
+  <i class="fa fa-trash fa-fw"></i>
+ </a>
+ </td>
+<?php endif; ?>
+
+ <td><?php
+
+   if ($gremienmitgliedschaften_link)
+    echo "<a href=\"?tab=rolle.edit&amp;rolle_id=".$gremium["rolle_id"]."\" target=\"_blank\">";
+
+   echo htmlspecialchars($gremium["rolle_name"]);
+
+   if ($gremienmitgliedschaften_link)
+    echo "</a>";
+
+?>
+ in
  <nobr><?php
 
-   echo htmlspecialchars($gremium["gremium_name"])." ";
+  if ($gremienmitgliedschaften_link)
+    echo "<a href=\"?tab=gremium.edit&amp;gremium_id=".$gremium["gremium_id"]."\" target=\"_blank\">";
+
+  echo htmlspecialchars($gremium["gremium_name"])." ";
 
   if (!empty($gremium["gremium_studiengang"])) {
    echo htmlspecialchars($gremium["gremium_studiengang"])." ";
@@ -39,6 +68,9 @@ endif;
   if (!empty($gremium["gremium_fakultaet"])) {
    echo " Fak. ".htmlspecialchars($gremium["gremium_fakultaet"])." ";
   }
+
+  if ($gremienmitgliedschaften_link)
+    echo "</a>";
 
 ?></nobr></td>
  <td>

@@ -43,3 +43,7 @@ a[href^="mailto"]:before {
  content: "\f003";
 }
 
+.nobr {
+  white-space: nowrap;
+}
+

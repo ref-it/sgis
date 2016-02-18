@@ -101,6 +101,9 @@ endforeach;
 </form> <!-- form -->
 
 <?php
+
+$gremienmitgliedschaften_edit = false;
+$gremienmitgliedschaften_link = true;
 require "../template/gremienmitgliedschaften.tpl";
 
 // vim:set filetype=php:

@@ -23,14 +23,14 @@ $metadata = [
    <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("canLogin", array_keys($metadata)); ?>">
     <option value="0">Nur gesperrte</option>
     <option value="1" selected>Nur ungesperrte</option>
-    <option value="">Alle</option>
+    <option value="">Alle (Sperre)</option>
    </select>
   </div>
   <div class="col-xs-12 col-sm-4">
    <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("active", array_keys($metadata)); ?>">
     <option value="1">Nur aktive</option>
     <option value="0">Nur inaktive</option>
-    <option value="" selected>Alle</option>
+    <option value="" selected>Alle (aktiv)</option>
    </select>
   </div>
  </div> <!-- panel-body -->

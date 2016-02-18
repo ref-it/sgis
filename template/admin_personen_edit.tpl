@@ -78,6 +78,8 @@ endforeach;
 
 <?php
 
+$gremienmitgliedschaften_edit = true;
+$gremienmitgliedschaften_link = true;
 require ("../template/gremienmitgliedschaften.tpl");
 
 // vim:set filetype=php:
