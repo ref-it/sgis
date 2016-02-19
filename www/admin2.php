@@ -318,8 +318,20 @@ switch($_REQUEST["tab"]) {
   case "gruppe":
   require "../template/admin_gruppen.tpl";
   break;
+  case "gruppe.edit":
+  require "../template/admin_gruppen_edit.tpl";
+  break;
+  case "gruppe.delete":
+  require "../template/admin_gruppen_delete.tpl";
+  break;
   case "mailingliste":
   require "../template/admin_mailinglisten.tpl";
+  break;
+  case "mailingliste.edit":
+  require "../template/admin_mailinglisten_edit.tpl";
+  break;
+  case "mailingliste.delete":
+  require "../template/admin_mailinglisten_delete.tpl";
   break;
   case "export":
   require "../template/admin_export.php";

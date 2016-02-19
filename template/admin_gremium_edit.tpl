@@ -49,6 +49,9 @@ foreach ([
               <option value="0" <?php  if (!$gremium[$key]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option>
            </select><?php
             break;
+          case "id":
+?>         <div class="form-control"><?php echo htmlspecialchars($gremium[$key]); ?></div><?php
+            break;
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($gremium[$key]); ?>"><?php
         }

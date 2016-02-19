@@ -95,6 +95,9 @@ foreach ([
           case"kommentar":
 ?>         <textarea class="form-control" name="<?php echo htmlspecialchars($key); ?>"><?php echo htmlspecialchars($rel[$key]); ?></textarea><?php
             break;
+          case "id":
+?>         <div class="form-control"><?php echo htmlspecialchars($rel[$key]); ?></div><?php
+            break;
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($rel[$key]); ?>"><?php
         }

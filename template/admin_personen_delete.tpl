@@ -104,6 +104,7 @@ endforeach;
 
 $gremienmitgliedschaften_edit = false;
 $gremienmitgliedschaften_link = true;
+$gremienmitgliedschaften_allByDefault = false;
 require "../template/gremienmitgliedschaften.tpl";
 
 // vim:set filetype=php:

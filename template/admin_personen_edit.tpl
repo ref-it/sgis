@@ -51,6 +51,9 @@ foreach ([
               <option value="0" <?php  if (!$person["canLogin"]) echo "selected=\"selected\""; ?>>nicht erlaubt, außer während zur Gruppe canLogin zugehörig</option>
            </select><?php
             break;
+          case "id":
+?>         <div class="form-control"><?php echo htmlspecialchars($person[$key]); ?></div><?php
+            break;
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($person[$key]); ?>"><?php
         }
@@ -80,6 +83,7 @@ endforeach;
 
 $gremienmitgliedschaften_edit = true;
 $gremienmitgliedschaften_link = true;
+$gremienmitgliedschaften_allByDefault = false;
 require ("../template/gremienmitgliedschaften.tpl");
 
 // vim:set filetype=php:

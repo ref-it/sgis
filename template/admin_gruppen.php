@@ -150,7 +150,7 @@ endif;
 <?php $personen = getGruppePerson($gruppe["id"]);
      if (count($personen) == 0):
 ?>
-       <i>Es stehen keine Personen auf der Mailingliste.</i>
+       <i>Es sind keine Personen Mitglied der Gruppe.</i>
 <?php
      else:
 ?>

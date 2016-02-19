@@ -100,7 +100,7 @@ endif;
 
 <?php if ($hasInactiveAssignments): ?>
 <label class="checkbox">
-  <input checked data-toggle="toggle" type="checkbox" id="gremiumrolletoggle"> Inaktive Zuordnungen anzeigen
+  <input <?php if ($gremienmitgliedschaften_allByDefault) { ?>checked<?php } ?> data-toggle="toggle" type="checkbox" id="gremiumrolletoggle"> Inaktive Zuordnungen anzeigen
 </label>
 <?php endif; ?>
 

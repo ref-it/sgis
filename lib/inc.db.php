@@ -306,6 +306,13 @@ function getMailinglisten() {
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function getMailinglisteById($mlId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}mailingliste m WHERE id = ?");
+  $query->execute([$mlId]) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
 function dbMailinglisteInsert($address, $url, $password) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT {$DB_PREFIX}mailingliste (address, url, password) VALUES ( ?, ?, ?)");
@@ -508,6 +515,13 @@ function getGruppeRolle($grpId) {
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function getGruppeById($grpId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}gruppe WHERE id = ?");
+  $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
 function getAlleGruppe() {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}gruppe ORDER BY name");
@@ -654,11 +668,25 @@ function getMailinglistePerson($mlId) {
   return $query->fetchAll(PDO::FETCH_COLUMN);
 }
 
+function getMailinglistePersonDetails($mlId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT p.* FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rm.rolle_id = rrm.rolle_id AND rrm.mailingliste_id = ? ORDER BY p.email");
+  $query->execute(Array($mlId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
 function getGruppePerson($grpId) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("SELECT DISTINCT p.email FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rm.rolle_id = rrg.rolle_id AND rrg.gruppe_id = ? ORDER BY p.email");
   $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_COLUMN);
+}
+
+function getGruppePersonDetails($grpId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT p.* FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rm.rolle_id = rrg.rolle_id AND rrg.gruppe_id = ? ORDER BY p.email");
+  $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function getDBDump() {
