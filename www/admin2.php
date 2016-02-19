@@ -146,7 +146,7 @@ if (isset($_POST["action"])) {
        fgetcsv($handle, 1000, ",");
        while (($data = fgetcsv($handle, 0, ",", '"')) !== FALSE) {
          $ret2 = dbPersonInsert(trim($data[0]),trim($data[1]),trim((string)$data[2]),"","",$_POST["canlogin"], $quiet);
-         $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".($ret2 ? "": "nicht ")."angelegt.";
+         $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".(($ret2 !== false) ? "": "nicht ")."angelegt.";
          $ret = $ret && $ret2;
        }
        fclose($handle);

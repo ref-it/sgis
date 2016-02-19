@@ -17,6 +17,7 @@ header("Content-Type: text/html; charset=UTF-8");
   <link rel="stylesheet" href="css/font-awesome.min.css">
 <!--  <link href="css/dataTables.bootstrap.min.css" rel="stylesheet" /> -->
   <link href="css/jquery.dataTables.min.css" rel="stylesheet" />
+  <link href="css/fileinput.min.css" media="all" rel="stylesheet" type="text/css" />
   <script src="js/jquery-1.12.0.min.js"></script>
   <script src="js/jquery-ui.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
@@ -25,6 +26,8 @@ header("Content-Type: text/html; charset=UTF-8");
   <script src="js/bootstrap-toggle.min.js"></script>
   <script type="text/javascript" src="js/datatables.min.js"></script>
   <script type="text/javascript" src="js/sgis.js"></script>
+  <script src="js/fileinput.min.js" type="text/javascript"></script>
+  <script src="js/fileinput_locale_de.js"></script>
  </head>
  <body>
  <div class="container">

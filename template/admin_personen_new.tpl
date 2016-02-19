@@ -13,12 +13,13 @@
 <?php
 
 foreach ([
-  "name" => "Name",
-  "email" => "eMail",
-  "username" => "Login-Name",
-  "password" => "Login-Password",
+  "name"       => "Name",
+  "email"      => "eMail",
+  "username"   => "Login-Name",
+  "password"   => "Login-Password",
   "unirzlogin" => "UniRZ-Login",
-  "canLogin" => "Login erlaubt?",
+  "canLogin"   => "Login erlaubt?",
+  "csv"        => "Datei importieren",
  ] as $key => $desc):
 
 ?>
@@ -32,14 +33,49 @@ foreach ([
           case "password":
 ?>          <input class="form-control" type="password" name="<?php echo htmlspecialchars($key); ?>" value=""><?php
             break;
-          case"canLogin":
+          case "canLogin":
 ?>         <select name="canlogin" size="1" class="selectpicker" data-width="fit">
               <option value="1" selected="selected">erlaubt, außer während zur Gruppe cannotLogin zugehörig</option>
               <option value="0">nicht erlaubt, außer während zur Gruppe canLogin zugehörig</option>
            </select><?php
             break;
+          case "csv":
+?>
+           <input class="file" type="file" name="<?php echo htmlspecialchars($key); ?>" accept="text/comma-separated-values" class="file" data-show-preview="false">
+<?php
+            break;
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value=""><?php
+        }
+        switch($key) {
+          case "username":
+          case "password":
+?>
+           <i> (optional, wird vom Nutzer beim ersten Uni-Login vom Nutzer festgelegt)</i>
+<?php
+            break;
+          case "unirzlogin":
+?>
+           <i> (optional, wird ggf. automatisch ergänzt)</i>
+<?php
+            break;
+          case "email":
+?>
+           <i>Die e-Mail-Adresse wird zur Identifikation des Uni-Logins benutzt. Daher bitte die @tu-ilmenau.de-Adresse nutzen!</i>
+<?php
+            break;
+          case "canLogin":
+?>
+           <br/>
+           <i>(nicht erlaubt für Dummy-eMail-Adressen auf Mailinglisten und sonstige Ausnahmen nutzen)</i>
+<?php
+            break;
+          case "csv":
+?>
+           <i>(optional, Trennung durch Komma, Texttrenner: ", Spalten: Name, eMail, RZ-Login erste Zeile ist Kopfzeile, "Login-Erlaubt"-Wert wird aus Eingabe übernommen.)</i>
+<?php
+            break;
+          default:
         }
       ?>
     </div>
