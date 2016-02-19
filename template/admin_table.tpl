@@ -1,7 +1,10 @@
 <table id="main<?php echo $obj; ?>table" class="display" width="100%" cellspacing="0">
 
  <thead>
-  <tr><th>Aktion</th>
+  <tr>
+   <th>
+		<a href="?tab=<?php echo $obj; ?>.new" target="_blank"> <i class="fa fa-plus"></i> </a>
+   </th>
 <?php
 foreach (array_values($metadata) as $i => $headline):
 ?>

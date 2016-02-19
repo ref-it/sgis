@@ -288,6 +288,9 @@ switch($_REQUEST["tab"]) {
   case "person":
   require "../template/admin_personen.tpl";
   break;
+  case "person.new":
+  require "../template/admin_personen_new.tpl";
+  break;
   case "person.edit":
   require "../template/admin_personen_edit.tpl";
   break;
