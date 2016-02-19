@@ -216,6 +216,18 @@ if ($r === false) {
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}rolle_searchable");
+if ($r === false) {
+  $pdo->query("CREATE VIEW {$DB_PREFIX}rolle_searchable AS
+    SELECT r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId,
+           g.id as gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as wiki_members, g.active as gremium_active,
+           r.id as id, (r.active AND g.active) as active
+      FROM {$DB_PREFIX}gremium g
+           INNER JOIN {$DB_PREFIX}rolle r ON r.gremium_id = g.id
+   ")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+
 function logThisAction() {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");
@@ -461,7 +473,7 @@ function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschl
   if (empty($beschlussDurch)) $beschlussDurch = NULL;
   if (empty($kommentar)) $kommentar = NULL;
   if ($von !== NULL && $bis !== NULL) {
-    $query = $pdo->prepare("SELECT ? :: DATE <= ? :: DATE AS valid");
+    $query = $pdo->prepare("SELECT cast(? AS DATE) <= cast(? AS DATE) AS valid");
     $query->execute(Array($von, $bis)) or httperror (print_r($query->errorInfo(),true));
     $validDates = (bool) $query->fetchColumn();
     if (!$validDates) {
@@ -484,7 +496,7 @@ function dbPersonUpdateRolle($id, $person_id,$rolle_id,$von,$bis,$beschlussAm,$b
   if (empty($beschlussDurch)) $beschlussDurch = NULL;
   if (empty($kommentar)) $kommentar = NULL;
   if ($von !== NULL && $bis !== NULL) {
-    $query = $pdo->prepare("SELECT ? :: DATE <= ? :: DATE AS valid");
+    $query = $pdo->prepare("SELECT cast(? as DATE) <= cast(? as DATE) AS valid");
     $query->execute(Array($von, $bis)) or httperror (print_r($query->errorInfo(),true));
     $validDates = (bool) $query->fetchColumn();
     if (!$validDates) {

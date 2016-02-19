@@ -5,9 +5,12 @@
 <table class="table table-striped">
 <tr>
  <?php if ($gremienmitgliedschaften_edit): ?>
-  <th></th>
+  <th>
+   <a href="?tab=rel_mitgliedschaft.new&amp;person_id=<?php echo $person["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a>
+  </th>
  <?php endif; ?>
-<th>Tätigkeit</th><th>Zeitraum</th><th class="hidden-xs">Beschluss</th></tr>
+ <th>Tätigkeit</th><th>Zeitraum</th><th class="hidden-xs">Beschluss</th>
+</tr>
 <?php
 $hasInactiveAssignments = false;
 if (count($gremien) == 0):

@@ -20,14 +20,14 @@ $metadata = [
     Personen anzeigen:
   </div>
   <div class="col-xs-12 col-sm-4">
-   <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("canLogin", array_keys($metadata)); ?>">
+   <select class="selectpicker tablefilter" data-column="canLogin:name">
     <option value="0">Nur gesperrte</option>
     <option value="1" selected>Nur ungesperrte</option>
     <option value="">Alle (Sperre)</option>
    </select>
   </div>
   <div class="col-xs-12 col-sm-4">
-   <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("active", array_keys($metadata)); ?>">
+   <select class="selectpicker tablefilter" data-column="active:name">
     <option value="1">Nur aktive</option>
     <option value="0">Nur inaktive</option>
     <option value="" selected>Alle (aktiv)</option>
@@ -38,6 +38,9 @@ $metadata = [
 
 <?php
  $obj = "person";
+ $obj_editable = true;
+ $obj_smallpageinate = false;
+ $obj_selectable = false;
  require dirname(__FILE__)."/admin_table.tpl";
 
 // vim: set filetype=php:

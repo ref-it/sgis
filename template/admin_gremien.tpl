@@ -21,21 +21,21 @@ $metadata = [
     Gremien anzeigen:
   </div>
   <div class="col-xs-12 col-sm-3">
-   <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("has_members", array_keys($metadata)); ?>">
+   <select class="selectpicker tablefilter" data-column="has_members:name">
     <option value="1">Nur mit Mitgliedern</option>
     <option value="0">Nur ohne Mitglieder</option>
     <option value="" selected>Alle (Mitglieder)</option>
    </select>
   </div>
   <div class="col-xs-12 col-sm-3">
-   <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("has_members_in_inactive_roles", array_keys($metadata)); ?>">
+   <select class="selectpicker tablefilter" data-column="has_members_in_inactive_roles:name">
     <option value="1">Nur mit Mitgliedern in deaktivierten Rollen</option>
     <option value="0">Nur ohne Mitglieder in deaktivierten Rollen</option>
     <option value="" selected>Alle (Mitglieder in deaktivierten Rollen)</option>
    </select>
   </div>
   <div class="col-xs-12 col-sm-3">
-   <select class="selectpicker tablefilter" data-column="<?php echo 1 + array_search("active", array_keys($metadata)); ?>">
+   <select class="selectpicker tablefilter" data-column="active:name">
     <option value="1" selected>Nur aktive</option>
     <option value="0">Nur inaktive</option>
     <option value="">Alle (aktiv)</option>
@@ -46,6 +46,9 @@ $metadata = [
 
 <?php
  $obj = "gremium";
+ $obj_editable = true;
+ $obj_smallpageinate = false;
+ $obj_selectable = false;
  require dirname(__FILE__)."/admin_table.tpl";
 
 // vim: set filetype=php:

@@ -98,6 +98,26 @@ if (isset($_POST["action"])) {
      SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}gremium_current", /* primary key */ "id", $columns )
    );
   exit;
+  case "rolle.table":
+   header("Content-Type: text/json; charset=UTF-8");
+
+   $columns = array(
+     array( 'db' => 'id',                            'dt' => 'id' ),
+     array( 'db' => 'rolle_name',                    'dt' => 'rolle_name' ),
+     array( 'db' => 'gremium_name',                  'dt' => 'gremium_name' ),
+     array( 'db' => 'gremium_fakultaet',             'dt' => 'gremium_fakultaet' ),
+     array( 'db' => 'gremium_studiengang',           'dt' => 'gremium_studiengang' ),
+     array( 'db' => 'gremium_studiengangabschluss',  'dt' => 'gremium_studiengangabschluss' ),
+     array( 'db'    => 'active',                     'dt'    => 'active',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}rolle_searchable", /* primary key */ "id", $columns )
+   );
+  exit;
   case "mailingliste.insert":
    $ret = dbMailinglisteInsert($_POST["address"], $_POST["url"], $_POST["password"]);
    $msgs[] = "Mailingliste wurde erstellt.";
@@ -154,8 +174,16 @@ if (isset($_POST["action"])) {
    }
   break;
   case "rolle_person.insert":
-   $ret = dbPersonInsertRolle($_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
-   $msgs[] = "Person-Rollen-Zuordnung wurde angelegt.";
+   if ($_POST["person_id"] < 0) {
+     $ret = false;
+     $msgs[] = "Keine Person ausgewählt.";
+   } else if ($_POST["rolle_id"] < 0) {
+     $ret = false;
+     $msgs[] = "Keine Rolle ausgewählt.";
+   } else {
+     $ret = dbPersonInsertRolle($_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
+     $msgs[] = "Person-Rollen-Zuordnung wurde angelegt.";
+   }
   break;
   case "rolle_person.update":
    $ret = dbPersonUpdateRolle($_POST["id"], $_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
@@ -327,6 +355,9 @@ switch($_REQUEST["tab"]) {
   break;
   case "rolle.delete":
   require "../template/admin_rolle_delete.tpl";
+  break;
+  case "rel_mitgliedschaft.new":
+  require "../template/admin_rel_mitgliedschaft_new.tpl";
   break;
   case "rel_mitgliedschaft.edit":
   require "../template/admin_rel_mitgliedschaft_edit.tpl";
