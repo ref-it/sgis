@@ -1,6 +1,7 @@
 <?php
 
 $rolle = getRolleById($_REQUEST["rolle_id"]);
+if ($rolle === false) die("Invalid Id");
 $gremium = getGremiumById($rolle["gremium_id"]);
 $personen = getRollePersonen($rolle["id"]);
 $gruppen = getRolleGruppen($rolle["id"]);

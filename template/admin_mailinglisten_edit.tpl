@@ -1,6 +1,7 @@
 <?php
 
 $mailingliste = getMailinglisteById($_REQUEST["mailingliste_id"]);
+if ($mailingliste === false) die("Invalid Id");
 $personen = getMailinglistePersonDetails($mailingliste["id"]);
 $gremien = getMailinglisteRolle($mailingliste["id"]);
 

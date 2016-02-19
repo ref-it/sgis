@@ -9,6 +9,7 @@ requireGroup($ADMINGROUP);
 if (isset($_POST["action"])) {
  $msgs = Array();
  $ret = false;
+ $target = false;
  if (!isset($_REQUEST["nonce"]) || $_REQUEST["nonce"] !== $nonce) {
   $msgs[] = "Formular veraltet - CSRF Schutz aktiviert.";
  } else {
@@ -100,6 +101,8 @@ if (isset($_POST["action"])) {
   case "mailingliste.insert":
    $ret = dbMailinglisteInsert($_POST["address"], $_POST["url"], $_POST["password"]);
    $msgs[] = "Mailingliste wurde erstellt.";
+   if ($ret !== false)
+     $target = $_SERVER["PHP_SELF"]."?tab=mailingliste.edit&mailingliste_id=".$ret;
   break;
   case "mailingliste.update":
    $ret = dbMailinglisteUpdate($_POST["id"], $_POST["address"], $_POST["url"], $_POST["password"]);
@@ -134,7 +137,9 @@ if (isset($_POST["action"])) {
    $ret = true;
    if (!empty($_POST["email"])) {
      $ret = dbPersonInsert(trim($_POST["name"]),trim($_POST["email"]),trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"], $quiet);
-     $msgs[] = "Person {$_POST["name"]} wurde ".($ret ? "": "nicht ")."angelegt.";
+     if ($ret !== false)
+       $target = $_SERVER["PHP_SELF"]."?tab=person.edit&person_id=".$ret;
+     $msgs[] = "Person {$_POST["name"]} wurde ".(($ret !== false) ? "": "nicht ")."angelegt.";
    }
    if ($quiet) {
      if (($handle = fopen($_FILES["csv"]["tmp_name"], "r")) !== FALSE) {
@@ -167,6 +172,8 @@ if (isset($_POST["action"])) {
   case "gruppe.insert":
    $ret = dbGruppeInsert($_POST["name"], $_POST["beschreibung"]);
    $msgs[] = "Gruppe wurde erstellt.";
+   if ($ret !== false)
+     $target = $_SERVER["PHP_SELF"]."?tab=gruppe.edit&gruppe_id=".$ret;
   break;
   case "gruppe.update":
    $ret = dbGruppeUpdate($_POST["id"], $_POST["name"], $_POST["beschreibung"]);
@@ -187,6 +194,8 @@ if (isset($_POST["action"])) {
   case "gremium.insert":
    $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["active"]);
    $msgs[] = "Gremium wurde angelegt.";
+   if ($ret !== false)
+     $target = $_SERVER["PHP_SELF"]."?tab=gremium.edit&gremium_id=".$ret;
   break;
   case "gremium.update":
    $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["active"]);
@@ -205,6 +214,8 @@ if (isset($_POST["action"])) {
    if ($spiGroupId === "") $spiGroupId = NULL;
    $ret = dbGremiumInsertRolle($_POST["gremium_id"],$_POST["name"],$_POST["active"],$spiGroupId);
    $msgs[] = "Rolle wurde angelegt.";
+   if ($ret !== false)
+     $target = $_SERVER["PHP_SELF"]."?tab=rolle.edit&rolle_id=".$ret;
   break;
   case "rolle_gremium.update":
    $spiGroupId = $_POST["spiGroupId"];
@@ -265,12 +276,14 @@ if (isset($_POST["action"])) {
   endswitch;
  } /* switch */
 
- logAppend($logId, "__result", $ret ? "ok" : "failed");
+ logAppend($logId, "__result", ($ret !== false) ? "ok" : "failed");
  logAppend($logId, "__result_msg", $msgs);
 
  $result = Array();
  $result["msgs"] = $msgs;
- $result["ret"] = $ret;
+ $result["ret"] = ($ret !== false);
+ if ($target !== false)
+   $result["target"] = $target;
 
  header("Content-Type: text/json; charset=UTF-8");
  echo json_encode($result);
@@ -300,6 +313,9 @@ switch($_REQUEST["tab"]) {
   case "gremium":
   require "../template/admin_gremien.tpl";
   break;
+  case "gremium.new":
+  require "../template/admin_gremium_new.tpl";
+  break;
   case "gremium.edit":
   require "../template/admin_gremium_edit.tpl";
   break;
@@ -321,6 +337,9 @@ switch($_REQUEST["tab"]) {
   case "gruppe":
   require "../template/admin_gruppen.tpl";
   break;
+  case "gruppe.new":
+  require "../template/admin_gruppen_new.tpl";
+  break;
   case "gruppe.edit":
   require "../template/admin_gruppen_edit.tpl";
   break;
@@ -329,6 +348,9 @@ switch($_REQUEST["tab"]) {
   break;
   case "mailingliste":
   require "../template/admin_mailinglisten.tpl";
+  break;
+  case "mailingliste.new":
+  require "../template/admin_mailinglisten_new.tpl";
   break;
   case "mailingliste.edit":
   require "../template/admin_mailinglisten_edit.tpl";

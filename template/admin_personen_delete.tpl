@@ -1,6 +1,7 @@
 <?php
 
 $person = getPersonDetailsById($_REQUEST["person_id"]);
+if ($person === false) die("Invalid Id");
 $gremien = getPersonRolle($person["id"]);
 
 ?>

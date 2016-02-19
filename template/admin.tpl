@@ -86,10 +86,14 @@ $(function () {
            txt = values.msgs.join("\n")+"\n"+txt;
        }
        alert(txt);
-       if (values.ret) {
+       if (values.ret && !values.target) {
         self.opener.location.reload();
         self.opener.focus();
         self.close();
+       }
+       if (values.ret && values.target) {
+        self.location.href = values.target;
+        self.opener.focus();
        }
      })
     .error(xpAjaxErrorHandler);

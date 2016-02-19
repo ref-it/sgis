@@ -1,6 +1,7 @@
 <?php
 
 $gruppe = getGruppeById($_REQUEST["gruppe_id"]);
+if ($gruppe === false) die("Invalid Id");
 $personen = getGruppePersonDetails($gruppe["id"]);
 $gremien = getGruppeRolle($gruppe["id"]);
 

@@ -316,7 +316,10 @@ function getMailinglisteById($mlId) {
 function dbMailinglisteInsert($address, $url, $password) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT {$DB_PREFIX}mailingliste (address, url, password) VALUES ( ?, ?, ?)");
-  return $query->execute(Array($address, $url, $password)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($address, $url, $password)) or httperror(print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
 }
 
 function dbMailinglisteUpdate($id, $address, $url, $password) {
@@ -445,7 +448,9 @@ function dbPersonInsert($name,$email,$unirzlogin,$username,$password,$canlogin, 
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person (name, email, unirzlogin, username, password, canLogin) VALUES (?, ?, ?, ?, ?, ?)");
   $ret = $query->execute(Array($name, $email, $unirzlogin, $username, $passwordHash, $canlogin));
   if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
-  return $ret;
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
 }
 
 function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$kommentar) {
@@ -532,7 +537,10 @@ function getAlleGruppe() {
 function dbGruppeInsert($name, $beschreibung) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT {$DB_PREFIX}gruppe (name, beschreibung) VALUES ( ?, ?)");
-  return $query->execute(Array($name, $beschreibung)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($name, $beschreibung)) or httperror(print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
 }
 
 function dbGruppeUpdate($id, $name, $beschreibung) {
@@ -562,7 +570,10 @@ function dbGruppeInsertRolle($grpId, $rolleId) {
 function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $active) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengangabschluss, wiki_members, active) VALUES ( ?, ?, ?, ?, ?, ?)");
-  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $active)) or httperror(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $active)) or httperror(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
 }
 
 function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $active) {
@@ -592,7 +603,10 @@ function dbGremiumDisable($id) {
 function dbGremiumInsertRolle($gremium_id, $name, $active, $spiGroupId) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name, active, spiGroupId) VALUES ( ?, ?, ?, ?)");
-  return $query->execute(Array($gremium_id, $name, $active, $spiGroupId)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($gremium_id, $name, $active, $spiGroupId)) or httperror(print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
 }
 
 function dbGremiumUpdateRolle($id, $name, $active, $spiGroupId) {

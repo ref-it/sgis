@@ -1,6 +1,7 @@
 <?php
 
 $rel = getMitgliedschaftById($_REQUEST["rel_id"]);
+if ($rel === false) die("Invalid Id");
 $rolle = getRolleById($rel["rolle_id"]);
 $gremium = getGremiumById($rel["gremium_id"]);
 $person = getPersonDetailsById($rel["person_id"]);

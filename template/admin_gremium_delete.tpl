@@ -1,6 +1,7 @@
 <?php
 
 $gremium = getGremiumById($_REQUEST["gremium_id"]);
+if ($gremium === false) die("Invalid Id");
 $rollen = getRolleByGremiumId($gremium["id"]);
 
 ?>
@@ -11,7 +12,7 @@ $rollen = getRolleByGremiumId($gremium["id"]);
 
 <div class="panel panel-default">
  <div class="panel-heading">
-  <?php echo htmlspecialchars($gremium["name"]); ?>
+  Gremium <?php echo htmlspecialchars($gremium["name"]); ?>
  </div>
  <div class="panel-body">
 
