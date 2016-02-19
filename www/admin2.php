@@ -135,7 +135,7 @@ if (isset($_POST["action"])) {
   case "person.insert":
    $quiet = isset($_FILES["csv"]) && !empty($_FILES["csv"]["tmp_name"]);
    $ret = true;
-   if (!empty($_POST["email"])) {
+   if (!empty($_POST["email"]) || !$quiet) {
      $ret = dbPersonInsert(trim($_POST["name"]),trim($_POST["email"]),trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"], $quiet);
      if ($ret !== false)
        $target = $_SERVER["PHP_SELF"]."?tab=person.edit&person_id=".$ret;
