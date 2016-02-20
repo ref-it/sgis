@@ -260,25 +260,30 @@ if (isset($_POST["action"])) {
    $msgs[] = "Rolle wurde deaktiviert.";
   break;
   case "rolle_person.bulkinsert":
-   $emails = explode("\n", $_REQUEST["email"]);
-   foreach ($emails as $email) {
-     $email = trim($email);
-     if (empty($email)) continue;
-     $person = getPersonDetailsByMail($email);
-     if ($person === false) {
-       $msgs[] = "Personen-Rollenzuordnung: $email wurde nicht gefunden.";
-       continue;
+   if ($_POST["rolle_id"] < 0) {
+     $ret = false;
+     $msgs[] = "Keine Rolle ausgewählt.";
+   } else {
+     $emails = explode("\n", $_REQUEST["email"]);
+     foreach ($emails as $email) {
+       $email = trim($email);
+       if (empty($email)) continue;
+       $person = getPersonDetailsByMail($email);
+       if ($person === false) {
+         $msgs[] = "Personen-Rollenzuordnung: $email wurde nicht gefunden.";
+         continue;
+       }
+       $rel_mems = getActiveMitgliedschaftByMail(trim($email), $_POST["rolle_id"]);
+       if ($rel_mems === false || count($rel_mems) == 0 || $_POST["duplicate"] == "ignore") {
+         $ret2 = dbPersonInsertRolle($person["id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
+         $ret = $ret && $ret2;
+         $msgs[] = "Person-Rollen-Zuordnung für $email wurde erstellt.";
+       } else {
+         $msgs[] = "Person-Rollen-Zuordnung für $email wurde übersprungen.";
+       }
      }
-     $rel_mems = getActiveMitgliedschaftByMail(trim($email), $_POST["rolle_id"]);
-     if ($rel_mems === false || count($rel_mems) == 0 || $_POST["duplicate"] == "ignore") {
-       $ret2 = dbPersonInsertRolle($person["id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
-       $ret = $ret && $ret2;
-       $msgs[] = "Person-Rollen-Zuordnung für $email wurde erstellt.";
-     } else {
-       $msgs[] = "Person-Rollen-Zuordnung für $email wurde übersprungen.";
-     }
+     $ret = true;
    }
-   $ret = true;
   break;
   case "rolle_person.bulkdisable":
    $emails = explode("\n", $_REQUEST["email"]);
@@ -367,6 +372,12 @@ switch($_REQUEST["tab"]) {
   break;
   case "rel_mitgliedschaft.delete":
   require "../template/admin_rel_mitgliedschaft_delete.tpl";
+  break;
+  case "rel_mitgliedschaft_multiple.new":
+  require "../template/admin_rel_mitgliedschaft_multiple_new.tpl";
+  break;
+  case "rel_mitgliedschaft_multiple.delete":
+  require "../template/admin_rel_mitgliedschaft_multiple_delete.tpl";
   break;
   case "rel_rolle_gruppe.new":
   require "../template/admin_rel_rolle_gruppe_new.tpl";

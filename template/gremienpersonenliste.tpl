@@ -75,6 +75,10 @@ endif;
   <input data-toggle="toggle" type="checkbox" id="rollepersontoggle"> Inaktive Einträge anzeigen
 </label>
 <?php endif; ?>
+<?php if ($gremienpersonen_edit): ?>
+   <a class="btn btn-default" title="Mehrfacheintragung" href="?tab=rel_mitgliedschaft_multiple.new&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus-square"></i> Mehrfacheintragung</i></a>
+   <a class="btn btn-default" title="Mehrfachaustragung" href="?tab=rel_mitgliedschaft_multiple.delete&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-trash-o"></i> Mehrfachaustragung</a>
+<?php endif; ?>
 
   </div> </div> <!--panel -->
 
