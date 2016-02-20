@@ -43,6 +43,7 @@ $mailinglisten = getRolleMailinglisten($rolle["id"]);
 
 foreach ([
   "id" => "ID",
+  "gremium_id" => "Gremium",
   "name" => "Name",
   "active" => "Rolle existent/aktiv?",
   "spiGroupId" => "sPi-Gruppen-Id",
@@ -56,6 +57,23 @@ foreach ([
       <div class="form-control">
       <?php
         switch($key) {
+          case"gremium_id":
+
+   echo htmlspecialchars($gremium["name"])." ";
+
+  if (!empty($gremium["studiengang"])) {
+   echo htmlspecialchars($gremium["studiengang"])." ";
+  }
+
+  if (!empty($gremium["studiengangabschluss"])) {
+    echo " (".htmlspecialchars($gremium["studiengangabschluss"]).") ";
+  }
+
+  if (!empty($gremium["fakultaet"])) {
+   echo " Fak. ".htmlspecialchars($gremium["fakultaet"])." ";
+  }
+
+            break;
           case "active":
             echo htmlspecialchars($rolle["$key"] ? "ja" : "nein");
             break;
@@ -98,6 +116,7 @@ endforeach;
 
 <!-- Personen -->
 <?php
+$gremienpersonen_edit = false;
 require ("../template/gremienpersonenliste.tpl");
 ?>
 

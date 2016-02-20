@@ -3,12 +3,19 @@
 <div class="panel-body">
 
 <table class="table table-striped">
-<tr><th></th><th>Name</th><th>eMail</th><th class="hidden-xs">Zeitraum</th><th class="hidden-xs">Beschluss</th><th class="hidden-xs">Kommentar</th></tr>
+<tr>
+<?php if ($gremienpersonen_edit): ?>
+  <th>
+   <a href="?tab=rel_mitgliedschaft.new&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a>
+  </th>
+<?php endif; ?>
+  <th>Name</th><th>eMail</th><th class="hidden-xs">Zeitraum</th><th class="hidden-xs">Beschluss</th><th class="hidden-xs">Kommentar</th>
+</tr>
 <?php
 $hasInactive = false;
 if (count($personen) == 0):
 ?>
-<tr><td colspan="6"><i>Keine Personen.</td></tr>
+<tr><td colspan="<?php echo $gremienpersonen_edit ? 6 : 5; ?>"><i>Keine Personen.</td></tr>
 <?php
 else:
 foreach($personen as $person):
@@ -23,6 +30,7 @@ if (!$person["active"]):
 endif;
 ?>
 >
+<?php if ($gremienpersonen_edit): ?>
 <td class="nobr">
   <a target="_blank" href="?tab=rel_mitgliedschaft.edit&amp;rel_id=<?php echo $person["rel_id"]; ?>">
   <i class="fa fa-pencil fa-fw"></i>
@@ -31,6 +39,7 @@ endif;
   <i class="fa fa-trash fa-fw"></i>
  </a>
 </td>
+<?php endif; ?>
  <td>
   <a target="_blank" href="?tab=person.edit&amp;person_id=<?php echo $person["id"]; ?>">
   <?php echo htmlspecialchars($person["name"]);?>

@@ -1,24 +1,70 @@
+<?php
+
+$gremium = getGremiumById($_REQUEST["gremium_id"]);
+if ($gremium === false) die("Invalid Id");
+
+?>
+
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST" enctype="multipart/form-data" class="ajax">
-<input type="hidden" name="action" value="gremium.insert"/>
+<input type="hidden" name="action" value="rolle_gremium.insert"/>
 <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
+<input type="hidden" name="gremium_id" value="<?php echo htmlspecialchars($gremium["id"]);?>"/>
 
 <div class="panel panel-default">
  <div class="panel-heading">
-  Neues Gremium
+  Neue Rolle in
+  <?php
+
+   echo htmlspecialchars($gremium["name"])." ";
+
+  if (!empty($gremium["studiengang"])) {
+   echo htmlspecialchars($gremium["studiengang"])." ";
+  }
+
+  if (!empty($gremium["studiengangabschluss"])) {
+    echo " (".htmlspecialchars($gremium["studiengangabschluss"]).") ";
+  }
+
+  if (!empty($gremium["fakultaet"])) {
+   echo " Fak. ".htmlspecialchars($gremium["fakultaet"])." ";
+  }
+
+?>
  </div>
  <div class="panel-body">
 
 <div class="form-horizontal" role="form">
+  <div class="form-group">
+    <label class="control-label col-sm-3">Gremium</label>
+    <div class="col-sm-9">
+      <div class="form-control">
+  <?php
+
+   echo htmlspecialchars($gremium["name"])." ";
+
+  if (!empty($gremium["studiengang"])) {
+   echo htmlspecialchars($gremium["studiengang"])." ";
+  }
+
+  if (!empty($gremium["studiengangabschluss"])) {
+    echo " (".htmlspecialchars($gremium["studiengangabschluss"]).") ";
+  }
+
+  if (!empty($gremium["fakultaet"])) {
+   echo " Fak. ".htmlspecialchars($gremium["fakultaet"])." ";
+  }
+
+?>
+      </div>
+    </div>
+  </div>
 
 <?php
 
 foreach ([
   "name" => "Name",
-  "fakultaet" => "Fakultät",
-  "studiengang" => "Studiengang",
-  "studiengangabschluss" => "Abschluss (Bachelor, Master, ...)",
-  "wiki_members" => "Wiki-Seite für Mitglieder",
-  "active" => "Gremium existent/aktiv?",
+  "active" => "Rolle existent/aktiv?",
+  "spiGroupId" => "sPi-Gruppen-Id",
  ] as $key => $desc):
 
 ?>
@@ -29,9 +75,9 @@ foreach ([
 
       <?php
         switch($key) {
-          case "wiki_members":
+          case "spiGroupId":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="">
-           <i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i>
+           <i>(Personen dieser Rolle werden in der entsprechenden <a href="<?php echo htmlspecialchars($sPiBase)."/group/";?>" target="_blank">sPi-Gruppe</a> dargestellt.)</i>
 <?php
             break;
           case"active":
@@ -65,5 +111,4 @@ endforeach;
 </form>
 
 <?php
-
 // vim:set filetype=php:

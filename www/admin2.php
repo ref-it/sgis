@@ -350,6 +350,9 @@ switch($_REQUEST["tab"]) {
   case "gremium.delete":
   require "../template/admin_gremium_delete.tpl";
   break;
+  case "rolle.new":
+  require "../template/admin_rolle_new.tpl";
+  break;
   case "rolle.edit":
   require "../template/admin_rolle_edit.tpl";
   break;

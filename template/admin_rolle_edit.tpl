@@ -43,6 +43,7 @@ $mailinglisten = getRolleMailinglisten($rolle["id"]);
 
 foreach ([
   "id" => "ID",
+  "gremium_id" => "Gremium",
   "name" => "Name",
   "active" => "Rolle existent/aktiv?",
   "spiGroupId" => "sPi-Gruppen-Id",
@@ -51,7 +52,7 @@ foreach ([
 ?>
 
   <div class="form-group">
-    <label class="control-label col-sm-3"><?php echo htmlspecialchars($desc); ?></label>
+    <label for="<?php echo htmlspecialchars($key); ?>" class="control-label col-sm-3"><?php echo htmlspecialchars($desc); ?></label>
     <div class="col-sm-9">
 
       <?php
@@ -59,6 +60,29 @@ foreach ([
           case "spiGroupId":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($rolle[$key]); ?>">
            <i>(Personen dieser Rolle werden in der entsprechenden <a href="<?php echo htmlspecialchars($sPiBase)."/group/".htmlspecialchars($rolle[$key],ENT_QUOTES);?>" target="_blank">sPi-Gruppe</a> dargestellt.)</i>
+<?php
+            break;
+          case"gremium_id":
+?>
+      <div class="form-control">
+  <?php
+
+   echo htmlspecialchars($gremium["name"])." ";
+
+  if (!empty($gremium["studiengang"])) {
+   echo htmlspecialchars($gremium["studiengang"])." ";
+  }
+
+  if (!empty($gremium["studiengangabschluss"])) {
+    echo " (".htmlspecialchars($gremium["studiengangabschluss"]).") ";
+  }
+
+  if (!empty($gremium["fakultaet"])) {
+   echo " Fak. ".htmlspecialchars($gremium["fakultaet"])." ";
+  }
+
+?>
+      </div>
 <?php
             break;
           case"active":
@@ -97,6 +121,7 @@ endforeach;
 
 <!-- Personen -->
 <?php
+$gremienpersonen_edit = true;
 require ("../template/gremienpersonenliste.tpl");
 ?>
 

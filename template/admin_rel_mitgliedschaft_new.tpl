@@ -178,7 +178,7 @@ foreach ([
 ?>
 
   <div class="form-group">
-    <label class="control-label col-sm-3"><?php echo htmlspecialchars($desc); ?></label>
+    <label for="<?php echo htmlspecialchars($key); ?>" class="control-label col-sm-3"><?php echo htmlspecialchars($desc); ?></label>
     <div class="col-sm-9">
 
       <?php

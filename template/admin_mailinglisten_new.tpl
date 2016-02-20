@@ -21,7 +21,7 @@ foreach ([
 ?>
 
   <div class="form-group">
-    <label class="control-label col-sm-2"><?php echo htmlspecialchars($desc); ?></label>
+    <label for="<?php echo htmlspecialchars($key); ?>" class="control-label col-sm-2"><?php echo htmlspecialchars($desc); ?></label>
     <div class="col-sm-10">
       <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="">
     </div>

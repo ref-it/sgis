@@ -79,6 +79,7 @@ endforeach;
 </form> <!-- form -->
 
 <?php
+$gremienrollen_edit = false;
 require "../template/gremienrollenliste.tpl";
 
 // vim:set filetype=php:
