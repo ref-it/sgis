@@ -26,8 +26,11 @@ foreach($mailinglisten as $mailingliste):
  </td>
 <?php endif; ?>
  <td>
-  <a target="_blank" href="?tab=mailingliste.edit&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank"><i class="fa fa-pencil"></i></a>
-  <a href="mailto:<?php echo $mailingliste["address"]; ?>">
+<!--  <a target="_blank" href="?tab=mailingliste.edit&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank"><i class="fa fa-pencil"></i></a> -->
+<!--  <a href="mailto:<?php echo $mailingliste["address"]; ?>">
+  <?php echo htmlspecialchars($mailingliste["address"]);?>
+ </a> -->
+ <a target="_blank" href="?tab=mailingliste.edit&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank">
   <?php echo htmlspecialchars($mailingliste["address"]);?>
  </a>
 </td>

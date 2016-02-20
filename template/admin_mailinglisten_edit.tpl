@@ -72,7 +72,10 @@ endforeach;
  <div class="panel-body">
   <table class="table table-striped">
     <tr>
-      <th></th><th>Rolle</th><th>Gremium</th>
+      <th>
+        <a target="_blank" href="?tab=rel_rolle_mailingliste.new&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a>
+      </th>
+      <th>Rolle</th><th>Gremium</th>
     </tr>
 <?php
     if (count($gremien) == 0):

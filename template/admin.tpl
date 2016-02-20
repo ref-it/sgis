@@ -93,7 +93,7 @@ $(function () {
        }
        if (values.ret && values.target) {
         self.location.href = values.target;
-        self.opener.focus();
+        self.opener.location.reload();
        }
      })
     .error(xpAjaxErrorHandler);

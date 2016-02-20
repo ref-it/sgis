@@ -5,32 +5,124 @@ ob_start('ob_gzhandler');
 
 require_once "../lib/inc.all.php";
 requireGroup($ADMINGROUP);
-if (!isset($_REQUEST["tab"]) && !isset($_REQUEST["ajax"])) {
-  require "../template/header.tpl";
-}
-
-$alle_mailinglisten = getMailinglisten();
-$alle_gremien = getAlleRolle();
-$alle_personen = getAllePerson();
-$alle_gruppen = getAlleGruppe();
-$script = Array();
-
-if (isset($_GET["msgs"])) {
- $msgs = $_GET["msgs"];
-} else {
- $msgs = Array();
-}
 
 if (isset($_POST["action"])) {
+ $msgs = Array();
  $ret = false;
+ $target = false;
  if (!isset($_REQUEST["nonce"]) || $_REQUEST["nonce"] !== $nonce) {
-  $msgs[] = "Formular veraltet - CRSP Schutz aktiviert.";
+  $msgs[] = "Formular veraltet - CSRF Schutz aktiviert.";
  } else {
   $logId = logThisAction();
   switch ($_POST["action"]):
+  case "person.table":
+   header("Content-Type: text/json; charset=UTF-8");
+   $columns = array(
+     array( 'db' => 'id',                 'dt' => 'id' ),
+     array( 'db' => 'email',              'dt' => 'email' ),
+     array( 'db' => 'name',               'dt' => 'name' ),
+     array( 'db' => 'username',           'dt' => 'username' ),
+//     array( 'db' => 'password', 'dt' => 3 ),
+     array( 'db' => 'unirzlogin',         'dt' => 'unirzlogin',
+       'formatter' => function( $d, $row ) {
+         return str_replace("@tu-ilmenau.de","",$d);
+       }
+     ),
+     array( 'db' => 'lastLogin',          'dt' => 'lastLogin',
+       'formatter' => function( $d, $row ) {
+         return $d ? date( 'Y-m-d', strtotime($d)) : "";
+       }
+     ),
+     array( 'db'    => 'canLoginCurrent', 'dt'    => 'canLogin',
+       'formatter' => function( $d, $row ) {
+         return (!$d) ? "ja" : "nein";
+       }
+     ),
+     array( 'db'    => 'active',          'dt'    => 'active',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}person_current", /* primary key */ "id", $columns )
+   );
+  exit;
+  case "mailingliste.table":
+   header("Content-Type: text/json; charset=UTF-8");
+   $columns = array(
+     array( 'db' => 'id',                    'dt' => 'id' ),
+     array( 'db' => 'address',               'dt' => 'address' ),
+     array( 'db' => 'url',                   'dt' => 'url' ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}mailingliste", /* primary key */ "id", $columns )
+   );
+  exit;
+  case "gruppe.table":
+   header("Content-Type: text/json; charset=UTF-8");
+   $columns = array(
+     array( 'db' => 'id',                    'dt' => 'id' ),
+     array( 'db' => 'name',                  'dt' => 'name' ),
+     array( 'db' => 'beschreibung',          'dt' => 'beschreibung' ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}gruppe", /* primary key */ "id", $columns )
+   );
+  exit;
+  case "gremium.table":
+   header("Content-Type: text/json; charset=UTF-8");
+   $columns = array(
+     array( 'db' => 'id',                    'dt' => 'id' ),
+     array( 'db' => 'name',                  'dt' => 'name' ),
+     array( 'db' => 'fakultaet',             'dt' => 'fakultaet' ),
+     array( 'db' => 'studiengang',           'dt' => 'studiengang' ),
+     array( 'db' => 'studiengangabschluss',  'dt' => 'studiengangabschluss' ),
+     array( 'db' => 'has_members',           'dt' => 'has_members',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+     array( 'db' => 'has_members_in_inactive_roles', 'dt' => 'has_members_in_inactive_roles',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+     array( 'db'    => 'active',          'dt'    => 'active',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}gremium_current", /* primary key */ "id", $columns )
+   );
+  exit;
+  case "rolle.table":
+   header("Content-Type: text/json; charset=UTF-8");
+
+   $columns = array(
+     array( 'db' => 'id',                            'dt' => 'id' ),
+     array( 'db' => 'rolle_name',                    'dt' => 'rolle_name' ),
+     array( 'db' => 'gremium_name',                  'dt' => 'gremium_name' ),
+     array( 'db' => 'gremium_fakultaet',             'dt' => 'gremium_fakultaet' ),
+     array( 'db' => 'gremium_studiengang',           'dt' => 'gremium_studiengang' ),
+     array( 'db' => 'gremium_studiengangabschluss',  'dt' => 'gremium_studiengangabschluss' ),
+     array( 'db'    => 'active',                     'dt'    => 'active',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ),
+   );
+   echo json_encode(
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}rolle_searchable", /* primary key */ "id", $columns )
+   );
+  exit;
   case "mailingliste.insert":
    $ret = dbMailinglisteInsert($_POST["address"], $_POST["url"], $_POST["password"]);
    $msgs[] = "Mailingliste wurde erstellt.";
+   if ($ret !== false)
+     $target = $_SERVER["PHP_SELF"]."?tab=mailingliste.edit&mailingliste_id=".$ret;
   break;
   case "mailingliste.update":
    $ret = dbMailinglisteUpdate($_POST["id"], $_POST["address"], $_POST["url"], $_POST["password"]);
@@ -63,16 +155,18 @@ if (isset($_POST["action"])) {
   case "person.insert":
    $quiet = isset($_FILES["csv"]) && !empty($_FILES["csv"]["tmp_name"]);
    $ret = true;
-   if (!empty($_POST["email"])) {
+   if (!empty($_POST["email"]) || !$quiet) {
      $ret = dbPersonInsert(trim($_POST["name"]),trim($_POST["email"]),trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"], $quiet);
-     $msgs[] = "Person {$_POST["name"]} wurde ".($ret ? "": "nicht ")."angelegt.";
+     if ($ret !== false)
+       $target = $_SERVER["PHP_SELF"]."?tab=person.edit&person_id=".$ret;
+     $msgs[] = "Person {$_POST["name"]} wurde ".(($ret !== false) ? "": "nicht ")."angelegt.";
    }
    if ($quiet) {
      if (($handle = fopen($_FILES["csv"]["tmp_name"], "r")) !== FALSE) {
        fgetcsv($handle, 1000, ",");
        while (($data = fgetcsv($handle, 0, ",", '"')) !== FALSE) {
          $ret2 = dbPersonInsert(trim($data[0]),trim($data[1]),trim((string)$data[2]),"","",$_POST["canlogin"], $quiet);
-         $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".($ret2 ? "": "nicht ")."angelegt.";
+         $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".(($ret2 !== false) ? "": "nicht ")."angelegt.";
          $ret = $ret && $ret2;
        }
        fclose($handle);
@@ -80,8 +174,16 @@ if (isset($_POST["action"])) {
    }
   break;
   case "rolle_person.insert":
-   $ret = dbPersonInsertRolle($_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
-   $msgs[] = "Person-Rollen-Zuordnung wurde angelegt.";
+   if ($_POST["person_id"] < 0) {
+     $ret = false;
+     $msgs[] = "Keine Person ausgewählt.";
+   } else if ($_POST["rolle_id"] < 0) {
+     $ret = false;
+     $msgs[] = "Keine Rolle ausgewählt.";
+   } else {
+     $ret = dbPersonInsertRolle($_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
+     $msgs[] = "Person-Rollen-Zuordnung wurde angelegt.";
+   }
   break;
   case "rolle_person.update":
    $ret = dbPersonUpdateRolle($_POST["id"], $_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
@@ -98,6 +200,8 @@ if (isset($_POST["action"])) {
   case "gruppe.insert":
    $ret = dbGruppeInsert($_POST["name"], $_POST["beschreibung"]);
    $msgs[] = "Gruppe wurde erstellt.";
+   if ($ret !== false)
+     $target = $_SERVER["PHP_SELF"]."?tab=gruppe.edit&gruppe_id=".$ret;
   break;
   case "gruppe.update":
    $ret = dbGruppeUpdate($_POST["id"], $_POST["name"], $_POST["beschreibung"]);
@@ -118,6 +222,8 @@ if (isset($_POST["action"])) {
   case "gremium.insert":
    $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["active"]);
    $msgs[] = "Gremium wurde angelegt.";
+   if ($ret !== false)
+     $target = $_SERVER["PHP_SELF"]."?tab=gremium.edit&gremium_id=".$ret;
   break;
   case "gremium.update":
    $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["active"]);
@@ -136,6 +242,8 @@ if (isset($_POST["action"])) {
    if ($spiGroupId === "") $spiGroupId = NULL;
    $ret = dbGremiumInsertRolle($_POST["gremium_id"],$_POST["name"],$_POST["active"],$spiGroupId);
    $msgs[] = "Rolle wurde angelegt.";
+   if ($ret !== false)
+     $target = $_SERVER["PHP_SELF"]."?tab=rolle.edit&rolle_id=".$ret;
   break;
   case "rolle_gremium.update":
    $spiGroupId = $_POST["spiGroupId"];
@@ -194,164 +302,107 @@ if (isset($_POST["action"])) {
    logAppend($logId, "__result", "invalid action");
    die("Aktion nicht bekannt.");
   endswitch;
- }
- logAppend($logId, "__result", $ret ? "ok" : "failed");
+ } /* switch */
+
+ logAppend($logId, "__result", ($ret !== false) ? "ok" : "failed");
  logAppend($logId, "__result_msg", $msgs);
- if ($ret && !isset($_REQUEST["ajax"])) {
-  $query = "";
-  foreach ($msgs as $msg) {
-   $query .= "&msgs[]=".urlencode($msg);
-  }
-  header("Location: ".$_SERVER["PHP_SELF"]."?".$query);
-  exit;
- }
+
+ $result = Array();
+ $result["msgs"] = $msgs;
+ $result["ret"] = ($ret !== false);
+ if ($target !== false)
+   $result["target"] = $target;
+
+ header("Content-Type: text/json; charset=UTF-8");
+ echo json_encode($result);
+ exit;
 }
 
-if (isset($_REQUEST["ajax"])) {
-  $result = Array();
-  $result["msgs"] = $msgs;
-  $result["ret"] = $ret;
+require "../template/header.tpl";
+require "../template/admin.tpl";
 
-  header("Content-Type: text/json; charset=UTF-8");
-  echo json_encode($result);
-  exit;
+if (!isset($_REQUEST["tab"])) {
+  $_REQUEST["tab"] = "person";
 }
 
-// Person filter
-$activefilter = Array();
-$activefilter["name"] = Array();
-$activefilter["email"] = Array();
-$activefilter["unirzlogin"] = Array();
-$activefilter["username"] = Array();
-$activefilter["lastLogin"] = Array();
-$activefilter["canLogin"] = Array(1);
-$activefilter["active"] = Array();
-
-if (isset($_COOKIE["filter_personen"]) && !isset($_REQUEST["filter_personen_set"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_personen"]), true);
-if (isset($_REQUEST["filter_personen"])) { if (is_array($_REQUEST["filter_personen_name"])) { $activefilter["name"] = $_REQUEST["filter_personen_name"]; } else {   $activefilter["name"] = Array(); } }
-if (isset($_REQUEST["filter_personen_name"])) { if (is_array($_REQUEST["filter_personen_name"])) { $activefilter["name"] = $_REQUEST["filter_personen_name"]; } else {   $activefilter["name"] = Array(); } }
-if (isset($_REQUEST["filter_personen_email"])) { if (is_array($_REQUEST["filter_personen_email"])) { $activefilter["email"] = $_REQUEST["filter_personen_email"]; } else { $activefilter["email"] = Array(); } }
-if (isset($_REQUEST["filter_personen_unirzlogin"])) { if (is_array($_REQUEST["filter_personen_unirzlogin"])) { $activefilter["unirzlogin"] = $_REQUEST["filter_personen_unirzlogin"]; } else { $activefilter["unirzlogin"] = Array(); } }
-if (isset($_REQUEST["filter_personen_username"])) { if (is_array($_REQUEST["filter_personen_username"])) { $activefilter["username"] = $_REQUEST["filter_personen_username"]; } else { $activefilter["username"] = Array(); } }
-if (isset($_REQUEST["filter_personen_lastLogin"])) { if (is_array($_REQUEST["filter_personen_lastLogin"])) { $activefilter["lastLogin"] = $_REQUEST["filter_personen_lastLogin"]; } else { $activefilter["lastLogin"] = Array(); } }
-if (isset($_REQUEST["filter_personen_canLogin"])) { if (is_array($_REQUEST["filter_personen_canLogin"])) { $activefilter["canLogin"] = $_REQUEST["filter_personen_canLogin"]; } else { $activefilter["canLogin"] = Array(1); } }
-if (isset($_REQUEST["filter_personen_active"])) { if (is_array($_REQUEST["filter_personen_active"])) { $activefilter["active"] = $_REQUEST["filter_personen_active"]; } else { $activefilter["active"] = Array(); } }
-setcookie("filter_personen", base64_encode(json_encode($activefilter)), 0);
-$_COOKIE["filter_personen"] = base64_encode(json_encode($activefilter));
-
-// Gremium filter
-$activefilter = Array();
-$activefilter["name"] = Array();
-$activefilter["fakultaet"] = Array();
-$activefilter["studiengang"] = Array();
-$activefilter["studiengangabschluss"] = Array();
-$activefilter["active"] = Array(1);
-$activefilter["mitglieder"] = Array();
-$activefilter["problem"] = Array();
-
-if (isset($_COOKIE["filter_gremien"]) && !isset($_REQUEST["filter_gremien_set"])) $activefilter = json_decode(base64_decode($_COOKIE["filter_gremien"]), true);
-if (isset($_REQUEST["filter_gremien_name"])) { if (is_array($_REQUEST["filter_gremien_name"])) { $activefilter["name"] = $_REQUEST["filter_gremien_name"]; } else {   $activefilter["name"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_fakultaet"])) { if (is_array($_REQUEST["filter_gremien_fakultaet"])) { $activefilter["fakultaet"] = $_REQUEST["filter_gremien_fakultaet"]; } else { $activefilter["fakultaet"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_studiengang"])) { if (is_array($_REQUEST["filter_gremien_studiengang"])) { $activefilter["studiengang"] = $_REQUEST["filter_gremien_studiengang"]; } else { $activefilter["studiengang"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_studiengangabschluss"])) { if (is_array($_REQUEST["filter_gremien_studiengangabschluss"])) { $activefilter["studiengangabschluss"] = $_REQUEST["filter_gremien_studiengangabschluss"]; } else { $activefilter["studiengangabschluss"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_active"])) { if (is_array($_REQUEST["filter_gremien_active"])) { $activefilter["active"] = $_REQUEST["filter_gremien_active"]; } else { $activefilter["active"] = Array(1); } }
-if (isset($_REQUEST["filter_gremien_mitglieder"])) { if (is_array($_REQUEST["filter_gremien_mitglieder"])) { $activefilter["mitglieder"] = $_REQUEST["filter_gremien_mitglieder"]; } else {   $activefilter["mitglieder"] = Array(); } }
-if (isset($_REQUEST["filter_gremien_problem"])) { if (is_array($_REQUEST["filter_gremien_problem"])) { $activefilter["problem"] = $_REQUEST["filter_gremien_problem"]; } else {   $activefilter["problem"] = Array(); } }
-setcookie("filter_gremien", base64_encode(json_encode($activefilter)), 0);
-$_COOKIE["filter_gremien"] = base64_encode(json_encode($activefilter));
-
-foreach ($msgs as $msg):
-  echo "<b class=\"msg\">".htmlspecialchars($msg)."</b>\n";
-endforeach;
-
-$script[] = '$( "#tabs" ).tabs();';
-$script[] = 'function xpAjaxErrorHandler (jqXHR, textStatus, errorThrown) {
-      $("#waitDialog").dialog("close");
-      alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText);
-};';
-$script[] = '
-$(function() {
-  dlg = $("<div id=\"waitDialog\" title=\"Bitte warten\">Bitte warten, die Daten werden verarbeitet. Dies kann einen Moment dauern.</div>");
-  dlg.appendTo("body");
-  dlg.dialog({ autoOpen: false, height: "auto", modal: true, width: "auto", closeOnEscape: false });
-});';
-$script[] = '
-$( "form" ).submit(function (ev) {
-    var action = $(this).attr("action");
-    if ($(this).find("input[name=action]").length + $(this).find("select[name=action]").length == 0) { return true; }
-    var close = $(this).find("input[type=reset]");
-    var data = new FormData(this);
-    data.append("ajax", 1);
-    $("#waitDialog").dialog("open");
-    $.ajax({
-      url: action,
-      data: data,
-      cache: false,
-      contentType: false,
-      processData: false,
-      type: "POST"
-    })
-    .success(function (values, status, req) {
-       $("#waitDialog").dialog("close");
-       if (typeof(values) == "string") {
-         alert(values);
-         return;
-       }
-       var txt = "Die Daten wurden erfolgreich gespeichert.\nSoll die Seite mit den geänderten Daten neu geladen werden?";
-       if (values.msgs && values.msgs.length > 0) {
-         if (values.ret) {
-           txt = values.msgs.join("\n")+"\n"+txt;
-         } else {
-           alert(values.msgs.join("\n"));
-         }
-       }
-       if (values.ret && confirm(txt)) {
-         var q = "&x=" + Math.random();
-         if (action.indexOf("?") != -1) {
-           var actions = action.split("?", 2);
-           action = actions[0] + "?" + q + "&" + actions[1];
-         } else if (action.indexOf("#") != -1) {
-           var actions = action.split("#", 2);
-           action = actions[0] + "?" + q + "#" + actions[1];
-         } else {
-           action = action + "?" + q;
-         }
-         self.location.replace(action);
-       } else {
-         if (values.ret && close.length == 1) {
-           close.click();
-         }
-       }
-     })
-    .error(xpAjaxErrorHandler);
-    return false;
-   });';
-
-global $scripting;
-if (isset($_REQUEST["javascript"])) {
-  setcookie("javascript",$_REQUEST["javascript"]);
-  $_COOKIE["javascript"] = $_REQUEST["javascript"];
-}
-$scripting = (isset($_COOKIE["javascript"]) && ($_COOKIE["javascript"] == 1));
-
-function addTabHead($name, $titel) {
- global $scripting;
- ?> <li aria-controls="<?php echo htmlspecialchars($name);?>"><a href="<?php echo htmlspecialchars($scripting ? $_SERVER["PHP_SELF"]."?tab=".urlencode($name) : "#$name"); ?>"><?php echo htmlspecialchars($titel);?></a></li> <?php
-}
-
-if (isset($_REQUEST["tab"])) {
-  switch($_REQUEST["tab"]) {
+switch($_REQUEST["tab"]) {
   case "person":
-  require "../template/admin_personen.php";
+  require "../template/admin_personen.tpl";
+  break;
+  case "person.new":
+  require "../template/admin_personen_new.tpl";
+  break;
+  case "person.edit":
+  require "../template/admin_personen_edit.tpl";
+  break;
+  case "person.delete":
+  require "../template/admin_personen_delete.tpl";
   break;
   case "gremium":
-  require "../template/admin_gremien.php";
+  require "../template/admin_gremien.tpl";
+  break;
+  case "gremium.new":
+  require "../template/admin_gremium_new.tpl";
+  break;
+  case "gremium.edit":
+  require "../template/admin_gremium_edit.tpl";
+  break;
+  case "gremium.delete":
+  require "../template/admin_gremium_delete.tpl";
+  break;
+  case "rolle.new":
+  require "../template/admin_rolle_new.tpl";
+  break;
+  case "rolle.edit":
+  require "../template/admin_rolle_edit.tpl";
+  break;
+  case "rolle.delete":
+  require "../template/admin_rolle_delete.tpl";
+  break;
+  case "rel_mitgliedschaft.new":
+  require "../template/admin_rel_mitgliedschaft_new.tpl";
+  break;
+  case "rel_mitgliedschaft.edit":
+  require "../template/admin_rel_mitgliedschaft_edit.tpl";
+  break;
+  case "rel_mitgliedschaft.delete":
+  require "../template/admin_rel_mitgliedschaft_delete.tpl";
+  break;
+  case "rel_rolle_gruppe.new":
+  require "../template/admin_rel_rolle_gruppe_new.tpl";
+  break;
+  case "rel_rolle_gruppe.delete":
+  require "../template/admin_rel_rolle_gruppe_delete.tpl";
+  break;
+  case "rel_rolle_mailingliste.new":
+  require "../template/admin_rel_rolle_mailingliste_new.tpl";
+  break;
+  case "rel_rolle_mailingliste.delete":
+  require "../template/admin_rel_rolle_mailingliste_delete.tpl";
   break;
   case "gruppe":
-  require "../template/admin_gruppen.php";
+  require "../template/admin_gruppen.tpl";
+  break;
+  case "gruppe.new":
+  require "../template/admin_gruppen_new.tpl";
+  break;
+  case "gruppe.edit":
+  require "../template/admin_gruppen_edit.tpl";
+  break;
+  case "gruppe.delete":
+  require "../template/admin_gruppen_delete.tpl";
   break;
   case "mailingliste":
-  require "../template/admin_mailinglisten.php";
+  require "../template/admin_mailinglisten.tpl";
+  break;
+  case "mailingliste.new":
+  require "../template/admin_mailinglisten_new.tpl";
+  break;
+  case "mailingliste.edit":
+  require "../template/admin_mailinglisten_edit.tpl";
+  break;
+  case "mailingliste.delete":
+  require "../template/admin_mailinglisten_delete.tpl";
   break;
   case "export":
   require "../template/admin_export.php";
@@ -361,83 +412,10 @@ if (isset($_REQUEST["tab"])) {
   break;
   default:
   die("invalid tab name");
-  }
-?>
-  <script type="text/javascript">
-    <?php  echo implode("\n", array_unique($script)); ?>
-  </script>
-<?php
-  exit;
 }
 
-if (!$scripting) {
-?><script type="text/javascript">
-   self.location.replace("<?php echo $_SERVER["PHP_SELF"];?>?javascript=1");
-  </script>
-<?php
-}
-
-
-?>
-
-<h2>Verwaltung studentisches Gremieninformationssystem (sGIS)</h2>
-
-<div id="tabs">
- <ul>
-  <?php  addTabHead("person", "Personen"); ?>
-  <?php  addTabHead("gremium", "Gremien und Rollen"); ?>
-  <?php  addTabHead("gruppe", "Gruppen"); ?>
-  <?php  addTabHead("mailingliste", "Mailinglisten"); ?>
-  <li><a href="#export">Export</a></li>
-  <li><a href="#hilfe">Hilfe</a></li>
- </ul>
-
-<?php
-if (!$scripting) {
-  require "../template/admin_personen.php";
-  require "../template/admin_gremien.php";
-  require "../template/admin_gruppen.php";
-  require "../template/admin_mailinglisten.php";
-}
-?>
-
-<div id="export">
-<a name="export"></a>
-
-<?php
-require "../template/admin_export.php";
-
-?>
-</div>
-
-<div id="hilfe">
-<a name="hilfe"></a>
-
-<?php
-  require "../template/admin_help.php";
-
-?>
-
-</div>
-</div>
-
-<script type="text/javascript">
-<?php echo implode("\n", array_unique($script)); ?>
-</script>
-
-<hr/>
-<a href="<?php echo $logoutUrl; ?>">Logout</a> &bull;
-<a href="index.php">Selbstauskunft</a>
-
-<?php
-if ($scripting):
-?>
-<noscript>
-  &bull; <a href="<?php echo $_SERVER["PHP_SELF"];?>?javascript=0">JavaScript deaktivieren.</a>
-</noscript>
-<?php
-endif;
-?>
-
-<?php
+require "../template/admin_footer.tpl";
 require "../template/footer.tpl";
+
+exit;
+

@@ -71,7 +71,9 @@ endforeach;
  <div class="panel-body">
   <table class="table table-striped">
     <tr>
-      <th></th><th>Rolle</th><th>Gremium</th>
+      <th>
+        <a href="?tab=rel_rolle_gruppe.new&amp;gruppe_id=<?php echo $gruppe["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a>
+      </th><th>Rolle</th><th>Gremium</th>
     </tr>
 <?php
     if (count($gremien) == 0):
