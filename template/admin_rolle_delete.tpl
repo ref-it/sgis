@@ -128,6 +128,7 @@ require ("../template/gremiengruppenliste.tpl");
 
 <!-- Mailinglisten -->
 <?php
+$gremienmailinglisten_edit = false;
 require ("../template/gremienmailinglistenliste.tpl");
 ?>
 

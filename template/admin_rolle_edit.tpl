@@ -133,6 +133,7 @@ require ("../template/gremiengruppenliste.tpl");
 
 <!-- Mailinglisten -->
 <?php
+$gremienmailinglisten_edit = true;
 require ("../template/gremienmailinglistenliste.tpl");
 ?>
 

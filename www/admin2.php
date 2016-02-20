@@ -374,6 +374,12 @@ switch($_REQUEST["tab"]) {
   case "rel_rolle_gruppe.delete":
   require "../template/admin_rel_rolle_gruppe_delete.tpl";
   break;
+  case "rel_rolle_mailingliste.new":
+  require "../template/admin_rel_rolle_mailingliste_new.tpl";
+  break;
+  case "rel_rolle_mailingliste.delete":
+  require "../template/admin_rel_rolle_mailingliste_delete.tpl";
+  break;
   case "gruppe":
   require "../template/admin_gruppen.tpl";
   break;
