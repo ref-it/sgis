@@ -30,8 +30,8 @@ endif;
 >
 <?php if ($gremienrollen_edit): ?>
   <td>
-    <a href="?tab=rolle.edit&amp;rolle_id=<?php echo $rolle["id"]; ?>"><i class="fa fa-fw fa-pencil"></i></a>
-    <a href="?tab=rolle.delete&amp;rolle_id=<?php echo $rolle["id"]; ?>"><i class="fa fa-fw fa-trash"></i></a>
+    <a href="?tab=rolle.edit&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-pencil"></i></a>
+    <a href="?tab=rolle.delete&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-trash"></i></a>
   </td>
 <?php endif; ?>
  <td>

@@ -122,6 +122,7 @@ require ("../template/gremienpersonenliste.tpl");
 
 <!-- Gruppen -->
 <?php
+$gremiengruppen_edit = false;
 require ("../template/gremiengruppenliste.tpl");
 ?>
 
