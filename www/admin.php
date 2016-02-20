@@ -405,10 +405,10 @@ switch($_REQUEST["tab"]) {
   require "../template/admin_mailinglisten_delete.tpl";
   break;
   case "export":
-  require "../template/admin_export.php";
+  require "../template/admin_export.tpl";
   break;
   case "help":
-  require "../template/admin_help.php";
+  require "../template/admin_help.tpl";
   break;
   default:
   die("invalid tab name");

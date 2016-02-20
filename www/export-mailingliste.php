@@ -91,7 +91,7 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
   die();
 }
 
-require_once "../template/header.tpl";
+require_once "../template/header-old.tpl";
 
 if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0 && !$validnonce) {
   echo "<b class=\"msg\">CSRF Schutz fehlgeschlagen</b>";

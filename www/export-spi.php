@@ -149,7 +149,7 @@ if (isset($_POST["commit"])) {
   die();
 }
 
-require_once "../template/header.tpl";
+require_once "../template/header-old.tpl";
 
 
 ?>
