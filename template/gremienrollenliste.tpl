@@ -29,10 +29,10 @@ endif;
 ?>
 >
 <?php if ($gremienrollen_edit): ?>
-  <td>
+  <td><nobr>
     <a href="?tab=rolle.edit&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-pencil"></i></a>
     <a href="?tab=rolle.delete&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-trash"></i></a>
-  </td>
+  </nobr></td>
 <?php endif; ?>
  <td>
   <a target="_blank" href="?tab=rolle.edit&amp;rolle_id=<?php echo $rolle["id"]; ?>">
