@@ -181,12 +181,12 @@ if (isset($_POST["action"])) {
      $ret = false;
      $msgs[] = "Keine Rolle ausgewählt.";
    } else {
-     $ret = dbPersonInsertRolle($_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
+     $ret = dbPersonInsertRolle($_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["lastCheck"], $_POST["kommentar"]);
      $msgs[] = "Person-Rollen-Zuordnung wurde angelegt.";
    }
   break;
   case "rolle_person.update":
-   $ret = dbPersonUpdateRolle($_POST["id"], $_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
+   $ret = dbPersonUpdateRolle($_POST["id"], $_POST["person_id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["lastCheck"],$_POST["kommentar"]);
    $msgs[] = "Person-Rollen-Zuordnung wurde aktualisiert.";
   break;
   case "rolle_person.delete":
@@ -275,7 +275,7 @@ if (isset($_POST["action"])) {
        }
        $rel_mems = getActiveMitgliedschaftByMail(trim($email), $_POST["rolle_id"]);
        if ($rel_mems === false || count($rel_mems) == 0 || $_POST["duplicate"] == "ignore") {
-         $ret2 = dbPersonInsertRolle($person["id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["kommentar"]);
+         $ret2 = dbPersonInsertRolle($person["id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["lastCheck"],$_POST["kommentar"]);
          $ret = $ret && $ret2;
          $msgs[] = "Person-Rollen-Zuordnung für $email wurde erstellt.";
        } else {

@@ -77,6 +77,7 @@ foreach ([
   "bis" => "bis",
   "beschlussAm" => "beschlossen am",
   "beschlussDurch" => "beschlossen durch",
+  "lastCheck" => "zuletzt überprüft am",
   "kommentar" => "Kommentar",
  ] as $key => $desc):
 

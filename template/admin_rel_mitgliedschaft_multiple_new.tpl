@@ -116,6 +116,7 @@ foreach ([
   "bis" => "bis",
   "beschlussAm" => "beschlossen am",
   "beschlussDurch" => "beschlossen durch",
+  "lastCheck" => "zuletzt überprüft am",
   "kommentar" => "Kommentar",
   "duplicate" => "Bei bestehender aktiver Zuordnung",
  ] as $key => $desc):
@@ -136,6 +137,7 @@ foreach ([
             break;
           case"von":
           case"bis":
+          case"lastCheck":
 ?>         <input class="form-control datepicker" type="text" name="<?php echo htmlspecialchars($key); ?>" value=""><?php
             break;
           case"kommentar":

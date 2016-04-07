@@ -224,6 +224,7 @@ endif;
 <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
      <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
      <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
+     <li><label for="lastCheck">zuletzt überprüft am:</label> <input type="text" name="lastCheck" value="" class="datepicker"/></li>
      <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
      </ul>
      <input type="hidden" name="person_id" value="<?php echo $person["id"];?>"/>
@@ -289,6 +290,7 @@ if (empty($gremium["von"]) && empty($gremium["bis"])) {
 <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
      <li><label for="beschlussAm"   >beschlossen am:</label> <input type="text" name="beschlussAm" value="<?php echo htmlspecialchars($gremium["beschlussAm"]);?>"/></li>
      <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value="<?php echo htmlspecialchars($gremium["beschlussDurch"]);?>"/></li>
+     <li><label for="lastCheck">zuletzt überprüft am:</label> <input type="text" name="lastCheck" value="<?php echo htmlspecialchars($gremium["lastCheck"]);?>" class="datepicker"/></li>
      <li><label for="kommentar"     >Kommentar:</label> <textarea name="kommentar"><?php echo htmlspecialchars($gremium["kommentar"]);?></textarea></li>
      </ul>
      <input type="hidden" name="person_id" value="<?php echo $person["id"];?>"/>

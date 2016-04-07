@@ -279,6 +279,7 @@ $current_personen = getRollePersonen($rolle["rolle_id"]);
 <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
            <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
            <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
+           <li><label for="lastCheck">zuletzt überprüft am:</label> <input type="text" name="lastCheck" value="" class="datepicker"/></li>
            <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
           </ul>
           <input type="hidden" name="rolle_id" value="<?php echo $rolle["rolle_id"];?>"/>
@@ -346,6 +347,7 @@ foreach ($current_personen as $person):
            <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
            <li><label for="beschlussAm"   >beschlossen am:</label> <input type="text" name="beschlussAm" value="<?php echo htmlspecialchars($person["beschlussAm"]);?>"/></li>
            <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value="<?php echo htmlspecialchars($person["beschlussDurch"]);?>"/></li>
+           <li><label for="lastCheck">zuletzt überprüft am:</label> <input type="text" name="lastCheck" value="<?php echo htmlspecialchars($person["lastCheck"]);?>"/></li>
            <li><label for="kommentar"     >Kommentar:</label> <textarea name="kommentar"><?php echo htmlspecialchars($person["kommentar"]);?></textarea></li>
           </ul>
           <input type="hidden" name="id" value="<?php echo $person["rel_id"];?>"/>
@@ -395,6 +397,7 @@ endif;
          <?php $script[] = "\$( '.datepicker' ).datepicker({ dateFormat: 'yy-mm-dd' });"; ?>
          <li><label for="beschlussAm">beschlussen am:</label> <input type="text" name="beschlussAm" value=""/></li>
          <li><label for="beschlussDurch">beschlossen durch:</label> <input type="text" name="beschlussDurch" value=""/></li>
+         <li><label for="lastCheck">zuletzt überprüft am:</label> <input type="text" name="lastCheck" value="" class="datepicker"/></li>
          <li><label for="kommentar">Kommentar:</label> <textarea name="kommentar"></textarea></li>
          <li><label for="duplicate">Bei bestehender aktiver Zuordnung:</label> <select name="duplicate" size="1"><option selected="selected" value="skip">Person nicht hinzufügen</option><option value="ignore">Person dennoch hinzufügen</option></select></li>
         </ul>

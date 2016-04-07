@@ -157,12 +157,18 @@ if ($r === false) {
                 bis DATE NULL,
                 beschlussAm VARCHAR(256),
                 beschlussDurch VARCHAR(256),
+                lastCheck DATE NULL,
                 kommentar VARCHAR(256),
                 FOREIGN KEY (gremium_id) REFERENCES {$DB_PREFIX}gremium(id) ON DELETE CASCADE,
                 FOREIGN KEY (gremium_id, rolle_id) REFERENCES {$DB_PREFIX}rolle(gremium_id, id) ON DELETE CASCADE,
                 FOREIGN KEY (person_id) REFERENCES {$DB_PREFIX}person(id) ON DELETE CASCADE,
                 PRIMARY KEY (id) ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.mitgliedschaft.php';
+}
+
+$r = $pdo->query("SELECT lastCheck FROM {$DB_PREFIX}rel_mitgliedschaft");
+if ($r === false) {
+  $pdo->query("ALTER TABLE {$DB_PREFIX}rel_mitgliedschaft ADD COLUMN lastCheck DATE NULL;") or httperror(print_r($pdo->errorInfo(),true));
 }
 
 # dataTables view
@@ -279,7 +285,7 @@ function getPersonDetailsByUsername($username) {
 
 function getPersonRolle($personId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT rm.id AS id, g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, r.id as rolle_id, r.name as rolle_name, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.kommentar as kommentar, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) as active FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND rm.gremium_id = g.id WHERE rm.person_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
+  $query = $pdo->prepare("SELECT DISTINCT rm.id AS id, g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, r.id as rolle_id, r.name as rolle_name, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.kommentar as kommentar, rm.lastCheck as lastCheck, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) as active FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND rm.gremium_id = g.id WHERE rm.person_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
   $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -471,12 +477,13 @@ function dbPersonInsert($name,$email,$unirzlogin,$username,$password,$canlogin, 
   return $pdo->lastInsertId();
 }
 
-function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$kommentar) {
+function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar) {
   global $pdo, $DB_PREFIX;
   if (empty($von)) $von = NULL;
   if (empty($bis)) $bis = NULL;
   if (empty($beschlussAm)) $beschlussAm = NULL;
   if (empty($beschlussDurch)) $beschlussDurch = NULL;
+  if (empty($lastCheck)) $lastCheck = NULL;
   if (empty($kommentar)) $kommentar = NULL;
   if ($von !== NULL && $bis !== NULL) {
     $query = $pdo->prepare("SELECT cast(? AS DATE) <= cast(? AS DATE) AS valid");
@@ -490,16 +497,17 @@ function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschl
   $query = $pdo->prepare("SELECT gremium_id FROM {$DB_PREFIX}rolle WHERE id = ?");
   $query->execute(Array($rolle_id)) or httperror (print_r($query->errorInfo(),true));
   $gremium_id = $query->fetchColumn();
-  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rel_mitgliedschaft (person_id, rolle_id, gremium_id, von, bis, beschlussAm, beschlussDurch, kommentar) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-  return $query->execute(Array($person_id,$rolle_id,$gremium_id,$von,$bis,$beschlussAm,$beschlussDurch,$kommentar)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rel_mitgliedschaft (person_id, rolle_id, gremium_id, von, bis, beschlussAm, beschlussDurch, lastCheck, kommentar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  return $query->execute(Array($person_id,$rolle_id,$gremium_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar)) or httperror(print_r($query->errorInfo(),true));
 }
 
-function dbPersonUpdateRolle($id, $person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$kommentar) {
+function dbPersonUpdateRolle($id, $person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar) {
   global $pdo, $DB_PREFIX;
   if (empty($von)) $von = NULL;
   if (empty($bis)) $bis = NULL;
   if (empty($beschlussAm)) $beschlussAm = NULL;
   if (empty($beschlussDurch)) $beschlussDurch = NULL;
+  if (empty($lastCheck)) $lastCheck = NULL;
   if (empty($kommentar)) $kommentar = NULL;
   if ($von !== NULL && $bis !== NULL) {
     $query = $pdo->prepare("SELECT cast(? as DATE) <= cast(? as DATE) AS valid");
@@ -514,8 +522,8 @@ function dbPersonUpdateRolle($id, $person_id,$rolle_id,$von,$bis,$beschlussAm,$b
   $query = $pdo->prepare("SELECT gremium_id FROM {$DB_PREFIX}rolle WHERE id = ?");
   $query->execute(Array($rolle_id)) or httperror (print_r($query->errorInfo(),true));
   $gremium_id = $query->fetchColumn();
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET person_id = ?, rolle_id = ?, gremium_id = ?, von = ?, bis = ?, beschlussAm = ?, beschlussDurch = ?, kommentar = ? WHERE id = ?");
-  return $query->execute(Array($person_id,$rolle_id,$gremium_id,$von,$bis,$beschlussAm,$beschlussDurch,$kommentar,$id)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET person_id = ?, rolle_id = ?, gremium_id = ?, von = ?, bis = ?, beschlussAm = ?, beschlussDurch = ?, lastCheck = ?, kommentar = ? WHERE id = ?");
+  return $query->execute(Array($person_id,$rolle_id,$gremium_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar,$id)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function dbPersonDeleteRolle($id) {
@@ -667,7 +675,7 @@ function getRolleGruppen($rolleId) {
 
 function getRollePersonen($rolleId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT p.*, rp.id AS rel_id, rp.von, rp.bis, rp.beschlussAm, rp.beschlussDurch, rp.kommentar, ((rp.von <= CURRENT_DATE OR rp.von IS NULL) AND (rp.bis >= CURRENT_DATE OR rp.bis IS NULL)) AS active FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rp ON rp.person_id = p.id WHERE rp.rolle_id = ? ORDER BY RIGHT(p.email, LENGTH(p.email) - POSITION( '@' in p.email)), LEFT(p.email, POSITION( '@' in p.email))");
+  $query = $pdo->prepare("SELECT DISTINCT p.*, rp.id AS rel_id, rp.von, rp.bis, rp.beschlussAm, rp.beschlussDurch, rp.lastCheck, rp.kommentar, ((rp.von <= CURRENT_DATE OR rp.von IS NULL) AND (rp.bis >= CURRENT_DATE OR rp.bis IS NULL)) AS active FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rp ON rp.person_id = p.id WHERE rp.rolle_id = ? ORDER BY RIGHT(p.email, LENGTH(p.email) - POSITION( '@' in p.email)), LEFT(p.email, POSITION( '@' in p.email))");
   $query->execute(Array($rolleId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -681,7 +689,7 @@ function getActiveMitgliedschaftByMail($email, $rolleId) {
 
 function getAllMitgliedschaft() {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, r.name as rolle_name, p.email as person_email, p.name as person_name, p.username as person_username, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.kommentar as kommentar, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) AS aktiv FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id INNER JOIN {$DB_PREFIX}gremium g ON g.id = rm.gremium_id INNER JOIN {$DB_PREFIX}rolle r ON r.id = rm.rolle_id ORDER BY g.name, g.id, r.name, r.id, RIGHT(p.email, LENGTH(p.email) - POSITION( '@' in p.email)), LEFT(p.email, POSITION( '@' in p.email))");
+  $query = $pdo->prepare("SELECT g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, r.name as rolle_name, p.email as person_email, p.name as person_name, p.username as person_username, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.lastCheck, rm.kommentar as kommentar, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) AS aktiv FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id INNER JOIN {$DB_PREFIX}gremium g ON g.id = rm.gremium_id INNER JOIN {$DB_PREFIX}rolle r ON r.id = rm.rolle_id ORDER BY g.name, g.id, r.name, r.id, RIGHT(p.email, LENGTH(p.email) - POSITION( '@' in p.email)), LEFT(p.email, POSITION( '@' in p.email))");
   $query->execute() or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
