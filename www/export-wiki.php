@@ -201,7 +201,7 @@ foreach ($mapping_table as $wiki => $data) {
         }
       }
       if ($isempty) {
-        $text[] = "{$prefix} //unbesetzt// | {$r["rolle_name"]} |";
+        $text[] = "{$prefix} //unbesetzt// | |";
       }
     }
 
