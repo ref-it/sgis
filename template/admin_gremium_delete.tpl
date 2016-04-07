@@ -27,6 +27,7 @@ foreach ([
   "studiengang" => "Studiengang",
   "studiengangabschluss" => "Stg.-Abschluss",
   "wiki_members" => "Wiki-Seite für Mitglieder",
+  "wiki_members_table" => "Wiki-Seite für Mitglieder (Tabellenform)",
   "active" => "Gremium existent/aktiv?",
  ] as $key => $desc):
 

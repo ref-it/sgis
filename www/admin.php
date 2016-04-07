@@ -220,13 +220,13 @@ if (isset($_POST["action"])) {
    $msgs[] = "Gruppen-Rollenzuordnung wurde eingetragen.";
   break;
   case "gremium.insert":
-   $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["active"]);
+   $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["active"]);
    $msgs[] = "Gremium wurde angelegt.";
    if ($ret !== false)
      $target = $_SERVER["PHP_SELF"]."?tab=gremium.edit&gremium_id=".$ret;
   break;
   case "gremium.update":
-   $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["active"]);
+   $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["active"]);
    $msgs[] = "Gremium wurde geändert.";
   break;
   case "gremium.delete":

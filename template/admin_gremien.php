@@ -19,6 +19,8 @@
          (Bachelor oder Master, leer lassen falls Gremium alle Abschlüsse abdeckt)</li>
      <li><label for="wiki_members">Wiki-Seite mit Mitgliederliste:</label><input type="text" name="wiki_members" value="" placeholder=":sgis:mitglieder:<name>"/><br/>
          (beginnt immer mit ":sgis:mitglieder:", beispw. :sgis:mitglieder:studierendenrat)</li>
+     <li><label for="wiki_members_table">Wiki-Seite mit Mitgliederliste in Tabellenform:</label><input type="text" name="wiki_members_table" value="" placeholder=":sgis:mitglieder:<name>"/><br/>
+         (beginnt immer mit ":sgis:mitglieder:", beispw. :sgis:mitglieder:studierendenrat)</li>
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
          <select name="active" size="1" selected="selected"><option value="1" >Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
      </li>
@@ -75,6 +77,7 @@ foreach ($alle_gremien as $i => $gremium):
   $struct_gremien[$last_struct_id]["problem"] = ($gremium_problem[$gremium["gremium_id"]] ? 1 : 0);
   $struct_gremien[$last_struct_id]["display_name"] = $gremium["gremium_name"]." ".$gremium["gremium_fakultaet"]." ".$gremium["gremium_studiengang"]." ".$gremium["gremium_studiengangabschluss"];
   $struct_gremien[$last_struct_id]["wiki_members"] = $gremium["gremium_wiki_members"];
+  $struct_gremien[$last_struct_id]["wiki_members_table"] = $gremium["gremium_wiki_members_table"];
   if ($gremium["rolle_id"] !== NULL)
     $struct_gremien[$last_struct_id]["rollen"][] = Array("rolle_name" => $gremium["rolle_name"], "rolle_id" => $gremium["rolle_id"], "rolle_active" => (int) $gremium["rolle_active"], "rolle_spiGroupId" => $gremium["rolle_spiGroupId"]);
   else
@@ -136,6 +139,7 @@ foreach ($struct_gremien as $i => $gremium):
      <li><label for="studiengang"         >Studiengang:               </label><input type="text" name="studiengang" value="<?php echo htmlspecialchars($gremium["studiengang"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="studiengangabschluss">Stg-Abschluss:             </label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="wiki_members"        >Wiki-Seite für Mitglieder: </label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" readonly="readonly"/></li>
+     <li><label for="wiki_members_table"  >Wiki-Seite für Mitglieder (Tabellenform): </label><input type="text" name="wiki_members_table" value="<?php echo htmlspecialchars($gremium["wiki_members_table"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="active"              >Gremium existent/aktiv?:   </label><?php  if ($gremium["active"]): ?>Ja<?php  else: ?>Nein<?php  endif; ?></li>
      <li><label for="action"              >Aktion:                    </label><select name="action" size="1"><option value="gremium.disable" selected="selected">Gremium deaktivieren</option><option value="gremium.delete">Gremium löschen</option></select></li>
     </ul>
@@ -177,6 +181,7 @@ endif;
      <li><label for="studiengang">Studiengang:</label><input type="text" name="studiengang" value="<?php echo htmlspecialchars($gremium["studiengang"],ENT_QUOTES);?>" /></li>
      <li><label for="studiengangabschluss">Stg-Abschluss:</label><input type="text" name="studiengangabschluss" value="<?php echo htmlspecialchars($gremium["studiengangabschluss"],ENT_QUOTES);?>" /></li>
      <li><label for="wiki_members">Wiki-Seite für Mitglieder:</label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" /> <br/><i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i></li>
+     <li><label for="wiki_members_table">Wiki-Seite für Mitglieder (Tabellenform):</label><input type="text" name="wiki_members_table" value="<?php echo htmlspecialchars($gremium["wiki_members_table"],ENT_QUOTES);?>" /> <br/><i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i></li>
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
          <select name="active" size="1"><option value="1" <?php  if ($gremium["active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <?php  if (!$gremium["active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
      </li>

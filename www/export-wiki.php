@@ -15,6 +15,7 @@ if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
 
 $rollen = getAlleRolle();
 $mapping = Array();
+$mapping_table = Array();
 $name_gremien = Array();
 $name_rollen = Array();
 
@@ -40,9 +41,30 @@ foreach ($rollen as $rolle) {
   }
 }
 
+// group roles by wiki page, skip empty wiki pages, and list all persons
+foreach ($rollen as $rolle) {
+  $wiki = cleanID($rolle["gremium_wiki_members_table"]);
+  if (empty($wiki)) continue;
+  if (substr($wiki,0,strlen($wikiprefix)) != $wikiprefix) {
+    $gname = preg_replace("/\s+/"," ",trim("{$rolle["gremium_name"]} {$rolle["gremium_fakultaet"]} {$rolle["gremium_studiengang"]} {$rolle["gremium_studiengangabschluss"]}"));
+    echo "Gremium: ".htmlentities($gname)." hat ungültigen Wiki-Eintrag, der nicht mit :$wikiprefix beginnt.<br/>\n";
+  }
+  $gremium_id = $rolle["gremium_id"];
+  $gremium_name = $rolle["gremium_name"];
+  $rolle_id = $rolle["rolle_id"];
+  $name_gremien[$gremium_id] = $rolle;
+  $name_rollen[$gremium_id][$rolle_id] = $rolle;
+  $personen = getRollePersonen($rolle_id);
+  foreach ($personen as $person) {
+    $rel_id = $person["rel_id"];
+    $active = ($person["active"] == 1) ? "active" : "inactive";
+    $mapping_table[$wiki][$gremium_name][$gremium_id][$rolle_id][$active][$rel_id] = $person;
+  }
+}
+
 // generate wiki pages
 function person2string($person) {
-  $line = "  * [[:person:{$person["name"]}]] ";
+  $line = "[[:person:{$person["name"]}]] ";
   if (!empty($person["von"]) && !empty($person["bis"])) {
     $line .= "{$person["von"]} - {$person["bis"]}";
   } else if (!empty($person["von"])) {
@@ -98,6 +120,8 @@ function cmpPerson($a, $b) {
   return 0;
 }
 
+$pages = Array();
+
 foreach ($mapping as $wiki => $data) {
   $text = Array();
   foreach ($data as $gremium_id => $data2) {
@@ -112,7 +136,7 @@ foreach ($mapping as $wiki => $data) {
         $text[] = "==== aktuelle in {$r["rolle_name"]} in $gname ====";
         uasort($personen["active"], 'cmpPerson');
         foreach($personen["active"] as $person) {
-          $text[] = person2string($person);
+          $text[] = "  * ".person2string($person);
         }
         $text[] = "";
       }
@@ -120,23 +144,63 @@ foreach ($mapping as $wiki => $data) {
         uasort($personen["inactive"], 'cmpPerson');
         $text[] = "==== ehemalige/zukünftige in {$r["rolle_name"]} in $gname ====";
         foreach($personen["inactive"] as $person) {
-          $text[] = person2string($person);
+          $text[] = "  * ".person2string($person);
         }
         $text[] = "";
       }
     }
   }
-  $mapping[$wiki] = Array();
-  $mapping[$wiki]["new"] = $text;
+  $pages[$wiki]["new"] = $text;
+}
+
+foreach ($mapping_table as $wiki => $data) {
+  $text = Array();
+  if (isset($pages[$wiki]["new"]))
+    $text = $pages[$wiki]["new"];
+
+  foreach ($data as $gremium_name => $data1) {
+    $gname = trim($gremium_name);
+    $text[] = "====== $gname (studentische Mitglieder) (Ilmenau) ======";
+    $text[] = "";
+    $text[] = "^ Fak ^ Studiengang ^ letzte Aktualisierung ^ Mitglieder ^ Bemerkungen ^";
+
+    foreach ($data1 as $gremium_id => $data2) {
+      $g = $name_gremien[$gremium_id];
+
+      $prefix = preg_replace("/\s+/"," ",trim("| {$g["gremium_fakultaet"]} | {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]} | n/a | "));
+
+      foreach ($data2 as $rolle_id => $personen) {
+        $r = $name_rollen[$gremium_id][$rolle_id];
+
+        if (!$r["rolle_active"]) continue;
+
+        if (!empty($personen["active"])) {
+          foreach($personen["active"] as $person) {
+            $text[] = $prefix.person2string($person)." | {$r["rolle_name"]} |";
+            $prefix = "| ::: | ::: | ::: | ";
+          }
+        } else {
+          $text[] = "{$prefix} //unbesetzt// | {$r["rolle_name"]} |";
+        }
+      }
+    }
+
+    $text[] = "";
+
+  } /* $gremium_name */
+  $pages[$wiki]["new"] = $text;
+}
+
+foreach (array_keys($pages) as $wiki) {
   if (isset($_POST["commit"]) && is_array($_POST["commit"]) && in_array($wiki, $_POST["commit"]) && $validnonce) {
     writeWikiPage($wiki, base64_decode($_POST["text"][$wiki]));
   } elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && isset($_POST["commit"][$wiki])) {
     echo "<b class=\"msg\">CSRF Schutz.</b>";
   } elseif (!isset($_POST["commit"])) {
-    $mapping[$wiki]["old"] = explode("\n",fetchWikiPage($wiki));
-    $x = new Text_Diff('auto',Array($mapping[$wiki]["old"],$mapping[$wiki]["new"]));
+    $pages[$wiki]["old"] = explode("\n",fetchWikiPage($wiki));
+    $x = new Text_Diff('auto',Array($pages[$wiki]["old"],$pages[$wiki]["new"]));
     $y = new Text_Diff_Renderer_unified();
-    $mapping[$wiki]["diff"] = $y->render($x);
+    $pages[$wiki]["diff"] = $y->render($x);
   }
 }
 
@@ -164,7 +228,7 @@ require_once "../template/header-old.tpl";
 global $wikiUrl;
 $url = parse_url($wikiUrl);
 $openUrl = http_build_url($url, Array(), HTTP_URL_STRIP_AUTH);
-foreach ($mapping as $wiki => $data):
+foreach ($pages as $wiki => $data):
   echo "<tr>";
   echo " <td><input ".(($data["diff"] != "") ? "class=\"mls\"" : "")." type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($wiki)."\"></td>";
   echo " <td><a href=\"".htmlspecialchars($openUrl.str_replace(":","/",$wiki))."\">".htmlspecialchars($wiki)."</a></td>\n";

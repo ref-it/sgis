@@ -28,6 +28,7 @@ foreach ([
   "studiengang" => "Studiengang",
   "studiengangabschluss" => "Abschluss (Bachelor, Master, ...)",
   "wiki_members" => "Wiki-Seite für Mitglieder",
+  "wiki_members_table" => "Wiki-Seite für Mitglieder (Tabellenform)",
   "active" => "Gremium existent/aktiv?",
  ] as $key => $desc):
 
@@ -40,6 +41,7 @@ foreach ([
       <?php
         switch($key) {
           case "wiki_members":
+          case "wiki_members_table":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($gremium[$key]); ?>">
            <i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i>
 <?php
