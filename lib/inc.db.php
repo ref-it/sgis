@@ -37,6 +37,7 @@ if ($r === false) {
                 studiengangabschluss VARCHAR(128) NULL,
                 wiki_members VARCHAR(128) NULL,
                 wiki_members_table VARCHAR(128) NULL,
+                wiki_members_fulltable VARCHAR(128) NULL,
                 active BOOLEAN NOT NULL DEFAULT 1,
                 PRIMARY KEY(id),
                 UNIQUE(name, fakultaet, studiengang, studiengangabschluss)
@@ -47,6 +48,11 @@ if ($r === false) {
 $r = $pdo->query("SELECT wiki_members_table FROM {$DB_PREFIX}gremium");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}gremium ADD COLUMN wiki_members_table VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+}
+
+$r = $pdo->query("SELECT wiki_members_fulltable FROM {$DB_PREFIX}gremium");
+if ($r === false) {
+  $pdo->query("ALTER TABLE {$DB_PREFIX}gremium ADD COLUMN wiki_members_fulltable VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}rolle");
@@ -228,11 +234,11 @@ if ($r === false) {
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
-$r = $pdo->query("SELECT wiki_members_table FROM {$DB_PREFIX}rolle_searchable");
+$r = $pdo->query("SELECT wiki_members_fulltable FROM {$DB_PREFIX}rolle_searchable");
 if ($r === false) {
   $pdo->query("CREATE OR REPLACE VIEW {$DB_PREFIX}rolle_searchable AS
     SELECT r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId,
-           g.id as gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as wiki_members, g.wiki_members_table as wiki_members_table, g.active as gremium_active,
+           g.id as gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as wiki_members, g.wiki_members_table as wiki_members_table, g.wiki_members_fulltable as wiki_members_fulltable, g.active as gremium_active,
            r.id as id, (r.active AND g.active) as active
       FROM {$DB_PREFIX}gremium g
            INNER JOIN {$DB_PREFIX}rolle r ON r.gremium_id = g.id
@@ -285,7 +291,7 @@ function getPersonDetailsByUsername($username) {
 
 function getPersonRolle($personId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT rm.id AS id, g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, r.id as rolle_id, r.name as rolle_name, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.kommentar as kommentar, rm.lastCheck as lastCheck, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) as active FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND rm.gremium_id = g.id WHERE rm.person_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
+  $query = $pdo->prepare("SELECT DISTINCT rm.id AS id, g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, r.id as rolle_id, r.name as rolle_name, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.kommentar as kommentar, rm.lastCheck as lastCheck, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) as active FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND rm.gremium_id = g.id WHERE rm.person_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
   $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -360,7 +366,7 @@ function dbMailinglisteDelete($id) {
 
 function getMailinglisteRolle($mlId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, r.id as rolle_id, r.name as rolle_name FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rm ON rm.rolle_id = r.id WHERE rm.mailingliste_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, r.id as rolle_id, r.name as rolle_name FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rm ON rm.rolle_id = r.id WHERE rm.mailingliste_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
   $query->execute(Array($mlId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -400,7 +406,7 @@ function getRolleById($rolleId) {
 
 function getAlleRolle() {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, (rm.id IS NOT NULL) as rolle_hat_mitglied FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, (rm.id IS NOT NULL) as rolle_hat_mitglied FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
   $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -541,7 +547,7 @@ function dbPersonDisableRolle($id, $bis = NULL) {
 
 function getGruppeRolle($grpId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, r.id as rolle_id, r.name as rolle_name FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rg ON rg.rolle_id = r.id WHERE rg.gruppe_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, r.id as rolle_id, r.name as rolle_name FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rg ON rg.rolle_id = r.id WHERE rg.gruppe_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
   $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -593,19 +599,19 @@ function dbGruppeInsertRolle($grpId, $rolleId) {
   return $query->execute(Array($grpId, $rolleId)) or httperror(print_r($query->errorInfo(),true));
 }
 
-function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $active) {
+function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengangabschluss, wiki_members, wiki_members_table, active) VALUES ( ?, ?, ?, ?, ?, ?, ?)");
-  $ret = $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $active)) or httperror(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengangabschluss, wiki_members, wiki_members_table, wiki_members_fulltable, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active)) or httperror(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
   if ($ret === false)
     return $ret;
   return $pdo->lastInsertId();
 }
 
-function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $active) {
+function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengangabschluss = ?, wiki_members = ?, wiki_members_table = ?, active = ? WHERE id = ?");
-  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $active, $id)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengangabschluss = ?, wiki_members = ?, wiki_members_table = ?, wiki_members_fulltable = ?, active = ? WHERE id = ?");
+  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $id)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function dbGremiumDelete($id) {

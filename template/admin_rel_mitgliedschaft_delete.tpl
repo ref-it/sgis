@@ -90,7 +90,7 @@ foreach ([
       <?php
         switch($key) {
           case"kommentar":
-?>         <div class="form-control kommentar"><?php echo htmlspecialchars($rel[$key]); ?></div><?php
+?>         <div class="form-control kommentar"><?php echo implode("<br>",explode("\n",htmlspecialchars($rel[$key]))); ?></div><?php
             break;
           default:
 ?>         <div class="form-control"><?php echo htmlspecialchars($rel[$key]); ?></div><?php

@@ -8,6 +8,7 @@ $metadata = [
   "studiengangabschluss" => "Abschluss",
 #  "wiki_members" => "Wiki-Prefix",
 #  "wiki_members_table" => "Wiki-Prefix (Tabellen)",
+#  "wiki_members_fulltable" => "Wiki-Prefix (Tabellen für mehrere Gremien)",
   "active" => "Aktiv",
   "has_members" => "<small>Mitglieder</small>",
   "has_members_in_inactive_roles" => "<small>Mitglieder in inaktiven Rollen</small>",

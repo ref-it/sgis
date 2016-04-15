@@ -6,6 +6,10 @@ ob_start('ob_gzhandler');
 require_once "../lib/inc.all.php";
 requireGroup($ADMINGROUP);
 
+function escapeMe($d, $row) {
+  return htmlspecialchars($d);
+}
+
 if (isset($_POST["action"])) {
  $msgs = Array();
  $ret = false;
@@ -19,9 +23,9 @@ if (isset($_POST["action"])) {
    header("Content-Type: text/json; charset=UTF-8");
    $columns = array(
      array( 'db' => 'id',                 'dt' => 'id' ),
-     array( 'db' => 'email',              'dt' => 'email' ),
-     array( 'db' => 'name',               'dt' => 'name' ),
-     array( 'db' => 'username',           'dt' => 'username' ),
+     array( 'db' => 'email',              'dt' => 'email', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'name',               'dt' => 'name', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'username',           'dt' => 'username', 'formatter' => 'escapeMe' ),
 //     array( 'db' => 'password', 'dt' => 3 ),
      array( 'db' => 'unirzlogin',         'dt' => 'unirzlogin',
        'formatter' => function( $d, $row ) {
@@ -52,8 +56,8 @@ if (isset($_POST["action"])) {
    header("Content-Type: text/json; charset=UTF-8");
    $columns = array(
      array( 'db' => 'id',                    'dt' => 'id' ),
-     array( 'db' => 'address',               'dt' => 'address' ),
-     array( 'db' => 'url',                   'dt' => 'url' ),
+     array( 'db' => 'address',               'dt' => 'address', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'url',                   'dt' => 'url', 'formatter' => 'escapeMe' ),
    );
    echo json_encode(
      SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}mailingliste", /* primary key */ "id", $columns )
@@ -63,8 +67,8 @@ if (isset($_POST["action"])) {
    header("Content-Type: text/json; charset=UTF-8");
    $columns = array(
      array( 'db' => 'id',                    'dt' => 'id' ),
-     array( 'db' => 'name',                  'dt' => 'name' ),
-     array( 'db' => 'beschreibung',          'dt' => 'beschreibung' ),
+     array( 'db' => 'name',                  'dt' => 'name', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'beschreibung',          'dt' => 'beschreibung', 'formatter' => 'escapeMe' ),
    );
    echo json_encode(
      SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}gruppe", /* primary key */ "id", $columns )
@@ -74,10 +78,10 @@ if (isset($_POST["action"])) {
    header("Content-Type: text/json; charset=UTF-8");
    $columns = array(
      array( 'db' => 'id',                    'dt' => 'id' ),
-     array( 'db' => 'name',                  'dt' => 'name' ),
-     array( 'db' => 'fakultaet',             'dt' => 'fakultaet' ),
-     array( 'db' => 'studiengang',           'dt' => 'studiengang' ),
-     array( 'db' => 'studiengangabschluss',  'dt' => 'studiengangabschluss' ),
+     array( 'db' => 'name',                  'dt' => 'name', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'fakultaet',             'dt' => 'fakultaet', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'studiengang',           'dt' => 'studiengang', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'studiengangabschluss',  'dt' => 'studiengangabschluss', 'formatter' => 'escapeMe' ),
      array( 'db' => 'has_members',           'dt' => 'has_members',
        'formatter' => function( $d, $row ) {
          return $d ? "ja" : "nein";
@@ -103,11 +107,11 @@ if (isset($_POST["action"])) {
 
    $columns = array(
      array( 'db' => 'id',                            'dt' => 'id' ),
-     array( 'db' => 'rolle_name',                    'dt' => 'rolle_name' ),
-     array( 'db' => 'gremium_name',                  'dt' => 'gremium_name' ),
-     array( 'db' => 'gremium_fakultaet',             'dt' => 'gremium_fakultaet' ),
-     array( 'db' => 'gremium_studiengang',           'dt' => 'gremium_studiengang' ),
-     array( 'db' => 'gremium_studiengangabschluss',  'dt' => 'gremium_studiengangabschluss' ),
+     array( 'db' => 'rolle_name',                    'dt' => 'rolle_name', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'gremium_name',                  'dt' => 'gremium_name', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'gremium_fakultaet',             'dt' => 'gremium_fakultaet', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'gremium_studiengang',           'dt' => 'gremium_studiengang', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'gremium_studiengangabschluss',  'dt' => 'gremium_studiengangabschluss', 'formatter' => 'escapeMe' ),
      array( 'db'    => 'active',                     'dt'    => 'active',
        'formatter' => function( $d, $row ) {
          return $d ? "ja" : "nein";
@@ -220,13 +224,13 @@ if (isset($_POST["action"])) {
    $msgs[] = "Gruppen-Rollenzuordnung wurde eingetragen.";
   break;
   case "gremium.insert":
-   $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["active"]);
+   $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["wiki_members_fulltable"], $_POST["active"]);
    $msgs[] = "Gremium wurde angelegt.";
    if ($ret !== false)
      $target = $_SERVER["PHP_SELF"]."?tab=gremium.edit&gremium_id=".$ret;
   break;
   case "gremium.update":
-   $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["active"]);
+   $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["wiki_members_fulltable"], $_POST["active"]);
    $msgs[] = "Gremium wurde geändert.";
   break;
   case "gremium.delete":

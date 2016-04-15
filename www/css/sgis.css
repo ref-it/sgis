@@ -47,3 +47,8 @@ a[href^="mailto"]:before {
   white-space: nowrap;
 }
 
+div.form-control.kommentar {
+  height: auto;
+  min-height: 35px;
+}
+

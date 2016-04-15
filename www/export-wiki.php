@@ -16,6 +16,7 @@ if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
 $rollen = getAlleRolle();
 $mapping = Array();
 $mapping_table = Array();
+$mapping_fulltable = Array();
 $name_gremien = Array();
 $name_rollen = Array();
 
@@ -59,6 +60,28 @@ foreach ($rollen as $rolle) {
     $rel_id = $person["rel_id"];
     $active = ($person["active"] == 1) ? "active" : "inactive";
     $mapping_table[$wiki][$gremium_name][$gremium_id][$rolle_id][$active][$rel_id] = $person;
+  }
+}
+
+// group roles by wiki page, skip empty wiki pages, and list all persons
+foreach ($rollen as $rolle) {
+  $wiki = cleanID($rolle["gremium_wiki_members_fulltable"]);
+  if (empty($wiki)) continue;
+  if (substr($wiki,0,strlen($wikiprefix)) != $wikiprefix) {
+    $gname = preg_replace("/\s+/"," ",trim("{$rolle["gremium_name"]} {$rolle["gremium_fakultaet"]} {$rolle["gremium_studiengang"]} {$rolle["gremium_studiengangabschluss"]}"));
+    echo "Gremium: ".htmlentities($gname)." hat ungültigen Wiki-Eintrag, der nicht mit :$wikiprefix beginnt.<br/>\n";
+  }
+  $gremium_id = $rolle["gremium_id"];
+  $gremium_name = $rolle["gremium_name"];
+  $gremium_fak = $rolle["gremium_fakultaet"];
+  $rolle_id = $rolle["rolle_id"];
+  $name_gremien[$gremium_id] = $rolle;
+  $name_rollen[$gremium_id][$rolle_id] = $rolle;
+  $personen = getRollePersonen($rolle_id);
+  foreach ($personen as $person) {
+    $rel_id = $person["rel_id"];
+    $active = ($person["active"] == 1) ? "active" : "inactive";
+    $mapping_fulltable[$wiki][$gremium_fak][$gremium_id][$rolle_id][$active][$rel_id] = $person;
   }
 }
 
@@ -158,6 +181,7 @@ foreach ($mapping_table as $wiki => $data) {
   if (isset($pages[$wiki]["new"]))
     $text = $pages[$wiki]["new"];
 
+  ksort($data);
   foreach ($data as $gremium_name => $data1) {
     $gname = trim($gremium_name);
     $text[] = "====== $gname (studentische Mitglieder) (Ilmenau) ======";
@@ -208,6 +232,66 @@ foreach ($mapping_table as $wiki => $data) {
     $text[] = "";
 
   } /* $gremium_name */
+  $pages[$wiki]["new"] = $text;
+}
+
+foreach ($mapping_fulltable as $wiki => $data) {
+  $text = Array();
+  if (isset($pages[$wiki]["new"]))
+    $text = $pages[$wiki]["new"];
+
+  $text[] = "====== studentische Mitglieder (Ilmenau) ======";
+  $text[] = "";
+  $text[] = "^ Gremium ^ Fak ^ letzte Aktualisierung ^ Mitglieder ^ Bemerkungen ^";
+
+  ksort($data);
+  foreach ($data as $gremium_fak => $data1) {
+    foreach ($data1 as $gremium_id => $data2) {
+      $g = $name_gremien[$gremium_id];
+      $gname = trim($g["gremium_name"]);
+
+      if (!$g["gremium_active"]) continue;
+
+      $lastUpdate = NULL;
+      foreach ($data2 as $rolle_id => $personen) {
+        $r = $name_rollen[$gremium_id][$rolle_id];
+        if (!$r["rolle_active"]) continue;
+        if (empty($personen["active"])) continue;
+        foreach($personen["active"] as $person) {
+          $lastCheck = $person["lastCheck"];
+          if ($lastCheck === NULL) $lastCheck = $person["von"];
+          if ($lastUpdate === NULL || $lastUpdate < $lastCheck)
+            $lastUpdate = $lastCheck;
+        }
+      }
+      if ($lastUpdate === NULL)
+        $lastUpdate = "n/a";
+
+      $prefix = preg_replace("/\s+/"," ",trim("| $gname {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]} | {$g["gremium_fakultaet"]} | {$lastUpdate} | "));
+      $isempty = true;
+
+      foreach ($data2 as $rolle_id => $personen) {
+        $r = $name_rollen[$gremium_id][$rolle_id];
+
+        if (!$r["rolle_active"]) continue;
+
+        if (!empty($personen["active"])) {
+          $isempty = false;
+          foreach($personen["active"] as $person) {
+            $text[] = $prefix.person2string($person)." | {$r["rolle_name"]} |";
+            $prefix = "| ::: | ::: | ::: | ";
+          }
+        }
+      }
+      if ($isempty) {
+        $text[] = "{$prefix} //unbesetzt// | |";
+      }
+    }
+
+  } /* $gremium_name */
+
+  $text[] = "";
+
   $pages[$wiki]["new"] = $text;
 }
 
