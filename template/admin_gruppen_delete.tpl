@@ -81,7 +81,7 @@ endforeach;
       <nobr>
        <a href="?tab=gremium.edit&amp;gremium_id=<?php echo $gremium["gremium_id"]; ?>" target="_blank">
 <?php
-        echo htmlspecialchars($gremium["gremium_name"]);
+        echo htmlspecialchars($gremium["gremium_name"])." ";
         if (!empty($gremium["gremium_studiengang"])) {
          echo htmlspecialchars($gremium["gremium_studiengang"])." ";
         }
