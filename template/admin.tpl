@@ -85,15 +85,23 @@ $(function () {
        if (values.msgs && values.msgs.length > 0) {
            txt = values.msgs.join("\n")+"\n"+txt;
        }
-       alert(txt);
-       if (values.ret && !values.target) {
+       if (values.ret) {
+        txt = txt + "\n\nFenster schließen?";
+        cls = confirm(txt);
         self.opener.location.reload();
+       } else {
+        alert(txt);
+       }
+       if (values.ret && !values.target && cls) {
         self.opener.focus();
         self.close();
        }
        if (values.ret && values.target) {
-        self.location.href = values.target;
-        self.opener.location.reload();
+        if (cls) {
+         self.location.href = values.target;
+        } else {
+         window.open(values.target);
+        }
        }
      })
     .error(xpAjaxErrorHandler);
