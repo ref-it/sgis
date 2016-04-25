@@ -88,12 +88,16 @@ $(function () {
        if (values.ret) {
         txt = txt + "\n\nFenster schließen?";
         cls = confirm(txt);
-        self.opener.location.reload();
+        if (self.opener) {
+         self.opener.location.reload();
+        }
        } else {
         alert(txt);
        }
        if (values.ret && !values.target && cls) {
-        self.opener.focus();
+        if (self.opener) {
+         self.opener.focus();
+        }
         self.close();
        }
        if (values.ret && values.target) {
