@@ -9,6 +9,13 @@ requireGroup($ADMINGROUP);
 function escapeMe($d, $row) {
   return htmlspecialchars($d);
 }
+function trimMe($d) {
+  if (is_array($d)) {
+    return array_map("trimMe", $d);
+  } else {
+    return trim($d);
+  }
+}
 
 if (isset($_POST["action"])) {
  $msgs = Array();
@@ -18,6 +25,14 @@ if (isset($_POST["action"])) {
   $msgs[] = "Formular veraltet - CSRF Schutz aktiviert.";
  } else {
   $logId = logThisAction();
+  if (strpos($_POST["action"],"insert") !== false ||
+      strpos($_POST["action"],"update") !== false ||
+      strpos($_POST["action"],"delete") !== false) {
+    foreach ($_REQUEST as $k => $v) {
+      $_REQUEST[$k] = trimMe($v);
+    }
+  }
+
   switch ($_POST["action"]):
   case "person.table":
    header("Content-Type: text/json; charset=UTF-8");
@@ -79,6 +94,7 @@ if (isset($_POST["action"])) {
    $columns = array(
      array( 'db' => 'id',                    'dt' => 'id' ),
      array( 'db' => 'name',                  'dt' => 'name', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'fullname',              'dt' => 'fullname', 'formatter' => 'escapeMe' ),
      array( 'db' => 'fakultaet',             'dt' => 'fakultaet', 'formatter' => 'escapeMe' ),
      array( 'db' => 'studiengang',           'dt' => 'studiengang', 'formatter' => 'escapeMe' ),
      array( 'db' => 'studiengangabschluss',  'dt' => 'studiengangabschluss', 'formatter' => 'escapeMe' ),

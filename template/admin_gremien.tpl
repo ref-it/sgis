@@ -6,6 +6,7 @@ $metadata = [
   "fakultaet" => "Fak.",
   "studiengang" => "Fach",
   "studiengangabschluss" => "Abschluss",
+  "fullname" => false,
 #  "wiki_members" => "Wiki-Prefix",
 #  "wiki_members_table" => "Wiki-Prefix (Tabellen)",
 #  "wiki_members_fulltable" => "Wiki-Prefix (Tabellen für mehrere Gremien)",

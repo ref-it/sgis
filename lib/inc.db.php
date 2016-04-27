@@ -223,10 +223,10 @@ SELECT DISTINCT rm.gremium_id FROM {$DB_PREFIX}rel_mitgliedschaft rm INNER JOIN 
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
-$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}gremium_current");
+$r = $pdo->query("SELECT fullname FROM {$DB_PREFIX}gremium_current limit 1");
 if ($r === false) {
   $pdo->query("CREATE VIEW {$DB_PREFIX}gremium_current AS
-    SELECT g.*, (gu.gremium_id IS NOT NULL) as has_members, (gui.gremium_id IS NOT NULL) as has_members_in_inactive_roles
+    SELECT g.*, (gu.gremium_id IS NOT NULL) as has_members, (gui.gremium_id IS NOT NULL) as has_members_in_inactive_roles, TRIM(CONCAT_WS(' ',g.name,g.fakultaet,g.studiengang,g.studiengangabschluss)) as fullname
       FROM {$DB_PREFIX}gremium g
            LEFT JOIN {$DB_PREFIX}gremium_has_members gu ON gu.gremium_id = g.id
            LEFT JOIN {$DB_PREFIX}gremium_has_members_in_inactive_roles gui ON gui.gremium_id = g.id

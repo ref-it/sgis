@@ -86,6 +86,9 @@ foreach (array_keys($metadata) as $i => $field):
             {
               "data": <?php echo json_encode($field); ?>,
               "name": <?php echo json_encode($field); ?>,
+<?php if($metadata[$field] === false): ?>
+              "visible": false,
+<?php endif; ?>
 <?php if($i == 0): ?>
               "render":  function ( data, type, full, meta ) {
                 var p = $("<a/>").attr("target","_blank").attr("href","?tab=<?php echo $obj; ?>.edit&<?php echo $obj; ?>_id=" + encodeURIComponent(full.id)).text(data).wrap("<div>").parent().html();
