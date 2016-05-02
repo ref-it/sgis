@@ -74,6 +74,7 @@ if ($rolle !== false) {
 } else {
 
  $metadata = [
+  "fullname" => false,
   "rolle_name" => "Rolle",
   "gremium_name" => "Gremium",
   "gremium_fakultaet" => "Fak.",

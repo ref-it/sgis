@@ -123,6 +123,7 @@ if (isset($_POST["action"])) {
 
    $columns = array(
      array( 'db' => 'id',                            'dt' => 'id' ),
+     array( 'db' => 'fullname',                      'dt' => 'fullname', 'formatter' => 'escapeMe' ),
      array( 'db' => 'rolle_name',                    'dt' => 'rolle_name', 'formatter' => 'escapeMe' ),
      array( 'db' => 'gremium_name',                  'dt' => 'gremium_name', 'formatter' => 'escapeMe' ),
      array( 'db' => 'gremium_fakultaet',             'dt' => 'gremium_fakultaet', 'formatter' => 'escapeMe' ),
