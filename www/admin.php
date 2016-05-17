@@ -36,33 +36,33 @@ if (isset($_POST["action"])) {
   switch ($_POST["action"]):
   case "person.table":
    header("Content-Type: text/json; charset=UTF-8");
-   $columns = array(
-     array( 'db' => 'id',                 'dt' => 'id' ),
-     array( 'db' => 'email',              'dt' => 'email', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'name',               'dt' => 'name', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'username',           'dt' => 'username', 'formatter' => 'escapeMe' ),
-//     array( 'db' => 'password', 'dt' => 3 ),
-     array( 'db' => 'unirzlogin',         'dt' => 'unirzlogin',
+   $columns = [
+     [ 'db' => 'id',                 'dt' => 'id' ],
+     [ 'db' => 'email',              'dt' => 'email',    'formatter' => 'escapeMe' ],
+     [ 'db' => 'name',               'dt' => 'name',     'formatter' => 'escapeMe' ],
+     [ 'db' => 'username',           'dt' => 'username', 'formatter' => 'escapeMe' ],
+//     [ 'db' => 'password', 'dt' => 3 ],
+     [ 'db' => 'unirzlogin',         'dt' => 'unirzlogin',
        'formatter' => function( $d, $row ) {
          return str_replace("@tu-ilmenau.de","",$d);
        }
-     ),
-     array( 'db' => 'lastLogin',          'dt' => 'lastLogin',
+     ],
+     [ 'db' => 'lastLogin',          'dt' => 'lastLogin',
        'formatter' => function( $d, $row ) {
          return $d ? date( 'Y-m-d', strtotime($d)) : "";
        }
-     ),
-     array( 'db'    => 'canLoginCurrent', 'dt'    => 'canLogin',
+     ],
+     [ 'db'    => 'canLoginCurrent', 'dt'    => 'canLogin',
        'formatter' => function( $d, $row ) {
          return (!$d) ? "ja" : "nein";
        }
-     ),
-     array( 'db'    => 'active',          'dt'    => 'active',
+     ],
+     [ 'db'    => 'active',          'dt'    => 'active',
        'formatter' => function( $d, $row ) {
          return $d ? "ja" : "nein";
        }
-     ),
-   );
+     ],
+   ];
    echo json_encode(
      SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}person_current", /* primary key */ "id", $columns )
    );
@@ -121,22 +121,37 @@ if (isset($_POST["action"])) {
   case "rolle.table":
    header("Content-Type: text/json; charset=UTF-8");
 
-   $columns = array(
-     array( 'db' => 'id',                            'dt' => 'id' ),
-     array( 'db' => 'fullname',                      'dt' => 'fullname', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'rolle_name',                    'dt' => 'rolle_name', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'gremium_name',                  'dt' => 'gremium_name', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'gremium_fakultaet',             'dt' => 'gremium_fakultaet', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'gremium_studiengang',           'dt' => 'gremium_studiengang', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'gremium_studiengangabschluss',  'dt' => 'gremium_studiengangabschluss', 'formatter' => 'escapeMe' ),
-     array( 'db'    => 'active',                     'dt'    => 'active',
+   $table = "rolle_searchable";
+   $columns = [
+     [ 'db' => 'id',                            'dt' => 'id' ],
+     [ 'db' => 'fullname',                      'dt' => 'fullname',                     'formatter' => 'escapeMe' ],
+     [ 'db' => 'rolle_name',                    'dt' => 'rolle_name',                   'formatter' => 'escapeMe' ],
+     [ 'db' => 'gremium_name',                  'dt' => 'gremium_name',                 'formatter' => 'escapeMe' ],
+     [ 'db' => 'gremium_fakultaet',             'dt' => 'gremium_fakultaet',            'formatter' => 'escapeMe' ],
+     [ 'db' => 'gremium_studiengang',           'dt' => 'gremium_studiengang',          'formatter' => 'escapeMe' ],
+     [ 'db' => 'gremium_studiengangabschluss',  'dt' => 'gremium_studiengangabschluss', 'formatter' => 'escapeMe' ],
+     [ 'db'    => 'active',                     'dt' => 'active',
        'formatter' => function( $d, $row ) {
          return $d ? "ja" : "nein";
        }
-     ),
-   );
+     ],
+   ];
+
+   $whereAll = NULL;
+   if ( isset($_REQUEST["rel"]) && in_array( $_REQUEST["rel"], ["rolle_mailingliste"]) ) {
+     $whereAll = "mailingliste_id = ".dbQuote((string)$_REQUEST["rel_id"],PDO::PARAM_INT);
+     $table = "rolle_searchable_mailingliste";
+
+     $columns[] =
+       [ 'db'    => 'in_rel',          'dt'    => 'in_rel',
+         'formatter' => function( $d, $row ) {
+           return $d ? "ja" : "nein";
+         }
+       ];
+   };
+
    echo json_encode(
-     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}rolle_searchable", /* primary key */ "id", $columns )
+     SSP::complex( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}{$table}", /* primary key */ "id", $columns, NULL, $whereAll )
    );
   exit;
   case "mailingliste.insert":

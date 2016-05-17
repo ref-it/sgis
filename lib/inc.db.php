@@ -247,6 +247,31 @@ if ($r === false) {
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
+$r = $pdo->query("SELECT * FROM {$DB_PREFIX}rolle_searchable_mailingliste");
+if ($r === false) {
+  $pdo->query("CREATE OR REPLACE VIEW {$DB_PREFIX}rolle_searchable_mailingliste AS
+    SELECT TRIM(CONCAT_WS(' ',r.name,g.name,g.fakultaet,g.studiengang,g.studiengangabschluss)) as fullname,
+           r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId,
+           g.id as gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as wiki_members, g.wiki_members_table as wiki_members_table, g.wiki_members_fulltable as wiki_members_fulltable, g.active as gremium_active,
+           r.id as id, (r.active AND g.active) as active,
+           m.id as mailingliste_id,
+           (rrm.rolle_id IS NOT NULL) AS in_rel
+      FROM {$DB_PREFIX}gremium g
+           INNER JOIN {$DB_PREFIX}rolle r ON r.gremium_id = g.id
+           JOIN {$DB_PREFIX}mailingliste m
+           LEFT JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rrm.rolle_id = r.id AND rrm.mailingliste_id
+   ")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+
+function dbQuote($string , $parameter_type = NULL ) {
+  global $pdo;
+  if ($parameter_type === NULL)
+    return $pdo->quote($string);
+  else
+    return $pdo->quote($string, $parameter_type);
+}
+
 function logThisAction() {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");

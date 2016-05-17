@@ -53,7 +53,10 @@ $(function() {
             "data": function ( d ) {
                 d.nonce = <?php echo json_encode($nonce); ?>;
                 d.action = "<?php echo $obj;?>.table";
-                // d.custom = $('#myInput').val();
+<?php if (isset($obj_rel) && $obj_rel): ?>
+                d.rel = <?php echo json_encode($obj_rel); ?>;
+                d.rel_id = <?php echo json_encode($obj_rel_id); ?>;
+<?php endif; ?>
                 // etc
             },
         },

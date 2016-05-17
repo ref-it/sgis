@@ -82,6 +82,10 @@ if ($rolle !== false) {
   "active" => "Aktiv",
  ];
 
+ if ($mailingliste !== false) {
+   $metadata["in_rel"] = false;
+ }
+
 ?>
 <div class="panel panel-default">
  <div class="panel-heading">Filter <span class="visible-xs-inline">: Gremien anzeigen</span></div>
@@ -89,13 +93,26 @@ if ($rolle !== false) {
   <div class="hidden-xs col-sm-3">
     Gremien anzeigen:
   </div>
+<?php if ($mailingliste !== false): ?>
+  <div class="col-xs-12 col-sm-5">
+<?php else: ?>
   <div class="col-xs-12 col-sm-9">
+<?php endif; ?>
    <select class="selectpicker tablefilter" data-column="active:name" data-table="rolle">
     <option value="1" selected>Nur aktive</option>
     <option value="0">Nur inaktive</option>
     <option value="">Alle (aktiv)</option>
    </select>
   </div>
+<?php if ($mailingliste !== false): ?>
+  <div class="col-xs-12 col-sm-4">
+   <select class="selectpicker tablefilter" data-column="in_rel:name" data-table="rolle">
+    <option value="0" selected>Nur Neue</option>
+    <option value="1">Nur Alte</option>
+    <option value="">Alle (Neu/Alt)</option>
+   </select>
+  </div>
+<?php endif; ?>
  </div> <!-- panel-body -->
 </div> <!-- panel -->
 <?php
@@ -105,6 +122,10 @@ if ($rolle !== false) {
  $obj_smallpageinate = true;
  $obj_selectable = "rolle_id";
  $obj_order = '[[1, "asc"], [0, "asc"]]';
+ if ($mailingliste !== false) {
+  $obj_rel = "rolle_mailingliste";
+  $obj_rel_id = $mailingliste["id"];
+ }
  require dirname(__FILE__)."/admin_table.tpl";
 
 }
