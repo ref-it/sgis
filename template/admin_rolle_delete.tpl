@@ -47,6 +47,7 @@ foreach ([
   "name" => "Name",
   "active" => "Rolle existent/aktiv?",
   "spiGroupId" => "sPi-Gruppen-Id",
+  "numPlatz" => "Plätze",
  ] as $key => $desc):
 
 ?>

@@ -82,7 +82,7 @@ foreach ($alle_gremien as $i => $gremium):
   $struct_gremien[$last_struct_id]["wiki_members_table"] = $gremium["gremium_wiki_members_table"];
   $struct_gremien[$last_struct_id]["wiki_members_fulltable"] = $gremium["gremium_wiki_members_fulltable"];
   if ($gremium["rolle_id"] !== NULL)
-    $struct_gremien[$last_struct_id]["rollen"][] = Array("rolle_name" => $gremium["rolle_name"], "rolle_id" => $gremium["rolle_id"], "rolle_active" => (int) $gremium["rolle_active"], "rolle_spiGroupId" => $gremium["rolle_spiGroupId"]);
+    $struct_gremien[$last_struct_id]["rollen"][] = Array("rolle_name" => $gremium["rolle_name"], "rolle_id" => $gremium["rolle_id"], "rolle_active" => (int) $gremium["rolle_active"], "rolle_spiGroupId" => $gremium["rolle_spiGroupId"], "rolle_numPlatz" => $gremium["rolle_numPlatz"]);
   else
     $struct_gremien[$last_struct_id]["rollen"] = Array();
   $filter["name"][] = $gremium["gremium_name"];
@@ -215,6 +215,8 @@ endif;
         <li><label for="spiGroupId">sPi-Gruppen-Id:</label><input type="text" name="spiGroupId" value=""/><br/>
            (Personen dieser Rolle werden in der entsprechenden sPi-Gruppe dargestellt: <?echo htmlspecialchars($sPiBase);?>/group/$groupId)</li>
         </li>
+        <li><label for="numPlatz">Personenzahl lt. Ordnung:</label><input type="text" name="numPlatz" value=""/>
+        </li>
        </ul>
        <input type="hidden" name="gremium_id" value="<?php echo $gremium["id"];?>"/>
        <input type="hidden" name="action" value="rolle_gremium.insert"/>
@@ -247,6 +249,7 @@ foreach($rollen as $rolle):
        <ul>
         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
         <li>Rolle: <input type="text" name="name" value="<?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?>"/></li>
+        <li>Personenzahl lt. Ordnung: <input type="text" name="numPlatz" value="<?php echo htmlspecialchars($rolle["rolle_numPlatz"],ENT_QUOTES);?>"/></li>
         <li><label for="active"  >Rolle existent/aktiv?:        </label>
            <select name="active" size="1"><option value="1" <?php  if ($rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <?php  if (!$rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
         </li>
@@ -568,6 +571,7 @@ endif;
      <li>Rolle: <?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?></li>
      <li>Rolle existent/aktiv?: <?php  if ($rolle["rolle_active"]): ?>Ja<?php  else: ?>Nein<?php  endif; ?></li>
      <li>sPi-Gruppen-Id: <? echo htmlspecialchars($rolle["rolle_spiGroupId"], ENT_QUOTES);?></li>
+     <li>Personenzahl lt. Ordnung: <? echo htmlspecialchars($rolle["rolle_numPlatz"], ENT_QUOTES);?></li>
      <li>Aktion: <select name="action" size="1"><option value="rolle_gremium.disable" selected="selected">Rolle deaktivieren</option><option value="rolle_gremium.delete">Rolle löschen</option></select></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>

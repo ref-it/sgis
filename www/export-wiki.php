@@ -56,6 +56,8 @@ foreach ($rollen as $rolle) {
   $name_gremien[$gremium_id] = $rolle;
   $name_rollen[$gremium_id][$rolle_id] = $rolle;
   $personen = getRollePersonen($rolle_id);
+  $mapping_table[$wiki][$gremium_name][$gremium_id][$rolle_id]["active"] = [];
+  $mapping_table[$wiki][$gremium_name][$gremium_id][$rolle_id]["inactive"] = [];
   foreach ($personen as $person) {
     $rel_id = $person["rel_id"];
     $active = ($person["active"] == 1) ? "active" : "inactive";
@@ -78,6 +80,8 @@ foreach ($rollen as $rolle) {
   $name_gremien[$gremium_id] = $rolle;
   $name_rollen[$gremium_id][$rolle_id] = $rolle;
   $personen = getRollePersonen($rolle_id);
+  $mapping_fulltable[$wiki][$gremium_fak][$gremium_id][$rolle_id]["active"] = [];
+  $mapping_fulltable[$wiki][$gremium_fak][$gremium_id][$rolle_id]["inactive"] = [];
   foreach ($personen as $person) {
     $rel_id = $person["rel_id"];
     $active = ($person["active"] == 1) ? "active" : "inactive";
@@ -183,6 +187,7 @@ foreach ($mapping_table as $wiki => $data) {
 
   ksort($data);
   foreach ($data as $gremium_name => $data1) {
+
     $gname = trim($gremium_name);
     $text[] = "====== $gname (studentische Mitglieder) (Ilmenau) ======";
     $text[] = "";
@@ -208,24 +213,32 @@ foreach ($mapping_table as $wiki => $data) {
       if ($lastUpdate === NULL)
         $lastUpdate = "n/a";
 
-      $prefix = preg_replace("/\s+/"," ",trim("| {$g["gremium_fakultaet"]} | {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]} | {$lastUpdate} | "));
+      $prefix = preg_replace("/\s+/"," ","| {$g["gremium_fakultaet"]} | {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]} | {$lastUpdate} | ");
       $isempty = true;
 
       foreach ($data2 as $rolle_id => $personen) {
         $r = $name_rollen[$gremium_id][$rolle_id];
+        $isempty2 = $r["rolle_numPlatz"];
 
         if (!$r["rolle_active"]) continue;
 
         if (!empty($personen["active"])) {
           $isempty = false;
           foreach($personen["active"] as $person) {
+            $isempty2--;
             $text[] = $prefix.person2string($person)." | {$r["rolle_name"]} |";
             $prefix = "| ::: | ::: | ::: | ";
           }
         }
+
+        for($i = 0; $i < $isempty2; $i++) {
+          $isempty = false;
+          $text[] = "{$prefix}//unbesetzt// | {$r["rolle_name"]} |";
+          $prefix = "| ::: | ::: | ::: | ";
+        }
       }
-      if ($isempty) {
-        $text[] = "{$prefix} //unbesetzt// | |";
+      if($isempty) {
+        $text[] = "{$prefix}//unbesetzt// | |";
       }
     }
 
@@ -267,24 +280,31 @@ foreach ($mapping_fulltable as $wiki => $data) {
       if ($lastUpdate === NULL)
         $lastUpdate = "n/a";
 
-      $prefix = preg_replace("/\s+/"," ",trim("| $gname {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]} | {$g["gremium_fakultaet"]} | {$lastUpdate} | "));
+      $prefix = preg_replace("/\s+/"," ","| $gname {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]} | {$g["gremium_fakultaet"]} | {$lastUpdate} | ");
       $isempty = true;
 
       foreach ($data2 as $rolle_id => $personen) {
         $r = $name_rollen[$gremium_id][$rolle_id];
+        $isempty2 = $r["rolle_numPlatz"];
 
         if (!$r["rolle_active"]) continue;
 
         if (!empty($personen["active"])) {
           $isempty = false;
           foreach($personen["active"] as $person) {
+            $isempty2--;
             $text[] = $prefix.person2string($person)." | {$r["rolle_name"]} |";
             $prefix = "| ::: | ::: | ::: | ";
           }
         }
+        for($i = 0; $i < $isempty2; $i++) {
+          $isempty = false;
+          $text[] = "{$prefix}//unbesetzt// | {$r["rolle_name"]} |";
+          $prefix = "| ::: | ::: | ::: | ";
+        }
       }
       if ($isempty) {
-        $text[] = "{$prefix} //unbesetzt// | |";
+        $text[] = "{$prefix}//unbesetzt// | |";
       }
     }
 

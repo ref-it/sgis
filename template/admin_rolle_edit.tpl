@@ -47,6 +47,7 @@ foreach ([
   "name" => "Name",
   "active" => "Rolle existent/aktiv?",
   "spiGroupId" => "sPi-Gruppen-Id",
+  "numPlatz" => "Plätze",
  ] as $key => $desc):
 
 ?>
@@ -57,6 +58,11 @@ foreach ([
 
       <?php
         switch($key) {
+          case "numPlatz":
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($rolle[$key]); ?>">
+           <i>(Anzahl der Vertreter, die laut Ordnung benannt werden können.)</i>
+<?php
+            break;
           case "spiGroupId":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($rolle[$key]); ?>">
            <i>(Personen dieser Rolle werden in der entsprechenden <a href="<?php echo htmlspecialchars($sPiBase)."/group/".htmlspecialchars($rolle[$key],ENT_QUOTES);?>" target="_blank">sPi-Gruppe</a> dargestellt.)</i>

@@ -63,6 +63,7 @@ if ($r === false) {
                 name VARCHAR(128) NOT NULL,
                 active BOOLEAN NOT NULL DEFAULT 1,
                 spiGroupId BIGINT NULL DEFAULT NULL,
+                numPlatz INT NOT NULL DEFAULT 0,
                 PRIMARY KEY(id),
                 FOREIGN KEY (gremium_id) REFERENCES {$DB_PREFIX}gremium(id) ON DELETE CASCADE,
                 UNIQUE(gremium_id, name),
@@ -70,6 +71,10 @@ if ($r === false) {
               ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
 
   require SGISBASE.'/lib/inc.db.rolle.php';
+}
+$r = $pdo->query("SELECT numPlatz FROM {$DB_PREFIX}rolle LIMIT 1");
+if ($r === false) {
+  $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN numPlatz INT NOT NULL DEFAULT 0;") or httperror(print_r($pdo->errorInfo(),true));
 }
 
 # Log
@@ -234,11 +239,11 @@ if ($r === false) {
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
-$r = $pdo->query("SELECT fullname FROM {$DB_PREFIX}rolle_searchable");
+$r = $pdo->query("SELECT rolle_numPlatz FROM {$DB_PREFIX}rolle_searchable");
 if ($r === false) {
   $pdo->query("CREATE OR REPLACE VIEW {$DB_PREFIX}rolle_searchable AS
     SELECT TRIM(CONCAT_WS(' ',r.name,g.name,g.fakultaet,g.studiengang,g.studiengangabschluss)) as fullname,
-           r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId,
+           r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz,
            g.id as gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as wiki_members, g.wiki_members_table as wiki_members_table, g.wiki_members_fulltable as wiki_members_fulltable, g.active as gremium_active,
            r.id as id, (r.active AND g.active) as active
       FROM {$DB_PREFIX}gremium g
@@ -247,11 +252,11 @@ if ($r === false) {
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
-$r = $pdo->query("SELECT * FROM {$DB_PREFIX}rolle_searchable_mailingliste");
+$r = $pdo->query("SELECT rolle_numPlatz FROM {$DB_PREFIX}rolle_searchable_mailingliste");
 if ($r === false) {
   $pdo->query("CREATE OR REPLACE VIEW {$DB_PREFIX}rolle_searchable_mailingliste AS
     SELECT TRIM(CONCAT_WS(' ',r.name,g.name,g.fakultaet,g.studiengang,g.studiengangabschluss)) as fullname,
-           r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId,
+           r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz,
            g.id as gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as wiki_members, g.wiki_members_table as wiki_members_table, g.wiki_members_fulltable as wiki_members_fulltable, g.active as gremium_active,
            r.id as id, (r.active AND g.active) as active,
            m.id as mailingliste_id,
@@ -432,7 +437,7 @@ function getRolleById($rolleId) {
 
 function getAlleRolle() {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, (rm.id IS NOT NULL) as rolle_hat_mitglied FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz, (rm.id IS NOT NULL) as rolle_hat_mitglied FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
   $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -658,19 +663,19 @@ function dbGremiumDisable($id) {
   return $ret1 && $ret2 && $ret3;
 }
 
-function dbGremiumInsertRolle($gremium_id, $name, $active, $spiGroupId) {
+function dbGremiumInsertRolle($gremium_id, $name, $active, $spiGroupId, $numPlatz) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name, active, spiGroupId) VALUES ( ?, ?, ?, ?)");
-  $ret = $query->execute(Array($gremium_id, $name, $active, $spiGroupId)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name, active, spiGroupId, numPlatz) VALUES ( ?, ?, ?, ?,?)");
+  $ret = $query->execute(Array($gremium_id, $name, $active, $spiGroupId, $numPlatz)) or httperror(print_r($query->errorInfo(),true));
   if ($ret === false)
     return $ret;
   return $pdo->lastInsertId();
 }
 
-function dbGremiumUpdateRolle($id, $name, $active, $spiGroupId) {
+function dbGremiumUpdateRolle($id, $name, $active, $spiGroupId, $numPlatz) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rolle SET name = ?, active = ?, spiGroupId = ? WHERE id = ?");
-  return $query->execute(Array($name, $active, $spiGroupId, $id)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rolle SET name = ?, active = ?, spiGroupId = ?, numPlatz = ? WHERE id = ?");
+  return $query->execute(Array($name, $active, $spiGroupId, $numPlatz, $id)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function dbGremiumDeleteRolle($id) {
