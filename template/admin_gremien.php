@@ -82,7 +82,7 @@ foreach ($alle_gremien as $i => $gremium):
   $struct_gremien[$last_struct_id]["wiki_members_table"] = $gremium["gremium_wiki_members_table"];
   $struct_gremien[$last_struct_id]["wiki_members_fulltable"] = $gremium["gremium_wiki_members_fulltable"];
   if ($gremium["rolle_id"] !== NULL)
-    $struct_gremien[$last_struct_id]["rollen"][] = Array("rolle_name" => $gremium["rolle_name"], "rolle_id" => $gremium["rolle_id"], "rolle_active" => (int) $gremium["rolle_active"], "rolle_spiGroupId" => $gremium["rolle_spiGroupId"], "rolle_numPlatz" => $gremium["rolle_numPlatz"]);
+    $struct_gremien[$last_struct_id]["rollen"][] = Array("rolle_name" => $gremium["rolle_name"], "rolle_id" => $gremium["rolle_id"], "rolle_active" => (int) $gremium["rolle_active"], "rolle_spiGroupId" => $gremium["rolle_spiGroupId"], "rolle_numPlatz" => $gremium["rolle_numPlatz"], "rolle_wahlDurchWikiSuffix" => $gremium["rolle_wahlDurchWikiSuffix"], "rolle_wahlPeriodeDays" => $gremium["rolle_wahlPeriodeDays"]);
   else
     $struct_gremien[$last_struct_id]["rollen"] = Array();
   $filter["name"][] = $gremium["gremium_name"];
@@ -216,6 +216,10 @@ endif;
            (Personen dieser Rolle werden in der entsprechenden sPi-Gruppe dargestellt: <?echo htmlspecialchars($sPiBase);?>/group/$groupId)</li>
         </li>
         <li><label for="numPlatz">Personenzahl lt. Ordnung:</label><input type="text" name="numPlatz" value=""/>
+        <li><label for="wahlDurchWikiSuffix">Wähler:</label><input type="text" name="wahlDurchWikiSuffix" value=""/><br/>
+           (Suffix für Wiki-Seite der Wiederwahl/Nachbesetzungsliste)</li>
+        </li>
+        <li><label for="wahlPeriodeDays">Wahlperiode:</label><input type="text" name="wahlPeriodeDays" value="365"/> Tage
         </li>
        </ul>
        <input type="hidden" name="gremium_id" value="<?php echo $gremium["id"];?>"/>
@@ -250,11 +254,15 @@ foreach($rollen as $rolle):
         <li>Gremium: <?php echo htmlspecialchars($gremium["display_name"],ENT_QUOTES);?></li>
         <li>Rolle: <input type="text" name="name" value="<?php echo htmlspecialchars($rolle["rolle_name"],ENT_QUOTES);?>"/></li>
         <li>Personenzahl lt. Ordnung: <input type="text" name="numPlatz" value="<?php echo htmlspecialchars($rolle["rolle_numPlatz"],ENT_QUOTES);?>"/></li>
+        <li>Wahlperiode: <input type="text" name="wahlPeriodeDays" value="<?php echo htmlspecialchars($rolle["rolle_wahlPeriodeDays"],ENT_QUOTES);?>"/> Tage</li>
         <li><label for="active"  >Rolle existent/aktiv?:        </label>
            <select name="active" size="1"><option value="1" <?php  if ($rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <?php  if (!$rolle["rolle_active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
         </li>
         <li><label for="spiGroupId">sPi-Gruppen-Id:</label><input type="text" name="spiGroupId" value="<?php echo htmlspecialchars($rolle["rolle_spiGroupId"],ENT_QUOTES);?>"/><br/>
-           (Personen dieser Rolle werden in der entsprechenden <a href="<?php echo htmlspecialchars($sPiBase)."/group/".htmlspecialchars($rolle["rolle_spiGroupId"],ENT_QUOTES);?>" target="_blank">sPi-Gruppe</a> dargestellt.)</li>
+           (Personen dieser Rolle werden in der entsprechenden <a href="<?php echo htmlspecialchars($sPiBase)."/group/".htmlspecialchars($rolle["rolle_spiGroupId"],ENT_QUOTES);?>" target="_blank">sPi-Gruppe</a> dargestellt.)
+        </li>
+        <li><label for="wahlDurchWikiSuffix">Wähler:</label><input type="text" name="wahlDurchWikiSuffix" value="<?php echo htmlspecialchars($rolle["rolle_wahlDurchWikiSuffix"],ENT_QUOTES);?>"/><br/>
+           (Suffix für Wiki-Seite mit Liste der neu zu wählenden / nachbesetzenden Vertreter.)
         </li>
        </ul>
        <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>
@@ -572,6 +580,8 @@ endif;
      <li>Rolle existent/aktiv?: <?php  if ($rolle["rolle_active"]): ?>Ja<?php  else: ?>Nein<?php  endif; ?></li>
      <li>sPi-Gruppen-Id: <? echo htmlspecialchars($rolle["rolle_spiGroupId"], ENT_QUOTES);?></li>
      <li>Personenzahl lt. Ordnung: <? echo htmlspecialchars($rolle["rolle_numPlatz"], ENT_QUOTES);?></li>
+     <li>Wähler: <? echo htmlspecialchars($rolle["rolle_wahlDurchWikiSuffix"], ENT_QUOTES);?></li>
+     <li>Wahlperiode: <? echo htmlspecialchars($rolle["rolle_wahlPeriodeDays"], ENT_QUOTES);?> Tage</li>
      <li>Aktion: <select name="action" size="1"><option value="rolle_gremium.disable" selected="selected">Rolle deaktivieren</option><option value="rolle_gremium.delete">Rolle löschen</option></select></li>
      </ul>
      <input type="hidden" name="id" value="<?php echo $rolle["rolle_id"];?>"/>

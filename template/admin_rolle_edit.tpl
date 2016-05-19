@@ -48,6 +48,8 @@ foreach ([
   "active" => "Rolle existent/aktiv?",
   "spiGroupId" => "sPi-Gruppen-Id",
   "numPlatz" => "Plätze",
+  "wahlDurchWikiSuffix" => "Wähler",
+  "wahlPeriodeDays" => "Wahlperiode",
  ] as $key => $desc):
 
 ?>
@@ -58,6 +60,15 @@ foreach ([
 
       <?php
         switch($key) {
+          case "wahlPeriodeDays":
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($rolle[$key]); ?>"> Tage
+<?php
+            break;
+          case "wahlDurchWikiSuffix":
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($rolle[$key]); ?>">
+           <i>(Suffix für Wiki-Seite mit der zu-wählen-Liste.)</i>
+<?php
+            break;
           case "numPlatz":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($rolle[$key]); ?>">
            <i>(Anzahl der Vertreter, die laut Ordnung benannt werden können.)</i>

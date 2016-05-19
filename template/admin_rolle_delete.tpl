@@ -48,6 +48,8 @@ foreach ([
   "active" => "Rolle existent/aktiv?",
   "spiGroupId" => "sPi-Gruppen-Id",
   "numPlatz" => "Plätze",
+  "wahlDurchWikiSuffix" => "Wähler",
+  "wahlPeriodeDays" => "Wahlperiode",
  ] as $key => $desc):
 
 ?>
@@ -77,6 +79,9 @@ foreach ([
             break;
           case "active":
             echo htmlspecialchars($rolle["$key"] ? "ja" : "nein");
+            break;
+          case "wahlPeriodeDays":
+            echo htmlspecialchars($rolle["$key"])." Tage";
             break;
           default:
             echo htmlspecialchars($rolle["$key"]);

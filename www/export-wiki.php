@@ -17,6 +17,7 @@ $rollen = getAlleRolle();
 $mapping = Array();
 $mapping_table = Array();
 $mapping_fulltable = Array();
+$mapping_nachbesetzung = Array();
 $name_gremien = Array();
 $name_rollen = Array();
 
@@ -86,6 +87,75 @@ foreach ($rollen as $rolle) {
     $rel_id = $person["rel_id"];
     $active = ($person["active"] == 1) ? "active" : "inactive";
     $mapping_fulltable[$wiki][$gremium_fak][$gremium_id][$rolle_id][$active][$rel_id] = $person;
+  }
+}
+
+// group roles by wiki page, skip empty wiki pages, and list all persons
+$gremium_isempty = [];
+foreach ($rollen as $rolle) {
+  if (!$rolle["rolle_active"]) continue;
+  if (!$rolle["gremium_active"]) continue;
+
+  $rolle_id = $rolle["rolle_id"];
+  $gremium_id = $rolle["gremium_id"];
+  $personen = getRollePersonen($rolle_id);
+
+  if (!isset($gremium_isempty[$gremium_id]))
+    $gremium_isempty[$gremium_id] = true;
+
+  foreach ($personen as $person) {
+    if ($person["active"] != 1)
+      continue;
+    $gremium_isempty[$gremium_id] = false;
+  }
+}
+
+foreach ($rollen as $rolle) {
+  if (!$rolle["rolle_active"]) continue;
+  if (!$rolle["gremium_active"]) continue;
+
+  $wiki = cleanID(":sgis:nachbesetzung:".$rolle["rolle_wahlDurchWikiSuffix"]);
+  $wiki2 = cleanID(":sgis:nachbesetzung");
+
+  $gremium_id = $rolle["gremium_id"];
+  $gremium_name = $rolle["gremium_name"];
+  $gremium_fak = $rolle["gremium_fakultaet"];
+  $rolle_id = $rolle["rolle_id"];
+  $wahlPeriodeDays = $rolle["rolle_wahlPeriodeDays"];
+  $name_gremien[$gremium_id] = $rolle;
+  $name_rollen[$gremium_id][$rolle_id] = $rolle;
+  $personen = getRollePersonen($rolle_id);
+  $gremium_sort = $gremium_fak . "|" . $gremium_name;
+
+  $isempty2 = $rolle["rolle_numPlatz"];
+  $lastUpdate = NULL;
+  foreach ($personen as $person) {
+    if ($person["active"] != 1)
+      continue;
+    $isempty2--;
+    $lastCheck = $person["lastCheck"];
+    if ($lastCheck === NULL) $lastCheck = $person["von"];
+    if ($lastUpdate === NULL || $lastUpdate < $lastCheck)
+    $lastUpdate = $lastCheck;
+  }
+
+  /* wenn Plätze leer sind ODER das Gremium länger nicht angefasst wurde, soll es gelistet werden */
+  if (($isempty2 <= 0) && (!$gremium_isempty[$gremium_id]) && ($lastUpdate !== NULL) && ($lastUpdate > date("Y-m-d", time() - $wahlPeriodeDays * 24 * 3600)))
+    continue;
+  if (($rolle["rolle_numPlatz"] == 0) && (!$gremium_isempty[$gremium_id]))
+    continue;
+
+  if ($wiki !== ":sgis:nachbesetzung:")
+    $mapping_nachbesetzung[$wiki][$gremium_sort][$gremium_id][$rolle_id]["active"] = [];
+  $mapping_nachbesetzung[$wiki2][$gremium_sort][$gremium_id][$rolle_id]["active"] = [];
+
+  foreach ($personen as $person) {
+    $rel_id = $person["rel_id"];
+    if ($person["active"] != 1)
+      continue;
+    if ($wiki !== ":sgis:nachbesetzung:")
+      $mapping_nachbesetzung[$wiki][$gremium_sort][$gremium_id][$rolle_id]["active"][$rel_id] = $person;
+    $mapping_nachbesetzung[$wiki2][$gremium_sort][$gremium_id][$rolle_id]["active"][$rel_id] = $person;
   }
 }
 
@@ -259,6 +329,73 @@ foreach ($mapping_fulltable as $wiki => $data) {
 
   ksort($data);
   foreach ($data as $gremium_fak => $data1) {
+    foreach ($data1 as $gremium_id => $data2) {
+      $g = $name_gremien[$gremium_id];
+      $gname = trim($g["gremium_name"]);
+
+      if (!$g["gremium_active"]) continue;
+
+      $lastUpdate = NULL;
+      foreach ($data2 as $rolle_id => $personen) {
+        $r = $name_rollen[$gremium_id][$rolle_id];
+        if (!$r["rolle_active"]) continue;
+        if (empty($personen["active"])) continue;
+        foreach($personen["active"] as $person) {
+          $lastCheck = $person["lastCheck"];
+          if ($lastCheck === NULL) $lastCheck = $person["von"];
+          if ($lastUpdate === NULL || $lastUpdate < $lastCheck)
+            $lastUpdate = $lastCheck;
+        }
+      }
+      if ($lastUpdate === NULL)
+        $lastUpdate = "n/a";
+
+      $prefix = preg_replace("/\s+/"," ","| $gname {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]} | {$g["gremium_fakultaet"]} | {$lastUpdate} | ");
+      $isempty = true;
+
+      foreach ($data2 as $rolle_id => $personen) {
+        $r = $name_rollen[$gremium_id][$rolle_id];
+        $isempty2 = $r["rolle_numPlatz"];
+
+        if (!$r["rolle_active"]) continue;
+
+        if (!empty($personen["active"])) {
+          $isempty = false;
+          foreach($personen["active"] as $person) {
+            $isempty2--;
+            $text[] = $prefix.person2string($person)." | {$r["rolle_name"]} |";
+            $prefix = "| ::: | ::: | ::: | ";
+          }
+        }
+        for($i = 0; $i < $isempty2; $i++) {
+          $isempty = false;
+          $text[] = "{$prefix}//unbesetzt// | {$r["rolle_name"]} |";
+          $prefix = "| ::: | ::: | ::: | ";
+        }
+      }
+      if ($isempty) {
+        $text[] = "{$prefix}//unbesetzt// | |";
+      }
+    }
+
+  } /* $gremium_name */
+
+  $text[] = "";
+
+  $pages[$wiki]["new"] = $text;
+}
+
+foreach ($mapping_nachbesetzung as $wiki => $data) {
+  $text = Array();
+  if (isset($pages[$wiki]["new"]))
+    $text = $pages[$wiki]["new"];
+
+  $text[] = "====== studentische Mitglieder (Ilmenau) ======";
+  $text[] = "";
+  $text[] = "^ Gremium ^ Fak ^ letzte Aktualisierung ^ Mitglieder ^ Bemerkungen ^";
+
+  ksort($data);
+  foreach ($data as $gremium_sort => $data1) {
     foreach ($data1 as $gremium_id => $data2) {
       $g = $name_gremien[$gremium_id];
       $gname = trim($g["gremium_name"]);
