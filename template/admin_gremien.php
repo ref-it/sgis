@@ -23,6 +23,8 @@
          (beginnt immer mit ":sgis:mitglieder:", beispw. :sgis:mitglieder:studierendenrat)</li>
      <li><label for="wiki_members_fulltable">Wiki-Seite mit Mitgliederliste in Tabellenform (Unterschiedliche Gremiennamen):</label><input type="text" name="wiki_members_fulltable" value="" placeholder=":sgis:mitglieder:<name>"/><br/>
          (beginnt immer mit ":sgis:mitglieder:", beispw. :sgis:mitglieder:studierendenrat)</li>
+     <li><label for="wiki_members_fulltable2">Wiki-Seite mit Mitgliederliste in Tabellenform (Unterschiedliche Gremiennamen):</label><input type="text" name="wiki_members_fulltable2" value="" placeholder=":sgis:mitglieder:<name>"/><br/>
+         (beginnt immer mit ":sgis:mitglieder:", beispw. :sgis:mitglieder:studierendenrat)</li>
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
          <select name="active" size="1" selected="selected"><option value="1" >Ja, derzeit existent</option><option value="0" >Nein, derzeit nicht existent</option></select>
      </li>
@@ -81,6 +83,7 @@ foreach ($alle_gremien as $i => $gremium):
   $struct_gremien[$last_struct_id]["wiki_members"] = $gremium["gremium_wiki_members"];
   $struct_gremien[$last_struct_id]["wiki_members_table"] = $gremium["gremium_wiki_members_table"];
   $struct_gremien[$last_struct_id]["wiki_members_fulltable"] = $gremium["gremium_wiki_members_fulltable"];
+  $struct_gremien[$last_struct_id]["wiki_members_fulltable2"] = $gremium["gremium_wiki_members_fulltable2"];
   if ($gremium["rolle_id"] !== NULL)
     $struct_gremien[$last_struct_id]["rollen"][] = Array("rolle_name" => $gremium["rolle_name"], "rolle_id" => $gremium["rolle_id"], "rolle_active" => (int) $gremium["rolle_active"], "rolle_spiGroupId" => $gremium["rolle_spiGroupId"], "rolle_numPlatz" => $gremium["rolle_numPlatz"], "rolle_wahlDurchWikiSuffix" => $gremium["rolle_wahlDurchWikiSuffix"], "rolle_wahlPeriodeDays" => $gremium["rolle_wahlPeriodeDays"]);
   else
@@ -144,6 +147,7 @@ foreach ($struct_gremien as $i => $gremium):
      <li><label for="wiki_members"        >Wiki-Seite für Mitglieder: </label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="wiki_members_table"  >Wiki-Seite für Mitglieder (Tabellenform): </label><input type="text" name="wiki_members_table" value="<?php echo htmlspecialchars($gremium["wiki_members_table"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="wiki_members_fulltable"  >Wiki-Seite für Mitglieder (Tabellenform für mehrere Gremiennamen): </label><input type="text" name="wiki_members_fulltable" value="<?php echo htmlspecialchars($gremium["wiki_members_fulltable"],ENT_QUOTES);?>" readonly="readonly"/></li>
+     <li><label for="wiki_members_fulltable2"  >Wiki-Seite für Mitglieder (Tabellenform für mehrere Gremiennamen): </label><input type="text" name="wiki_members_fulltable2" value="<?php echo htmlspecialchars($gremium["wiki_members_fulltable2"],ENT_QUOTES);?>" readonly="readonly"/></li>
      <li><label for="active"              >Gremium existent/aktiv?:   </label><?php  if ($gremium["active"]): ?>Ja<?php  else: ?>Nein<?php  endif; ?></li>
      <li><label for="action"              >Aktion:                    </label><select name="action" size="1"><option value="gremium.disable" selected="selected">Gremium deaktivieren</option><option value="gremium.delete">Gremium löschen</option></select></li>
     </ul>
@@ -187,6 +191,7 @@ endif;
      <li><label for="wiki_members">Wiki-Seite für Mitglieder:</label><input type="text" name="wiki_members" value="<?php echo htmlspecialchars($gremium["wiki_members"],ENT_QUOTES);?>" /> <br/><i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i></li>
      <li><label for="wiki_members_table">Wiki-Seite für Mitglieder (Tabellenform):</label><input type="text" name="wiki_members_table" value="<?php echo htmlspecialchars($gremium["wiki_members_table"],ENT_QUOTES);?>" /> <br/><i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i></li>
      <li><label for="wiki_members_fulltable">Wiki-Seite für Mitglieder (Tabellenform für mehrere Gremiennamen):</label><input type="text" name="wiki_members_fulltable" value="<?php echo htmlspecialchars($gremium["wiki_members_fulltable"],ENT_QUOTES);?>" /> <br/><i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i></li>
+     <li><label for="wiki_members_fulltable2">Wiki-Seite für Mitglieder (Tabellenform für mehrere Gremiennamen):</label><input type="text" name="wiki_members_fulltable2" value="<?php echo htmlspecialchars($gremium["wiki_members_fulltable2"],ENT_QUOTES);?>" /> <br/><i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i></li>
      <li><label for="active"  >Gremium existent/aktiv?:        </label>
          <select name="active" size="1"><option value="1" <?php  if ($gremium["active"]) echo "selected=\"selected\""; ?>>Ja, derzeit existent</option><option value="0" <?php  if (!$gremium["active"]) echo "selected=\"selected\""; ?>>Nein, derzeit nicht existent</option></select>
      </li>

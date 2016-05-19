@@ -67,8 +67,9 @@ foreach ($rollen as $rolle) {
 }
 
 // group roles by wiki page, skip empty wiki pages, and list all persons
-foreach ($rollen as $rolle) {
-  $wiki = cleanID($rolle["gremium_wiki_members_fulltable"]);
+foreach (["gremium_wiki_members_fulltable","gremium_wiki_members_fulltable2"] as $key) {
+ foreach ($rollen as $rolle) {
+  $wiki = cleanID($rolle[$key]);
   if (empty($wiki)) continue;
   if (substr($wiki,0,strlen($wikiprefix)) != $wikiprefix) {
     $gname = preg_replace("/\s+/"," ",trim("{$rolle["gremium_name"]} {$rolle["gremium_fakultaet"]} {$rolle["gremium_studiengang"]} {$rolle["gremium_studiengangabschluss"]}"));
@@ -88,6 +89,7 @@ foreach ($rollen as $rolle) {
     $active = ($person["active"] == 1) ? "active" : "inactive";
     $mapping_fulltable[$wiki][$gremium_fak][$gremium_id][$rolle_id][$active][$rel_id] = $person;
   }
+ }
 }
 
 // group roles by wiki page, skip empty wiki pages, and list all persons
@@ -323,8 +325,8 @@ foreach ($mapping_fulltable as $wiki => $data) {
   if (isset($pages[$wiki]["new"]))
     $text = $pages[$wiki]["new"];
 
-  $text[] = "====== studentische Mitglieder (Ilmenau) ======";
-  $text[] = "";
+#  $text[] = "====== studentische Mitglieder (Ilmenau) ======";
+#  $text[] = "";
   $text[] = "^ Gremium ^ Fak ^ letzte Aktualisierung ^ Mitglieder ^ Bemerkungen ^";
 
   ksort($data);
@@ -390,8 +392,8 @@ foreach ($mapping_nachbesetzung as $wiki => $data) {
   if (isset($pages[$wiki]["new"]))
     $text = $pages[$wiki]["new"];
 
-  $text[] = "====== studentische Mitglieder (Ilmenau) ======";
-  $text[] = "";
+#  $text[] = "====== studentische Mitglieder (Ilmenau) ======";
+#  $text[] = "";
   $text[] = "^ Gremium ^ Fak ^ letzte Aktualisierung ^ Mitglieder ^ Bemerkungen ^";
 
   ksort($data);

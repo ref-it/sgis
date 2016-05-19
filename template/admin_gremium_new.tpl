@@ -20,6 +20,7 @@ foreach ([
   "wiki_members" => "Wiki-Seite für Mitglieder",
   "wiki_members_table" => "Wiki-Seite für Mitglieder (Tabellenform)",
   "wiki_members_fulltable" => "Wiki-Seite für Mitglieder (Tabellenform für mehrere Gremiennamen)",
+  "wiki_members_fulltable2" => "Wiki-Seite für Mitglieder (Tabellenform für mehrere Gremiennamen)",
   "active" => "Gremium existent/aktiv?",
  ] as $key => $desc):
 
@@ -34,6 +35,7 @@ foreach ([
           case "wiki_members":
           case "wiki_members_table":
           case "wiki_members_fulltable":
+          case "wiki_members_fulltable2":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="">
            <i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i>
 <?php
