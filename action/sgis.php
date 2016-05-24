@@ -23,7 +23,10 @@ class action_plugin_sgis_sgis extends DokuWiki_Action_Plugin {
     }
 
     public function add_menu_item(Doku_Event $event, $param) {
-        global $ACT, $INFO, $USERINFO, $lang;
+        global $USERINFO, $lang;
+
+        if ($USERINFO === NULL)
+          return;
 
         $isSgis = in_array("sgis", $USERINFO['grps']);
 
