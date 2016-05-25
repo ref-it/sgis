@@ -34,6 +34,14 @@ $lang = array(
 		'en' => 'A field was empty. You have to fill all fields.',
 		'de' => 'Ein Feld wurde leergelassen. Bitte fülle alle Felder aus.',
 	),
+	'sgis_error_desc_invalidusername' => array (
+		'en' => 'Invalid username.',
+		'de' => 'Unzulässiger Nutzername.',
+	),
+	'sgis_error_header_invalidusername' => array (
+		'en' => 'Please choose a different username.',
+		'de' => 'Bitte wähle einen anderen Nutzernamen.',
+	),
 	'remember_password' => array (
 		'en' => 'Remember my login',
 		'de' => 'Dauerhaft einloggen',

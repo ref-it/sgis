@@ -41,9 +41,13 @@ if (array_key_exists('yes', $_REQUEST)) {
       $passwordHash = $pwObj->createPasswordHash($password);
 
       $query = $pdo->prepare("UPDATE {$prefix}person SET username = ?, password = ? WHERE id = ?");
-      $query->execute(Array($username, $passwordHash, $person_id));
+      $ret = $query->execute(Array($username, $passwordHash, $person_id));
 
-      SimpleSAML_Auth_ProcessingChain::resumeProcessing($state);
+      if ($ret === true) {
+        SimpleSAML_Auth_ProcessingChain::resumeProcessing($state);
+      } else {
+        $errorCode = "invalidusername";
+      }
     } else {
       $errorCode = "fieldmissing";
     }

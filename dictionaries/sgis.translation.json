@@ -13,9 +13,15 @@
 	},
 	"sgis_error_header_fieldmissing" : {
 		"de": "Ein Feld wurde nicht ausgefüllt"
-        },
+  },
 	"sgis_error_desc_fieldmissing": {
 		"de": "Ein Feld wurde leergelassen. Bitte fülle alle Felder aus."
+	},
+	"sgis_error_header_invalidusername" : {
+		"de": "Unzulässiger Nutzername."
+  },
+	"sgis_error_desc_invalidusername": {
+		"de": "Bitte wähle einen anderen Nutzernamen."
 	},
 	"remember_password": {
 		"de": "Dauerhaft einloggen"

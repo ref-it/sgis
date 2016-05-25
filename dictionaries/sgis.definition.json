@@ -17,6 +17,12 @@
 	"sgis_error_desc_fieldmissing": {
 		"en": "A field was empty. You have to fill all fields."
 	},
+	"sgis_error_header_invalidusername": {
+		"en": "Invalid username."
+	},
+	"sgis_error_desc_invalidusername": {
+		"en": "Please choose a different username."
+	},
 	"remember_password": {
 		"en": "Remember my login"
 	},
