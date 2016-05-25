@@ -1,5 +1,7 @@
 <?php
 
+global $logoutUrl;
+
 include SGISBASE."/template/header.tpl";
 
 ?>
