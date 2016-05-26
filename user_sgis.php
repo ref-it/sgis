@@ -66,7 +66,7 @@ class OC_USER_SGIS {
         if ($recur > 0) return false;
         $recur++;
 
-        OC_Log::write('OC_USER_SGIS', "Entering checkPassword() for UID: $uid", OC_Log::DEBUG);
+        OCP\Util::writeLog('OC_USER_SGIS', "Entering checkPassword() for UID: $uid", OCP\Util::DEBUG);
         if (OC_User::userExists($uid)) {
             if (OC_Group::inGroup($uid, $this->group)) {
                 try {
@@ -160,14 +160,16 @@ class OC_USER_SGIS {
 
 
     protected function updateUserFromSGIS($uid, $reply) {
+        unset($this->todoDisplayName);
+
         if (!isset($reply["person"])) {
             # user not present in SGIS
             # don't delete it now due to data access
             OC_User::disableUser($uid);
         } else {
             # OwnCloud has only email field and groups
-            OC_Preferences::setValue($uid, 'settings', 'email', $reply["person"]["email"]);
-//            OC_Preferences::setValue($uid, 'files', 'quota', 10 * 1024 * 1024 * 1024);
+            \OC::$server->getConfig()->setUserValue($uid, "settings", "email", $reply["person"]["email"], NULL);
+//            \OC::$server->getConfig()->setUserValue($uid, 'files', 'quota', 10 * 1024 * 1024 * 1024, NULL);
             if ($reply["canLogin"]) {
                 if (!OC_User::isEnabled($uid))
                     OC_User::enableUser($uid);
@@ -176,7 +178,8 @@ class OC_USER_SGIS {
                     OC_User::disableUser($uid);
             }
             if (!empty($reply["person"]["name"])) {
-                OC_User::setDisplayName($uid, $reply["person"]["name"]);
+                $this->todoUid = $uid;
+                $this->todoDisplayName = $reply["person"]["name"];
             }
         }
         # Group management deferred, as addToGroup -> OC_Filesystem-Hook -> Fails due to OC_Failsystem::init not called.
@@ -185,12 +188,17 @@ class OC_USER_SGIS {
     }
 
     public function updateUserFromSGISReally() {
-        if (!isset($this->todoUid) || !isset($this->todoGroups)) return;
+      if (isset($this->todoUid) && isset($this->todoGroups)) {
         $uid = $this->todoUid;
         $grps = $this->todoGroups;
         $this->update_groups($uid, $grps);
-        unset($this->todoUid);
         unset($this->todoGroups);
+      }
+      if (isset($this->todoUid) && isset($this->todoDisplayName)) {
+        OC_User::setDisplayName($uid, $this->todoDisplayName);
+        unset($this->todoDisplayName);
+      }
+      unset($this->todoUid);
     }
 
     protected function update_groups($uid, $groups, $addToGroups = true) {
@@ -199,21 +207,21 @@ class OC_USER_SGIS {
         foreach($old_groups as $group) {
             if (in_array(strtolower($group), array_map('strtolower', $groups))) continue;
             OC_Group::removeFromGroup($uid,$group);
-            OC_Log::write('saml','Removed "'.$uid.'" from the group "'.$group.'"', OC_Log::DEBUG);
+            OCP\Util::writeLog('saml','Removed "'.$uid.'" from the group "'.$group.'"', OCP\Util::DEBUG);
         }
         if ($addToGroups) {
             foreach($groups as $group) {
                 if (preg_match( '/[^a-zA-Z0-9 _\.@\-]/', $group)) {
-                    OC_Log::write('saml','Invalid group "'.$group.'", allowed chars "a-zA-Z0-9" and "_.@-" ',OC_Log::DEBUG);
+                    OCP\Util::writeLog('saml','Invalid group "'.$group.'", allowed chars "a-zA-Z0-9" and "_.@-" ',OCP\Util::DEBUG);
                 }
                 else {
                     if (!OC_Group::groupExists($group)) {
                         OC_Group::createGroup($group);
-                        OC_Log::write('saml','New group created: '.$group, OC_Log::DEBUG);
+                        OCP\Util::writeLog('saml','New group created: '.$group, OCP\Util::DEBUG);
                     } 
                     if (OC_Group::groupExists($group) && !OC_Group::inGroup($uid, $group)) {
                         OC_Group::addToGroup($uid, $group);
-                        OC_Log::write('saml','Added "'.$uid.'" to the group "'.$group.'"', OC_Log::DEBUG);
+                        OCP\Util::writeLog('saml','Added "'.$uid.'" to the group "'.$group.'"', OCP\Util::DEBUG);
                     }
                 }
             }
