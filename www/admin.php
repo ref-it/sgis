@@ -17,6 +17,10 @@ function trimMe($d) {
   }
 }
 
+#debug
+#foreach ($_GET as $k => $v)
+#  $_POST[$k]=$v;
+
 if (isset($_POST["action"])) {
  $msgs = Array();
  $ret = false;
@@ -118,6 +122,15 @@ if (isset($_POST["action"])) {
      SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}gremium_current", /* primary key */ "id", $columns )
    );
   exit;
+#  case "rolle.table.debug":
+#    global $pdo, $DB_PREFIX;
+#    $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}rolle_searchable_mailingliste");
+#    $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+#    header("Content-type: text/plain");
+#    while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+#      print_r($row);
+#    }
+#  exit;
   case "rolle.table":
    header("Content-Type: text/json; charset=UTF-8");
 

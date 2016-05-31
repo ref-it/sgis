@@ -280,7 +280,7 @@ if ($r === false) {
       FROM {$DB_PREFIX}gremium g
            INNER JOIN {$DB_PREFIX}rolle r ON r.gremium_id = g.id
            JOIN {$DB_PREFIX}mailingliste m
-           LEFT JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rrm.rolle_id = r.id AND rrm.mailingliste_id
+           LEFT JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rrm.rolle_id = r.id AND rrm.mailingliste_id = m.id
    ")
   or httperror(print_r($pdo->errorInfo(),true));
 }
