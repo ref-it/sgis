@@ -69,6 +69,7 @@ if ($rolle !== false) {
   "gremium_studiengang" => "Fach",
   "gremium_studiengangabschluss" => "Abschluss",
   "active" => "Aktiv",
+  "fullname" => false,
  ];
 
 ?>
