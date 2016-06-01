@@ -3,6 +3,8 @@
 /**
 * ownCloud - user_sgis
 *
+* @author Michael Braun
+* @copyright 2012-2016 Michael Braun <michael-dev (at) fami-braun (dot) de>
 * @author Andreas Böhler
 * @copyright 2012 Andreas Böhler <andreas (at) aboehler (dot) at>
 *
