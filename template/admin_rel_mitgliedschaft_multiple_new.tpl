@@ -129,6 +129,7 @@ foreach ([
     <div class="col-sm-9">
 
       <?php
+        $val = "";
         switch($key) {
           case "duplicate":
 ?>         <select name="duplicate" size="1" class="selectpicker" data-width="fit">
@@ -137,9 +138,10 @@ foreach ([
            </select><?php
             break;
           case"von":
+           $val = date("Y-m-d");
           case"bis":
           case"lastCheck":
-?>         <input class="form-control datepicker" type="text" name="<?php echo htmlspecialchars($key); ?>" value=""><?php
+?>         <input class="form-control datepicker" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($val); ?>"><?php
             break;
           case"kommentar":
 ?>         <textarea class="form-control" name="<?php echo htmlspecialchars($key); ?>"></textarea><?php
