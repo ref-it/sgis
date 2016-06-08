@@ -160,6 +160,7 @@ unset($mailingliste);
 function parseMembersPage($output, $url, &$members) {
   $matches = Array();
   preg_match_all( '/<INPUT name="user" type="HIDDEN" value="([^"]*)" >/', $output, $matches);
+#echo "$url ".count($matches[1])." <br>\n";
   foreach ($matches[1] as $member) {
     $members[] = urldecode($member);
   }

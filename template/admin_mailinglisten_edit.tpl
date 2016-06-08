@@ -155,10 +155,13 @@ endforeach;
       </nobr>
      </td>
     </tr>
-    <?php
+<?php
     endforeach;
+?>
+    <tr><td colspan="2"><i>Anzahl der Personen: <?php echo count($personen); ?></i></td></tr>
+<?php
     endif;
-    ?>
+?>
   </table>
  </div>
 </div>
