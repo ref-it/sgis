@@ -120,6 +120,7 @@ foreach ([
   "lastCheck" => "zuletzt überprüft am",
   "kommentar" => "Kommentar",
   "duplicate" => "Bei bestehender aktiver Zuordnung",
+  "personfromuni" => "Person bei Bedarf mit Daten aus Uni-LDAP anlegen",
  ] as $key => $desc):
 
 ?>
@@ -131,8 +132,14 @@ foreach ([
       <?php
         $val = "";
         switch($key) {
+          case "personfromuni":
+?>         <select name="<?php echo htmlspecialchars($key); ?>" size="1">
+              <option value="1">Ja</option>
+              <option value="0" selected="selected">Nein</option>
+           </select><?php
+            break;
           case "duplicate":
-?>         <select name="duplicate" size="1" class="selectpicker" data-width="fit">
+?>         <select name="<?php echo htmlspecialchars($key); ?>" size="1" class="selectpicker" data-width="fit">
               <option value="skip" selected="selected">Person nicht hinzufügen</option>
               <option value="ignore" >Person dennoch hinzufügen</option>
            </select><?php

@@ -1,6 +1,7 @@
 <?php
 
-global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP, $rpcKey, $wikiUrl, $CA_file, $rpcKey2, $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file;
+global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP, $rpcKey, $wikiUrl, $CA_file, $rpcKey2, $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file, $autoExportPW;
+global $unimail, $unildaphost, $unildapbase;
 
 $DB_DSN = "FIXME";
 $DB_USERNAME = "FIXME";
@@ -24,4 +25,11 @@ $sPiGroupGet = "/api/group/%d/members/get";
 $sPiUser = "FIXME";
 $sPiPassword = "FXIME";
 $sPiCA_file = dirname(__FILE__).'/ca.pem';
+
+# md5(very secret)
+$autoExportPW = "...."
+
+$unimail = Array("tu-ilmenau.de","stud.tu-ilmenau.de");
+$unildaphost = "imp.tu-ilmenau.de";
+$unildapbase = "ou=members,dc=tu-ilmenau,dc=de";
 

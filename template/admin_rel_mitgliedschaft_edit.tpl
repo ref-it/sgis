@@ -35,6 +35,7 @@ $person = getPersonDetailsById($rel["person_id"]);
     <div class="col-sm-9">
       <div class="form-control">
 <?php
+   echo htmlspecialchars($rolle["name"])." in ";
 
    echo htmlspecialchars($gremium["name"])." ";
 

@@ -315,20 +315,33 @@ if (isset($_POST["action"])) {
    } else {
      $emails = explode("\n", $_REQUEST["email"]);
      foreach ($emails as $email) {
-       $email = trim($email);
+       $email = strtolower(trim($email));
        if (empty($email)) continue;
        $person = getPersonDetailsByMail($email);
+       if ($person === false && $_POST["personfromuni"]) {
+         $r = verify_tui_mail($email);
+         if ($r !== false && $r["givenName"] && $r["sn"]) {
+           $name = ucfirst(trim($r["givenName"]))." ".ucfirst(trim($r["sn"]));
+           $ret = dbPersonInsert($name,$email,"","","",true);
+           if ($ret !== false) {
+             $person = ["id" => $ret];
+             $msgs[] = "OK  Person $name <$email> wurde angelegt.";
+           } else {
+             $msgs[] = "ERR Person $name <$email> wurde nicht angelegt.";
+           }
+         }
+       }
        if ($person === false) {
-         $msgs[] = "Personen-Rollenzuordnung: $email wurde nicht gefunden.";
+         $msgs[] = "ERR Personen $email wurde nicht gefunden.";
          continue;
        }
        $rel_mems = getActiveMitgliedschaftByMail(trim($email), $_POST["rolle_id"]);
        if ($rel_mems === false || count($rel_mems) == 0 || $_POST["duplicate"] == "ignore") {
          $ret2 = dbPersonInsertRolle($person["id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["lastCheck"],$_POST["kommentar"]);
          $ret = $ret && $ret2;
-         $msgs[] = "Person-Rollen-Zuordnung für $email wurde erstellt.";
+         $msgs[] = "OK  Person-Rollen-Zuordnung für $email wurde erstellt.";
        } else {
-         $msgs[] = "Person-Rollen-Zuordnung für $email wurde übersprungen.";
+         $msgs[] = "IGN Person-Rollen-Zuordnung für $email wurde übersprungen.";
        }
      }
      $ret = true;

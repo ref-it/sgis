@@ -35,6 +35,8 @@ $person = getPersonDetailsById($rel["person_id"]);
       <div class="form-control">
 <?php
 
+   echo htmlspecialchars($rolle["name"])." in ";
+
    echo htmlspecialchars($gremium["name"])." ";
 
   if (!empty($gremium["studiengang"])) {
