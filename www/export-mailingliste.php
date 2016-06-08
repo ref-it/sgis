@@ -126,7 +126,7 @@ while (count($fetchRequests) > 0) {
     $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
     if (!isset($fetchRequests[$id]["letter"])) {
       // need to fetch per-letter page
-      $letters = parseLettersPage($result, $fetchRequests[$id]["url"]);
+      $letters = parseLettersPage($result, $url);
       foreach ($letters as $letter) {
         $newFetchRequests[] = Array("url" => $url.'?'.http_build_query(Array("letter" => $letter)),
                                     "post" => Array("adminpw" => $mailingliste["password"]),
@@ -136,7 +136,7 @@ while (count($fetchRequests) > 0) {
     } elseif (!isset($fetchRequests[$id]["chunk"])) {
       // need to fetch per-chunk page
       $letter = $fetchRequests[$id]["letter"];
-      $chunks = parseLettersPage($result, $fetchRequests[$id]["url"]);
+      $chunks = parseChunksPage($result, $url);
       foreach ($chunks as $chunk) {
         $newFetchRequests[] = Array("url" => $url.'?'.http_build_query(Array("letter" => $letter, "chunk" => $chunk)),
                                     "post" => Array("adminpw" => $mailingliste["password"]),
@@ -160,7 +160,6 @@ unset($mailingliste);
 function parseMembersPage($output, $url, &$members) {
   $matches = Array();
   preg_match_all( '/<INPUT name="user" type="HIDDEN" value="([^"]*)" >/', $output, $matches);
-#echo "$url ".count($matches[1])." <br>\n";
   foreach ($matches[1] as $member) {
     $members[] = urldecode($member);
   }
