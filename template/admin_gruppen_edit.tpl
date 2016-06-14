@@ -147,8 +147,11 @@ endforeach;
       </a>
      </td>
      <td>
-       <a href="mailto:<?php echo htmlspecialchars($person["email"]); ?>" target="_blank">
-         <?php echo htmlspecialchars($person["email"]); ?>
+<?php
+    $emails = explode(",", $person["email"]);
+?>
+       <a href="mailto:<?php echo htmlspecialchars($emails[0]); ?>" title="<?php echo htmlspecialchars($person["email"]); ?>" target="_blank">
+         <?php echo htmlspecialchars($emails[0]); ?>
        </a>
       </nobr>
      </td>
