@@ -10,19 +10,53 @@ $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person");
 if ($r === false) {
   $pdo->query("CREATE TABLE {$DB_PREFIX}person (
                 id INT NOT NULL AUTO_INCREMENT,
-                email VARCHAR(128) NOT NULL,
                 name VARCHAR(128) NOT NULL,
                 username VARCHAR(128) NULL,
                 password VARCHAR(256) NULL,
                 unirzlogin VARCHAR(128) NULL,
                 lastLogin TIMESTAMP NULL,
                 canLogin BOOLEAN NOT NULL DEFAULT 1,
-                UNIQUE (email),
                 UNIQUE (username),
                 UNIQUE (unirzlogin),
                 PRIMARY KEY (id)
                ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.person.php';
+}
+
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_email");
+if ($r === false) {
+  $pdo->beginTransaction();
+  $pdo->query("CREATE TABLE {$DB_PREFIX}person_email (
+                person_id INT NOT NULL,
+                srt INT NOT NULL,
+                email VARCHAR(128) NOT NULL,
+                PRIMARY KEY (email),
+                FOREIGN KEY (person_id) REFERENCES {$DB_PREFIX}person(id) ON DELETE CASCADE
+               ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
+  $r = $pdo->query("SELECT email FROM {$DB_PREFIX}person");
+  if ($r !== false) {
+    $pdo->query("INSERT INTO {$DB_PREFIX}person_email (person_id, srt, email) SELECT id, 1, email FROM {$DB_PREFIX}person");
+    $pdo->query("ALTER TABLE {$DB_PREFIX}person DROP COLUMN email");
+  }
+  $pdo->commit();
+}
+
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_email_primary_ids");
+if ($r === false) {
+  $pdo->query("CREATE VIEW {$DB_PREFIX}person_email_primary_ids AS
+     SELECT person_id, MIN(srt) as srt
+       FROM {$DB_PREFIX}person_email
+   GROUP BY person_id;")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_email_primary");
+if ($r === false) {
+  $pdo->query("CREATE OR REPLACE VIEW {$DB_PREFIX}person_email_primary AS
+     SELECT person_id, srt, email
+       FROM {$DB_PREFIX}person_email NATURAL JOIN {$DB_PREFIX}person_email_primary_ids
+   GROUP BY person_id;")
+  or httperror(print_r($pdo->errorInfo(),true));
 }
 
 # Gremium & Rollen
@@ -208,6 +242,16 @@ if ($r === false) {
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
+#$pdo->query("DROP VIEW {$DB_PREFIX}person_has_unimail");
+$r = $pdo->query("SELECT * FROM {$DB_PREFIX}person_has_unimail");
+if ($r === false) {
+  $pdo->query("CREATE VIEW {$DB_PREFIX}person_has_unimail AS
+     SELECT DISTINCT pe.person_id as person_id
+       FROM {$DB_PREFIX}person_email pe
+      WHERE email LIKE '%@tu-ilmenau.de';")
+  or httperror(print_r($pdo->errorInfo(),true));
+}
+
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_can_login");
 if ($r === false) {
   $pdo->query("CREATE VIEW {$DB_PREFIX}person_can_login AS
@@ -219,13 +263,18 @@ SELECT DISTINCT p.id as person_id, p.canLogin XOR (rm.gremium_id IS NOT NULL) as
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
-$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_current");
+$r = $pdo->query("DROP VIEW {$DB_PREFIX}person_current");
+$r = $pdo->query("SELECT hasUniMail FROM {$DB_PREFIX}person_current LIMIT 1");
+#$r = $pdo->query("SELECT * FROM {$DB_PREFIX}person_current LIMIT 1");
 if ($r === false) {
-  $pdo->query("CREATE VIEW {$DB_PREFIX}person_current AS
-SELECT p.*, ap.person_id IS NOT NULL as active, lp.canLoginCurrent as canLoginCurrent
+  $pdo->query("CREATE OR REPLACE VIEW {$DB_PREFIX}person_current AS
+SELECT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email, ap.person_id IS NOT NULL as active, lp.canLoginCurrent as canLoginCurrent, hu.person_id IS NOT NULL as hasUniMail
    FROM {$DB_PREFIX}person p
+        LEFT JOIN {$DB_PREFIX}person_email pe ON p.id = pe.person_id
         LEFT JOIN {$DB_PREFIX}person_is_active ap ON ap.person_id = p.id
-        LEFT JOIN {$DB_PREFIX}person_can_login lp ON lp.person_id = p.id;")
+        LEFT JOIN {$DB_PREFIX}person_can_login lp ON lp.person_id = p.id
+        LEFT JOIN {$DB_PREFIX}person_has_unimail hu ON hu.person_id = p.id
+GROUP BY p.id;")
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
@@ -314,7 +363,7 @@ function logAppend($logId, $key, $value) {
 
 function getPersonDetailsById($id) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}person WHERE id = ?");
+  $query = $pdo->prepare("SELECT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON p.id = pe.person_id WHERE p.id = ? GROUP BY p.id");
   $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
   if ($query->rowCount() == 0) return false;
   return $query->fetch(PDO::FETCH_ASSOC);
@@ -322,7 +371,13 @@ function getPersonDetailsById($id) {
 
 function getPersonDetailsByMail($mail) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}person WHERE email LIKE ?");
+  $query = $pdo->prepare("
+SELECT p.*, GROUP_CONCAT(DISTINCT pe1.email ORDER BY pe1.srt) as email
+  FROM {$DB_PREFIX}person p
+       LEFT JOIN {$DB_PREFIX}person_email pe1 ON p.id = pe1.person_id
+       LEFT JOIN {$DB_PREFIX}person_email pe2 ON p.id = pe2.person_id
+ WHERE pe2.email LIKE ?
+ GROUP BY p.id");
   $query->execute(Array($mail)) or httperror(print_r($query->errorInfo(),true));
   if ($query->rowCount() == 0) return false;
   return $query->fetch(PDO::FETCH_ASSOC);
@@ -330,7 +385,12 @@ function getPersonDetailsByMail($mail) {
 
 function getPersonDetailsByUsername($username) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}person WHERE username LIKE ?");
+  $query = $pdo->prepare("
+SELECT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email
+  FROM {$DB_PREFIX}person p
+       LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id
+ WHERE username LIKE ?
+GROUP BY p.id");
   $query->execute(Array($username)) or httperror(print_r($query->errorInfo(),true));
   if ($query->rowCount() == 0) return false;
   return $query->fetch(PDO::FETCH_ASSOC);
@@ -460,9 +520,27 @@ function getAlleRolle() {
 
 function getAllePerson() {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT p.*, (rm.id IS NOT NULL) AS active FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON p.id = rm.person_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) GROUP BY p.id ORDER BY RIGHT(email, LENGTH(email) - POSITION( '@' in email)), LEFT(email, POSITION( '@' in email))");
+  $query = $pdo->prepare("SELECT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email, (rm.id IS NOT NULL) AS active FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON p.id = rm.person_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) LEFT JOIN {$DB_PREFIX}person_email pe ON p.id = pe.person_id GROUP BY p.id ORDER BY p.name");
   $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function dbPersonMerge($person_id, $target_id) {
+  global $pdo, $DB_PREFIX;
+  $pdo->beginTransaction() or httperror(print_r($query->errorInfo(),true));
+
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET person_id = ? WHERE person_id = ?");
+  $query->execute([$target_id, $person_id]) or httperror(print_r($query->errorInfo(),true));
+
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person_email SET person_id = ? WHERE person_id = ?");
+  $query->execute([$target_id, $person_id]) or httperror(print_r($query->errorInfo(),true));
+
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person WHERE id = ?");
+  $query->execute([$person_id]) or httperror(print_r($query->errorInfo(),true));
+
+  $pdo->commit() or httperror(print_r($query->errorInfo(),true));
+
+  return true;
 }
 
 function dbPersonDelete($id) {
@@ -484,18 +562,36 @@ function dbPersonDisable($id) {
   return $ret1 && $ret2 && $ret3;
 }
 
-function dbPersonUpdate($id,$name,$email,$unirzlogin,$username,$password,$canlogin) {
+function dbPersonUpdate($id,$name,$emails,$unirzlogin,$username,$password,$canlogin) {
   global $pdo, $DB_PREFIX, $pwObj;
   if (empty($name)) $name = NULL;
   if (empty($unirzlogin)) $unirzlogin = NULL;
   if (empty($username)) $username = NULL;
-  if (!isValidEmail($email)) {
+
+  $numEmail = 0; $tmp = [];
+  foreach ($emails as $i => $email) {
+    $email = strtolower(trim($email));
+    $emails[$i] = $email;
+
+    if ($email == "") continue;
+
+    $numEmail++;
+    if (!isValidEmail($email)) {
+      httperror("Ungültige eMail-Adresse: ".htmlspecialchars($email));
+      return false;
+    }
+
+    $tmp[] = $email;
+  }
+  if ($numEmail == 0) {
     httperror("Ungültige eMail-Adresse");
     return false;
   }
+  $emails = array_unique($tmp);
+
   $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET name = ?, email = ?, unirzlogin = ?, username = ?, canLogin = ? WHERE id = ?");
-  $ret1 = $query->execute(Array($name, $email, $unirzlogin, $username, $canlogin, $id)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET name = ?, unirzlogin = ?, username = ?, canLogin = ? WHERE id = ?");
+  $ret1 = $query->execute([$name, $unirzlogin, $username, $canlogin, $id]) or httperror(print_r($query->errorInfo(),true));
   if (empty($password)) {
     $ret2 = true;
   } else {
@@ -503,8 +599,33 @@ function dbPersonUpdate($id,$name,$email,$unirzlogin,$username,$password,$canlog
     $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET password = ? WHERE id = ?");
     $ret2 = $query->execute(Array($passwordHash, $id)) or httperror(print_r($query->errorInfo(),true));
   }
-  $ret3 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
-  return $ret1 && $ret2 && $ret3;
+  $query = $pdo->prepare("SELECT srt, email FROM {$DB_PREFIX}person_email WHERE person_id = ?");
+  $ret3 = $query->execute([$id]) or httperror(print_r($query->errorInfo(),true));
+  if ($ret3 !== false) {
+    $tmp = $query->fetchAll(PDO::FETCH_ASSOC);
+    $cemails = [];
+    foreach ($tmp as $r) {
+      $cemails[$r["srt"]] = $r["email"];
+    }
+  }
+  foreach ($cemails as $i => $email) {
+    if (!$ret3) continue;
+    if (isset($emails[$i]) && ($emails[$i] == $email)) continue;
+    $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person_email WHERE person_id = ? AND email = ? AND srt = ?");
+    $ret3 = $query->execute([$id, $email, $i]) or httperror(print_r($query->errorInfo(),true));
+  }
+  foreach ($emails as $i => $email) {
+    if (!$ret3) continue;
+    if (isset($cemails[$i]) && ($cemails[$i] == $email)) continue;
+    $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person_email (person_id, srt, email) VALUE (?, ?, ?)");
+    $ret3 = $query->execute([$id, $i, $email]) or httperror(print_r($query->errorInfo(),true));
+  }
+  if (!($ret1 && $ret2 && $ret3)) {
+    $pdo->rollback();
+    httperror("Failed");
+  }
+  $ret4 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
+  return $ret1 && $ret2 && $ret3 && $ret4;
 }
 
 function isValidEmail($email) {
@@ -512,22 +633,67 @@ function isValidEmail($email) {
         && preg_match('/@.+\./', $email);
 }
 
-function dbPersonInsert($name,$email,$unirzlogin,$username,$password,$canlogin, $quiet=false) {
+function dbPersonInsert($name,$emails,$unirzlogin,$username,$password,$canlogin, $quiet=false) {
   global $pdo, $DB_PREFIX, $pwObj;
   if (empty($name)) $name = NULL;
   if (empty($unirzlogin)) $unirzlogin = NULL;
   if (empty($username)) $username = NULL;
   if (empty($password)) { $passwordHash = NULL;  } else { $passwordHash = @$pwObj->createPasswordHash($password); }
-  if (!isValidEmail($email)) {
+  if (!is_array($emails)) $emails = [$emails];
+  $numEmail = 0;
+  foreach ($emails as $i => $email) {
+    $email = strtolower(trim($email));
+    $emails[$i] = $email;
+    if ($email == "") continue;
+    $numEmail++;
+    if (!isValidEmail($email)) {
+      httperror("Ungültige eMail-Adresse");
+      return false;
+    }
+  }
+  if ($numEmail == 0) {
     httperror("Ungültige eMail-Adresse");
     return false;
   }
-  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person (name, email, unirzlogin, username, password, canLogin) VALUES (?, ?, ?, ?, ?, ?)");
-  $ret = $query->execute(Array($name, $email, $unirzlogin, $username, $passwordHash, $canlogin));
-  if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
-  if ($ret === false)
+  $emails = array_unique($emails);
+
+  $ret = $pdo->beginTransaction();
+  if (!$ret && !$quiet) { httperror(print_r($pdo->errorInfo(),true)); }
+  if ($ret === false) {
+    httperror("DB ERROR: CANNOT START TRANSACTION");
     return $ret;
-  return $pdo->lastInsertId();
+  }
+
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person (name, unirzlogin, username, password, canLogin) VALUES (?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($name, $unirzlogin, $username, $passwordHash, $canlogin));
+  if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
+  if ($ret === false) {
+    $pdo->rollback();
+    return $ret;
+  }
+  $person_id = $pdo->lastInsertId();
+
+  $i = 0;
+  foreach ($emails as $email) {
+    if ($email == "") continue;
+
+    $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person_email (person_id, srt, email) VALUES (?, ?, ?)");
+    $ret = $query->execute([$person_id, $i, $email]);
+    if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
+    if ($ret === false) {
+      $pdo->rollback();
+      return $ret;
+    }
+
+    $i++;
+  }
+
+  $ret = $pdo->commit();
+  if (!$ret && !$quiet) { httperror(print_r($pdo->errorInfo(),true)); }
+  if ($ret === false) {
+    return $ret;
+  }
+  return $person_id;
 }
 
 function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar) {
@@ -728,21 +894,21 @@ function getRolleGruppen($rolleId) {
 
 function getRollePersonen($rolleId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT p.*, rp.id AS rel_id, rp.von, rp.bis, rp.beschlussAm, rp.beschlussDurch, rp.lastCheck, rp.kommentar, ((rp.von <= CURRENT_DATE OR rp.von IS NULL) AND (rp.bis >= CURRENT_DATE OR rp.bis IS NULL)) AS active FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rp ON rp.person_id = p.id WHERE rp.rolle_id = ? ORDER BY RIGHT(p.email, LENGTH(p.email) - POSITION( '@' in p.email)), LEFT(p.email, POSITION( '@' in p.email))");
+  $query = $pdo->prepare("SELECT DISTINCT p.*, pe.email, rp.id AS rel_id, rp.von, rp.bis, rp.beschlussAm, rp.beschlussDurch, rp.lastCheck, rp.kommentar, ((rp.von <= CURRENT_DATE OR rp.von IS NULL) AND (rp.bis >= CURRENT_DATE OR rp.bis IS NULL)) AS active FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rp ON rp.person_id = p.id WHERE rp.rolle_id = ? ORDER BY RIGHT(email, LENGTH(email) - POSITION( '@' in email)), LEFT(email, POSITION( '@' in email))");
   $query->execute(Array($rolleId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function getActiveMitgliedschaftByMail($email, $rolleId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT rm.* FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id WHERE p.email = ? AND rm.rolle_id = ? AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) ORDER BY rm.id");
+  $query = $pdo->prepare("SELECT DISTINCT rm.* FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id WHERE email = ? AND rm.rolle_id = ? AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) ORDER BY rm.id");
   $query->execute(Array($email, $rolleId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function getAllMitgliedschaft() {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, r.name as rolle_name, p.email as person_email, p.name as person_name, p.username as person_username, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.lastCheck, rm.kommentar as kommentar, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) AS aktiv FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id INNER JOIN {$DB_PREFIX}gremium g ON g.id = rm.gremium_id INNER JOIN {$DB_PREFIX}rolle r ON r.id = rm.rolle_id ORDER BY g.name, g.id, r.name, r.id, RIGHT(p.email, LENGTH(p.email) - POSITION( '@' in p.email)), LEFT(p.email, POSITION( '@' in p.email))");
+  $query = $pdo->prepare("SELECT g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, r.name as rolle_name, email as person_email, p.name as person_name, p.username as person_username, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.lastCheck, rm.kommentar as kommentar, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) AS aktiv FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id INNER JOIN {$DB_PREFIX}gremium g ON g.id = rm.gremium_id INNER JOIN {$DB_PREFIX}rolle r ON r.id = rm.rolle_id ORDER BY g.name, g.id, r.name, r.id, RIGHT(email, LENGTH(email) - POSITION( '@' in email)), LEFT(email, POSITION( '@' in email))");
   $query->execute() or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -756,28 +922,29 @@ function getMitgliedschaftById($rel_id) {
 
 function getMailinglistePerson($mlId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT p.email FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rm.rolle_id = rrm.rolle_id AND rrm.mailingliste_id = ? ORDER BY p.email");
+  $query = $pdo->prepare("SELECT DISTINCT pe.email FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}person_email_primary pe ON p.id = pe.person_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rm.rolle_id = rrm.rolle_id AND rrm.mailingliste_id = ? ORDER BY email");
   $query->execute(Array($mlId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_COLUMN);
 }
 
 function getMailinglistePersonDetails($mlId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT p.* FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rm.rolle_id = rrm.rolle_id AND rrm.mailingliste_id = ? ORDER BY p.email");
+  $query = $pdo->prepare("SELECT DISTINCT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY srt) as email FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email_primary pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rm.rolle_id = rrm.rolle_id AND rrm.mailingliste_id = ? GROUP BY p.name, p.id");
   $query->execute(Array($mlId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
+# deprecated
 function getGruppePerson($grpId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT p.email FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rm.rolle_id = rrg.rolle_id AND rrg.gruppe_id = ? ORDER BY p.email");
+  $query = $pdo->prepare("SELECT DISTINCT pe.email FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}person_email_primary pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rm.rolle_id = rrg.rolle_id AND rrg.gruppe_id = ? ORDER BY email");
   $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_COLUMN);
 }
 
 function getGruppePersonDetails($grpId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT p.* FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rm.rolle_id = rrg.rolle_id AND rrg.gruppe_id = ? ORDER BY p.email");
+  $query = $pdo->prepare("SELECT DISTINCT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rm.rolle_id = rrg.rolle_id AND rrg.gruppe_id = ? GROUP BY p.id ORDER BY email");
   $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -785,6 +952,7 @@ function getGruppePersonDetails($grpId) {
 function getDBDump() {
   global $pdo, $DB_PREFIX;
   $tables = Array("person" => "id",
+                  "person_email" => "person_id, email",
                   "gruppe" => "id",
                   "gremium" => "id",
                   "log" => "id",

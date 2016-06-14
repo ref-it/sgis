@@ -13,8 +13,8 @@
 <?php
 
 foreach ([
-  "name"       => "Name",
   "email"      => "eMail",
+  "name"       => "Name",
   "username"   => "Login-Name",
   "password"   => "Login-Password",
   "unirzlogin" => "UniRZ-Login",
@@ -43,6 +43,9 @@ foreach ([
 ?>
            <input class="file" type="file" name="<?php echo htmlspecialchars($key); ?>" accept="text/comma-separated-values" class="file" data-show-preview="false">
 <?php
+            break;
+          case "email":
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>[]" value="" placeholder="@tu-ilmenau.de" onChange="checkMail(this.value, this.form, '<?php echo $nonce; ?>');"><?php
             break;
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value=""><?php

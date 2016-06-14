@@ -4,6 +4,20 @@ $person = getPersonDetailsById($_REQUEST["person_id"]);
 if ($person === false) die("Invalid Id");
 $gremien = getPersonRolle($person["id"]);
 
+$vals = explode(",", $person["email"]);
+$otherpersons = [];
+foreach ($vals as $val) {
+  $r = verify_tui_mail($val);
+  if ($r !== false && isset($r["mail"])) {
+    foreach ($r["mail"] as $othermail) {
+      $otherperson = getPersonDetailsByMail($othermail);
+      if ($otherperson !== false && $person["id"] != $otherperson["id"]) {
+        $otherpersons[] = $otherperson;
+      }
+    }
+  }
+}
+
 ?>
 
 <form method="POST" action="<?php echo $_SERVER["PHP_SELF"];?>" enctype="multipart/form-data" class="ajax">
@@ -90,6 +104,18 @@ endforeach;
       <select class="form-control" name="action" size="1">
         <option value="person.disable" selected="selected">Person deaktivieren</option>
         <option value="person.delete">Datensatz löschen</option>
+<?php
+
+foreach ($otherpersons as $otherperson):
+
+?>
+        <option value="person.merge.<?php echo $otherperson["id"]; ?>">Rollen + eMail nach Person <?php echo htmlspecialchars($otherperson["name"]); ?> ( # <?php echo $otherperson["id"]; ?> ) verschieben + Datensatz löschen</option>
+<?php
+
+endforeach;
+
+?>
+
       </select>
     </div>
   </div>

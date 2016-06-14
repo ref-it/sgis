@@ -60,11 +60,15 @@ $person = getPersonDetailsById($rel["person_id"]);
     <label class="control-label col-sm-3">Person</label>
     <div class="col-sm-9">
       <div class="form-control">
-        <a href="mailto:<?php echo htmlspecialchars($person["email"]); ?>">
 <?php
+        $emails = explode(",", $person["email"]);
+?>
+        <a href="mailto:<?php echo htmlspecialchars($emails[0]); ?>">
+<?php
+
         echo htmlspecialchars($person["name"]);
         echo htmlspecialchars(" <");
-        echo htmlspecialchars($person["email"]);
+        echo htmlspecialchars($emails[0]);
         echo htmlspecialchars(">");
 ?>
         </a>

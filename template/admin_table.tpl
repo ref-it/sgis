@@ -71,7 +71,8 @@ $(function() {
                 var p1 = $("<a/>").attr("target","_blank").attr("href","?tab=<?php echo $obj; ?>.delete&<?php echo $obj; ?>_id=" + encodeURIComponent(full.id)).html("<i class=\"fa fa-trash fa-fw\"></i>").wrap("<div>").parent().html();
                 var p2 = $("<a/>").attr("target","_blank").attr("href","?tab=<?php echo $obj; ?>.edit&<?php echo $obj; ?>_id=" + encodeURIComponent(full.id)).html("<i class=\"fa fa-pencil fa-fw\"></i>").wrap("<div>").parent().html();
 <?php if ($obj == "person"): ?>
-                var p3 = $("<a/>").attr("target","_blank").attr("href","index.php?mail=" + encodeURIComponent(full.email)).html("<i class=\"fa fa-info fa-fw\"></i>").wrap("<div>").parent().html();
+                var emails = full.email.split(",");
+                var p3 = $("<a/>").attr("target","_blank").attr("href","index.php?mail=" + encodeURIComponent(emails[0])).html("<i class=\"fa fa-info fa-fw\"></i>").wrap("<div>").parent().html();
                 var p = p1+" "+p2+" "+p3;
 <?php else: ?>
                 var p = p1+" "+p2;
@@ -99,7 +100,8 @@ foreach (array_keys($metadata) as $i => $field):
               },
 <?php elseif($field == "email"): ?>
               "render":  function ( data, type, full, meta ) {
-                var p = $("<a/>").attr("href","mailto:"+data).text(data).wrap("<div>").parent().html();
+                var emails = data.split(",");
+                var p = $("<a/>").attr("href","mailto:"+emails[0]).text(emails[0]).attr('title',data).wrap("<div>").parent().html();
                 return p;
               },
 <?php elseif($field == "url"): ?>

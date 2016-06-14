@@ -5,6 +5,20 @@ if ($person === false) die("invalid id");
 
 $gremien = getPersonRolle($person["id"]);
 
+$vals = explode(",", $person["email"]);
+$otherpersons = [];
+foreach ($vals as $val) {
+  $r = verify_tui_mail($val);
+  if ($r !== false && isset($r["mail"])) {
+    foreach ($r["mail"] as $othermail) {
+      $otherperson = getPersonDetailsByMail($othermail);
+      if ($otherperson !== false && $person["id"] != $otherperson["id"]) {
+        $otherpersons[] = $otherperson;
+      }
+    }
+  }
+}
+
 ?>
 
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST" enctype="multipart/form-data" class="ajax">
@@ -56,6 +70,13 @@ foreach ([
           case "id":
 ?>         <div class="form-control"><?php echo htmlspecialchars($person[$key]); ?></div><?php
             break;
+          case "email":
+           $vals = explode(",", $person[$key]);
+           $vals[] = "";
+           foreach ($vals as $val) {
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>[]" value="<?php echo htmlspecialchars($val); ?>"><?php
+           }
+            break;
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($person[$key]); ?>"><?php
         }
@@ -71,6 +92,13 @@ endforeach;
 
 </div> <!-- form -->
 
+<?php
+
+foreach ($otherpersons as $otherperson) {
+  echo "Siehe auch: <a href=\"?tab=person.edit&amp;person_id=".$otherperson["id"]."\">".htmlspecialchars($otherperson["name"])."</a><br/>\n";
+}
+
+?>
  </div>
  <div class="panel-footer">
      <input type="submit" name="submit" value="Speichern" class="btn btn-primary"/>

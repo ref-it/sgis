@@ -5,7 +5,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li><a href="<?php echo $logoutUrl; ?>">Logout</a></li>
         <li><a href="index.php">Selbstauskunft</a></li>
-        <li><a href="admin-old.php">Alte Verwaltung</a></li>
+<!--        <li><a href="admin-old.php">Alte Verwaltung</a></li> -->
       </ul>
     </div>
 

@@ -25,8 +25,15 @@ if (isset($_POST["action"])) {
  $msgs = Array();
  $ret = false;
  $target = false;
+
+ if (substr($_POST["action"],0,13) == "person.merge.") {
+   $_POST["merge_person_id"] = substr($_POST["action"], 13);
+   $_POST["action"] = "person.merge";
+ }
+
  if (!isset($_REQUEST["nonce"]) || $_REQUEST["nonce"] !== $nonce) {
   $msgs[] = "Formular veraltet - CSRF Schutz aktiviert.";
+  $logId = false;
  } else {
   $logId = logThisAction();
   if (strpos($_POST["action"],"insert") !== false ||
@@ -62,6 +69,11 @@ if (isset($_POST["action"])) {
        }
      ],
      [ 'db'    => 'active',          'dt'    => 'active',
+       'formatter' => function( $d, $row ) {
+         return $d ? "ja" : "nein";
+       }
+     ],
+     [ 'db'    => 'hasUniMail',          'dt'    => 'hasUniMail',
        'formatter' => function( $d, $row ) {
          return $d ? "ja" : "nein";
        }
@@ -167,6 +179,14 @@ if (isset($_POST["action"])) {
      SSP::complex( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}{$table}", /* primary key */ "id", $columns, NULL, $whereAll )
    );
   exit;
+  case "verify.email":
+    $r = verify_tui_mail(trim($_POST["email"]));
+    if (is_array($r) && isset($r["sn"])) $r["sn"] = ucfirst($r["sn"]);
+    if (is_array($r) && isset($r["sn"])) $r["sn"] = ucfirst($r["sn"]);
+    if (is_array($r) && isset($r["givenName"])) $r["givenName"] = ucfirst($r["givenName"]);
+    header("Content-Type: application/json");
+    echo json_encode($r);
+  exit;
   case "mailingliste.insert":
    $ret = dbMailinglisteInsert($_POST["address"], $_POST["url"], $_POST["password"]);
    $msgs[] = "Mailingliste wurde erstellt.";
@@ -189,6 +209,75 @@ if (isset($_POST["action"])) {
    $ret = dbMailinglisteInsertRolle($_POST["mailingliste_id"], $_POST["rolle_id"]);
    $msgs[] = "Mailinglisten-Rollenzuordnung wurde eingetragen.";
   break;
+  case "person.duplicate":
+
+   $tmp = getAllePerson();
+   $personen = [];
+   foreach ($tmp as $p) {
+     $emails = explode(",",trim(strtolower($p["email"])));
+     foreach ($emails as $email) {
+       $p["email"] = $email;
+       $personen[$email] = $p;
+     }
+   }
+   $r = verify_tui_mail_many(array_keys($personen));
+
+   $unipersonen = [];
+   foreach ($r as $p) {
+     foreach ($p["mail"] as $email) {
+       $unipersonen[trim(strtolower($email))] = $p;
+     }
+   }
+
+   header("Content-Type: text/plain");
+
+   echo "Uni-eMail in sGIS aber nicht im LDAP:\n";
+   global $unimail;
+   foreach($personen as $p) {
+     $email = trim(strtolower($p["email"]));
+     if (!$p["canLogin"]) continue;
+     if (isset($unipersonen[$email])) continue;
+     $found = false;
+     foreach ($unimail as $domain) {
+       $found |= substr(strtolower($email),-strlen($domain)-1) == strtolower("@$domain");
+     }
+     if (!$found) continue;
+
+     echo "  $email\n";
+     #dbPersonDisable($p["id"]);
+   }
+
+   $unipersonen = [];
+   foreach ($r as $p) {
+     if (count($p["mail"]) <= 1) continue; # cannot link any two persons
+     foreach ($p["mail"] as $email) {
+       $unipersonen[trim(strtolower($email))] = $p;
+     }
+   }
+
+   echo "\nUnterschiedliche Personen im sGIS aber gleiche Person laut Uni:\n";
+   foreach($personen as $p) {
+     $email = trim(strtolower($p["email"]));
+     if (!isset($unipersonen[$email])) continue;
+
+     foreach ($unipersonen[$email]["mail"] as $otheremail) {
+       $otheremail = trim(strtolower($otheremail));
+       if (!isset($personen[$otheremail])) continue;
+       if ($p["id"] == $personen[$otheremail]["id"]) continue;
+
+       echo "  Person ".$p["id"]." and ".$personen[$otheremail]["id"]." (".$p["name"].")\n";
+     }
+   }
+
+   echo "\n-- ENDE --";
+   exit;
+  break;
+  case "person.merge":
+   $ret = dbPersonMerge($_POST["id"], $_POST["merge_person_id"]);
+   if ($ret !== false)
+     $target = $_SERVER["PHP_SELF"]."?tab=person.edit&person_id=".((int) $_POST["merge_person_id"]);
+   $msgs[] = "Person wurde verschoben.";
+  break;
   case "person.delete":
    $ret = dbPersonDelete($_POST["id"]);
    $msgs[] = "Person wurde entfernt.";
@@ -198,14 +287,14 @@ if (isset($_POST["action"])) {
    $msgs[] = "Person wurde deaktiviert.";
   break;
   case "person.update":
-   $ret = dbPersonUpdate($_POST["id"],trim($_POST["name"]),trim($_POST["email"]),trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"]);
+   $ret = dbPersonUpdate($_POST["id"],trim($_POST["name"]),$_POST["email"],trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"]);
    $msgs[] = "Person wurde aktualisiert.";
   break;
   case "person.insert":
    $quiet = isset($_FILES["csv"]) && !empty($_FILES["csv"]["tmp_name"]);
    $ret = true;
    if (!empty($_POST["email"]) || !$quiet) {
-     $ret = dbPersonInsert(trim($_POST["name"]),trim($_POST["email"]),trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"], $quiet);
+     $ret = dbPersonInsert(trim($_POST["name"]),$_POST["email"],trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"], $quiet);
      if ($ret !== false)
        $target = $_SERVER["PHP_SELF"]."?tab=person.edit&person_id=".$ret;
      $msgs[] = "Person {$_POST["name"]} wurde ".(($ret !== false) ? "": "nicht ")."angelegt.";
@@ -214,7 +303,14 @@ if (isset($_POST["action"])) {
      if (($handle = fopen($_FILES["csv"]["tmp_name"], "r")) !== FALSE) {
        fgetcsv($handle, 1000, ",");
        while (($data = fgetcsv($handle, 0, ",", '"')) !== FALSE) {
-         $ret2 = dbPersonInsert(trim($data[0]),trim($data[1]),trim((string)$data[2]),"","",$_POST["canlogin"], $quiet);
+         $email = strtolower(trim($data[1]));
+         $r = verify_tui_mail($email);
+         if (is_array($r) && isset($r["mail"])) {
+           $emails = $r["mail"];
+         } else {
+           $emails = [$email];
+         }
+         $ret2 = dbPersonInsert(trim($data[0]),$emails,trim((string)$data[2]),"","",$_POST["canlogin"], $quiet);
          $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".(($ret2 !== false) ? "": "nicht ")."angelegt.";
          $ret = $ret && $ret2;
        }
@@ -317,24 +413,45 @@ if (isset($_POST["action"])) {
      foreach ($emails as $email) {
        $email = strtolower(trim($email));
        if (empty($email)) continue;
+
+       # fetch using primary email
        $person = getPersonDetailsByMail($email);
-       if ($person === false && $_POST["personfromuni"]) {
+
+       # fallback: fetch using alternative uni email
+       if ($person === false) {
          $r = verify_tui_mail($email);
-         if ($r !== false && $r["givenName"] && $r["sn"]) {
-           $name = ucfirst(trim($r["givenName"]))." ".ucfirst(trim($r["sn"]));
-           $ret = dbPersonInsert($name,$email,"","","",true);
-           if ($ret !== false) {
-             $person = ["id" => $ret];
-             $msgs[] = "OK  Person $name <$email> wurde angelegt.";
-           } else {
-             $msgs[] = "ERR Person $name <$email> wurde nicht angelegt.";
-           }
+       }
+       if ($person === false && $r !== false && isset($r["mail"])) {
+         foreach ($r["mail"] as $tmp) {
+           $person = getPersonDetailsByMail($tmp);
+           if ($person !== false) break;
          }
        }
+
+       # fallback: create person
+       if (($person === false) && $_POST["personfromuni"] && ($r !== false) && isset($r["givenName"]) && isset($r["sn"])) {
+         $name = ucfirst(trim($r["givenName"]))." ".ucfirst(trim($r["sn"]));
+         if (isset($r["mail"])) {
+           $newemails = $r["mail"];
+         } else {
+           $newemails = [$email];
+         }
+         $ret = dbPersonInsert($name,$newemails,"","","",true);
+         if ($ret !== false) {
+           $person = ["id" => $ret];
+           $msgs[] = "OK  Person $name <$email> wurde angelegt.";
+         } else {
+           $msgs[] = "ERR Person $name <$email> wurde nicht angelegt.";
+         }
+       }
+
+       # check person found
        if ($person === false) {
          $msgs[] = "ERR Personen $email wurde nicht gefunden.";
          continue;
        }
+
+       # avoid duplicate membership / create membership
        $rel_mems = getActiveMitgliedschaftByMail(trim($email), $_POST["rolle_id"]);
        if ($rel_mems === false || count($rel_mems) == 0 || $_POST["duplicate"] == "ignore") {
          $ret2 = dbPersonInsertRolle($person["id"],$_POST["rolle_id"],$_POST["von"],$_POST["bis"],$_POST["beschlussAm"],$_POST["beschlussDurch"],$_POST["lastCheck"],$_POST["kommentar"]);
@@ -371,8 +488,10 @@ if (isset($_POST["action"])) {
   endswitch;
  } /* switch */
 
- logAppend($logId, "__result", ($ret !== false) ? "ok" : "failed");
- logAppend($logId, "__result_msg", $msgs);
+ if ($logId !== false) {
+   logAppend($logId, "__result", ($ret !== false) ? "ok" : "failed");
+   logAppend($logId, "__result_msg", $msgs);
+ }
 
  $result = Array();
  $result["msgs"] = $msgs;
