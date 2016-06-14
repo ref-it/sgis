@@ -894,7 +894,7 @@ function getRolleGruppen($rolleId) {
 
 function getRollePersonen($rolleId) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT p.*, pe.email, rp.id AS rel_id, rp.von, rp.bis, rp.beschlussAm, rp.beschlussDurch, rp.lastCheck, rp.kommentar, ((rp.von <= CURRENT_DATE OR rp.von IS NULL) AND (rp.bis >= CURRENT_DATE OR rp.bis IS NULL)) AS active FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rp ON rp.person_id = p.id WHERE rp.rolle_id = ? ORDER BY RIGHT(email, LENGTH(email) - POSITION( '@' in email)), LEFT(email, POSITION( '@' in email))");
+  $query = $pdo->prepare("SELECT DISTINCT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email, rp.id AS rel_id, rp.von, rp.bis, rp.beschlussAm, rp.beschlussDurch, rp.lastCheck, rp.kommentar, ((rp.von <= CURRENT_DATE OR rp.von IS NULL) AND (rp.bis >= CURRENT_DATE OR rp.bis IS NULL)) AS active FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rp ON rp.person_id = p.id WHERE rp.rolle_id = ? GROUP BY rp.id ORDER BY name");
   $query->execute(Array($rolleId)) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }

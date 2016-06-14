@@ -46,8 +46,11 @@ endif;
  </a>
 </td>
  <td>
-  <a href="mailto:<?php echo htmlspecialchars($person["email"]); ?>">
-  <?php echo htmlspecialchars($person["email"]);?>
+<?php
+  $emails = explode(",", $person["email"]);
+?>
+  <a href="mailto:<?php echo htmlspecialchars($emails[0]); ?>" title="<?php echo htmlspecialchars($person["email"]); ?>">
+  <?php echo htmlspecialchars($emails[0]);?>
  </a>
 </td>
  <td class="hidden-xs"><?php
