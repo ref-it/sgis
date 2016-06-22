@@ -1,4 +1,9 @@
-<table id="main<?php echo $obj; ?>table" class="display" width="100%" cellspacing="0">
+<?php
+
+$objid = (isset($obj_rel) ? "$obj-$obj_rel" : $obj);
+
+?>
+<table id="main<?php echo $objid; ?>table" class="display" width="100%" cellspacing="0">
 
  <thead>
   <tr>
@@ -23,7 +28,7 @@ endforeach;
 
 <script>
 $(function() {
-    $('#main<?php echo $obj; ?>table').DataTable( {
+    $('#main<?php echo $objid; ?>table').DataTable( {
 <?php if (isset($obj_order) && $obj_order): ?>
        "order": <?php echo $obj_order; ?>,
 <?php elseif ($obj_editable): ?>
@@ -117,7 +122,7 @@ endforeach;
         ],
     } );
 <?php if ($obj_selectable): ?>
-    $('#main<?php echo $obj; ?>table tbody').on('click', 'tr', function () {
+    $('#main<?php echo $objid; ?>table tbody').on('click', 'tr', function () {
         var id = $(this).data('recordId');
 
         if ($('#<?php echo $obj_selectable; ?>').val() == id) {
@@ -125,7 +130,7 @@ endforeach;
           $(this).removeClass('selected');
         } else if ( $('#<?php echo $obj_selectable; ?>').val() != -1 ) { /* something else is selected */
           $('#<?php echo $obj_selectable; ?>').val(id);
-          $('#main<?php echo $obj; ?>table tbody tr.selected').removeClass("selected");
+          $('#main<?php echo $objid; ?>table tbody tr.selected').removeClass("selected");
           $(this).addClass('selected');
         } else { /* currently nothing is selected */
           $('#<?php echo $obj_selectable; ?>').val(id);
@@ -136,7 +141,7 @@ endforeach;
 <?php endif; ?>
     $('.tablefilter').on('change.tablefilter', function () {
       if ($(this).data('table') && $(this).data('table') != '<?php echo $obj; ?>') { return; }
-      var $table = $('#main<?php echo $obj; ?>table').DataTable();
+      var $table = $('#main<?php echo $objid; ?>table').DataTable();
       var colIdx = $(this).data('column');
       var flt = $(this).val();
       console.log($table.columns( colIdx ));

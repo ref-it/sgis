@@ -350,6 +350,9 @@ class SSP {
 		 * Output
 		 */
 		return array(
+"where" => $where,
+"whereAll" => $whereAll,
+"whereResult" => $whereResult,
 			"draw"            => isset ( $request['draw'] ) ?
 				intval( $request['draw'] ) :
 				0,
