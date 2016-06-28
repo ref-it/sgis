@@ -2,6 +2,8 @@
 
 global $ADMINGROUP;
 
+set_time_limit(120);
+
 require_once "../lib/inc.all.php";
 if (isset($_REQUEST["autoExportPW"])) {
   requireExportAutoPW();
@@ -16,7 +18,7 @@ if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
 
 function checkResult($url, $output) {
   if ($output == "") {
-    echo "empty reply\n";
+    echo "empty reply from $url\n";
     var_dump($output);
     die();
   }

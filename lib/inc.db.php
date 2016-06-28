@@ -964,13 +964,45 @@ function getDBDump() {
                   "rolle" => "id",
                  );
   $ret = Array();
+  ksort($tables);
   foreach ($tables as $t => $s) {
     $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}{$t} ORDER BY {$s}");
     $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
     $ret[$t] = $query->fetchAll(PDO::FETCH_ASSOC);
   }
-  ksort($ret);
+  #ksort($ret);
   return $ret;
+}
+
+function printDBDump() {
+  global $pdo, $DB_PREFIX;
+  $tables = Array("person" => "id",
+                  "person_email" => "person_id, email",
+                  "gruppe" => "id",
+                  "gremium" => "id",
+                  "log" => "id",
+                  "log_property" => "id",
+                  "mailingliste" => "id",
+                  "rel_mitgliedschaft" => "id",
+                  "rel_rolle_gruppe" => "rolle_id, gruppe_id",
+                  "rel_rolle_mailingliste" => "rolle_id, mailingliste_id",
+                  "rolle" => "id",
+                 );
+  ksort($tables);
+  echo "{\n";
+  foreach ($tables as $t => $s) {
+    $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}{$t} ORDER BY {$s}");
+    $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+    echo "  \"$t\": [\n";
+    while (($row = $query->fetch(PDO::FETCH_ASSOC)) !== false) {
+      $rows = explode("\n", json_encode($row, JSON_PRETTY_PRINT).",");
+      foreach ($rows as $row) {
+        echo "    $row\n";
+      }
+    }
+    echo "    ],\n";
+  }
+  echo "}\n";
 }
 
 # vim: set expandtab tabstop=8 shiftwidth=8 :
