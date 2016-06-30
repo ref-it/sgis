@@ -993,11 +993,11 @@ function printDBDump() {
   foreach ($tables as $t => $s) {
     $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}{$t} ORDER BY {$s}");
     $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
-    echo "  \"$t\": [\n";
+    echo "    \"$t\": [\n";
     while (($row = $query->fetch(PDO::FETCH_ASSOC)) !== false) {
       $rows = explode("\n", json_encode($row, JSON_PRETTY_PRINT).",");
       foreach ($rows as $row) {
-        echo "    $row\n";
+        echo "        $row\n";
       }
     }
     echo "    ],\n";

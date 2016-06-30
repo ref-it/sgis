@@ -100,7 +100,14 @@ function multiCurlRequest($data, $options = array()) {
     $curlhandles = array();
     $curlhandle = curl_multi_init();
 
+    $i = 0; $newpending = [];
     foreach ($pending as $id) {
+      if ($i >= 1) { # at most 1 request in parallel
+        $newpending[] = $id;
+        continue;
+      }
+      $i++;
+
       $cdata = $data[$id];
       $curlhandles[$id] = curl_init();
 
@@ -109,8 +116,10 @@ function multiCurlRequest($data, $options = array()) {
       curl_setopt($curlhandles[$id], CURLOPT_HEADER,         0);
       curl_setopt($curlhandles[$id], CURLOPT_RETURNTRANSFER, 1);
 
-      #curl_setopt($curlhandles[$id], CURLOPT_TIMEOUT,        5);
-      curl_setopt($curlhandles[$id], CURLOPT_CONNECTTIMEOUT, 30);
+      curl_setopt($curlhandles[$id], CURLOPT_TIMEOUT,        5);
+      curl_setopt($curlhandles[$id], CURLOPT_CONNECTTIMEOUT, 5);
+
+      curl_setopt($curlhandles[$id], CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)');
 
       curl_setopt($curlhandles[$id], CURLOPT_POST,       1);
       curl_setopt($curlhandles[$id], CURLOPT_POSTFIELDS, $cdata['post']);
@@ -121,7 +130,7 @@ function multiCurlRequest($data, $options = array()) {
 
       curl_multi_add_handle($curlhandle, $curlhandles[$id]);
     }
-    $pending = [];
+    $pending = $newpending;
 
     $running = null;
     do {
@@ -137,7 +146,7 @@ function multiCurlRequest($data, $options = array()) {
         if ($myid !== null) {
           echo $data[$myid]["url"].": ";
           if ($info["result"] == 28) {
-            $pending[] = $id;
+            #$pending[] = $id;
           }
         }
         echo curl_strerror($info["result"]); echo "<br/>";
@@ -155,6 +164,8 @@ function multiCurlRequest($data, $options = array()) {
     }
 
     curl_multi_close($curlhandle);
+
+#    break; # does not fix the issue I'm facing 2016-06-28
   }
 
   return $result;
