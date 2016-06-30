@@ -4,9 +4,11 @@ if (isset($_REQUEST["rolle_id"])) {
   $rolle = getRolleById($_REQUEST["rolle_id"]);
   if ($rolle === false) die("Invalid Id");
   $gremium = getGremiumById($rolle["gremium_id"]);
+  $personen = getRollePersonen($rolle["id"]);
 } else {
   $rolle = false;
   $gremium = false;
+  $personen = [];
 }
 
 ?>
@@ -105,7 +107,38 @@ if ($rolle !== false) {
   <div class="form-group">
     <label class="control-label col-sm-3">Personen (eMail)</label>
     <div class="col-sm-9">
-      <textarea name="email" class="form-control" placeholder="eine Adresse je Zeile"></textarea>
+      <textarea name="email[]" class="form-control" placeholder="eine Adresse je Zeile"></textarea>
+<?php
+$i = 0;
+foreach ($personen as $person):
+  if (!$person["active"]) continue;
+  $i++;
+  $emails = explode(",", $person["email"]);
+  $email = $emails[0];
+?>
+       <div class="checkbox">
+        <label>
+         <input type="checkbox" class="check" name="email[]" value="<?php echo htmlspecialchars($email);?>">
+         <a target="_blank" href="?tab=person.edit&amp;person_id=<?php echo $person["id"]; ?>" title="<?php echo htmlspecialchars($email); ?>">
+          <?php echo htmlspecialchars($person["name"]);?>
+         </a>
+         <a target="_blank" href="?tab=rel_mitgliedschaft.edit&amp;rel_id=<?php echo $person["rel_id"]; ?>">
+          <i class="fa fa-pencil fa-fw"></i>
+         </a>
+        </label>
+       </div>
+<?php
+endforeach;
+if ($i > 2):
+?>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" class="checkAll" data-class="check"> Alle auswählen
+    </label>
+  </div>
+<?php
+endif;
+?>
     </div>
   </div>
 
@@ -113,6 +146,7 @@ if ($rolle !== false) {
 
 foreach ([
   "bis" => "bis",
+  "grund" => "Grund",
  ] as $key => $desc):
 
 ?>
@@ -125,6 +159,9 @@ foreach ([
         switch($key) {
           case"bis":
 ?>         <input class="form-control datepicker" type="text" name="<?php echo htmlspecialchars($key); ?>" value="" placeholder="optional"><?php
+            break;
+          case"grund":
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="" placeholder="optional"><?php
             break;
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value=""><?php

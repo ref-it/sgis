@@ -751,11 +751,13 @@ function dbPersonDeleteRolle($id) {
   return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
 }
 
-function dbPersonDisableRolle($id, $bis = NULL) {
+function dbPersonDisableRolle($id, $bis = NULL, $grund = "") {
   global $pdo, $DB_PREFIX;
   if (empty($bis)) $bis = date("Y-m-d", strtotime("yesterday"));
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = STR_TO_DATE(?, '%Y-%m-%d') WHERE id = ? AND (bis IS NULL OR bis > STR_TO_DATE(?, '%Y-%m-%d'))");
-  return $query->execute(Array($bis,$id,$bis)) or httperror(print_r($query->errorInfo(),true));
+  $grund = trim($grund);
+  if (empty($grund)) $grund = NULL;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = STR_TO_DATE(?, '%Y-%m-%d'), kommentar = concat_ws('\n', kommentar, ?) WHERE id = ? AND (bis IS NULL OR bis > STR_TO_DATE(?, '%Y-%m-%d'))");
+  return $query->execute(Array($bis,$grund,$id,$bis)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function getGruppeRolle($grpId) {

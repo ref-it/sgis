@@ -465,7 +465,13 @@ if (isset($_POST["action"])) {
    }
   break;
   case "rolle_person.bulkdisable":
+   if (is_array($_REQUEST["email"])) {
+     $_REQUEST["email"] = implode("\n", $_REQUEST["email"]);
+   }
    $emails = explode("\n", $_REQUEST["email"]);
+   array_walk($emails, create_function('&$val', '$val = trim($val);'));
+   $emails = array_unique($emails);
+
    $ret = true;
    foreach ($emails as $email) {
      $email = trim($email);
@@ -475,7 +481,7 @@ if (isset($_POST["action"])) {
        $msgs[] = "Personen-Rollenzuordnung: $email wurde nicht gefunden.";
      } else {
        foreach ($rel_mems as $rel_mem) {
-         $ret2 = dbPersonDisableRolle($rel_mem["id"], $_POST["bis"]);
+         $ret2 = dbPersonDisableRolle($rel_mem["id"], $_POST["bis"], $_POST["grund"]);
          $ret = $ret && $ret2;
        }
        $msgs[] = "Person-Rollen-Zuordnung für $email wurde beendet.";

@@ -1,5 +1,9 @@
 $(function() {
   $('.datepicker').datepicker({ dateFormat: 'yy-mm-dd' });
+  $(".checkAll").on('click.sgis', function () {
+    var cls = $(this).data('class');
+    $("."+cls).prop('checked', $(this).prop('checked'));
+  });
 });
 
 function checkMail(email, form, nonce) {
