@@ -20,6 +20,7 @@ class action_plugin_sgis_sgis extends DokuWiki_Action_Plugin {
 
     public function register(Doku_Event_Handler &$controller) {
         $controller->register_hook('TEMPLATE_USERTOOLS_DISPLAY', 'BEFORE', $this, 'add_menu_item');
+        $controller->register_hook('COMMON_USER_LINK', 'BEFORE', $this, 'replaceUserLink',array());
     }
 
     public function add_menu_item(Doku_Event $event, $param) {
@@ -34,6 +35,23 @@ class action_plugin_sgis_sgis extends DokuWiki_Action_Plugin {
           return;
 
         $event->data['items']['sgis'] = "<li>".tpl_link($this->sgisUrl,$lang["btn_profile"].' (sGIS)','',true)."</li>";
+    }
+
+    function replaceUserLink(&$event, $param) {
+        global $INFO;
+        global $conf;
+        global $auth;
+
+        if ($conf['showuseras'] != "username_link") return true;
+        if (!$auth) return true;
+
+        $username = $event->data["username"];
+        if (!$username) return true;
+        $info = $auth->getUserData($username);
+        if (!$info) return true;
+
+        $event->data['link']['url'] = "/person/" . $info['name'];
+        return true;
     }
 }
 
