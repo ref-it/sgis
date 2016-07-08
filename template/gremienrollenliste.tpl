@@ -2,7 +2,7 @@
 <div class="panel-heading">Rollen</div>
 <div class="panel-body">
 
-<table class="table table-striped">
+<table class="table tablerollerolle">
 <tr>
 <?php if ($gremienrollen_edit): ?>
   <th><a href="?tab=rolle.new&amp;gremium_id=<?php echo $gremium["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a></th>
@@ -16,18 +16,27 @@ if (count($rollen) == 0):
 <tr><td colspan="<?php echo $gremienrollen_edit ? 4 : 3; ?>"><i>Keine Rollen.</td></tr>
 <?php
 else:
+$iall = 0; $iactive=0;
 foreach($rollen as $rolle):
+  $cssclass = [];
+  $iall++;
+  if (!$rolle["active"]) {
+    $hasInactiveRole = true;
+    $cssclass[] = "inactiverow";
+  } else {
+    $cssclass[] = "activerow";
+    $iactive++;
+  }
+  if ($iall % 2 == 0)
+    $cssclass[] = "alleven";
+  else
+    $cssclass[] = "allodd";
+  if ($iactive % 2 == 0)
+    $cssclass[] = "activeeven";
+  else
+    $cssclass[] = "activeodd";
 ?>
-<tr
-<?php
-if (!$rolle["active"]):
-  $hasInactiveRole = true;
-?>
-  class="rollerolleinactive"
-<?php
-endif;
-?>
->
+<tr class="<?php echo implode(" ", $cssclass); ?>">
 <?php if ($gremienrollen_edit): ?>
   <td><nobr>
     <a href="?tab=rolle.edit&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-pencil"></i></a>
@@ -69,9 +78,11 @@ endif;
 <script>
 $("#rollerolletoggle").on("change.rollerolle", function() {
   if ($(this).is(":checked")) {
-    $("tr.rollerolleinactive").show();
+    $("table.tablerollerolle").addClass("table-showall");
+    $("table.tablerollerolle").removeClass("table-showactive");
   } else {
-    $("tr.rollerolleinactive").hide();
+    $("table.tablerollerolle").addClass("table-showactive");
+    $("table.tablerollerolle").removeClass("table-showall");
   }
 });
 $("#rollerolletoggle").trigger("change");

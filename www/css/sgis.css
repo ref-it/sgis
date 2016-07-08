@@ -52,3 +52,10 @@ div.form-control.kommentar {
   min-height: 35px;
 }
 
+table.table-showactive tr.inactiverow { display: none; }
+table.table-showactive tr.activeeven,th { background-color: #f9f9f9; }
+table.table-showactive tr.activeodd { background-color: white; }
+
+table.table-showall tr.alleven,th { background-color: #f9f9f9; }
+table.table-showall tr.allodd { background-color: white; }
+

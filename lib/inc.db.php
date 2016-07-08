@@ -263,7 +263,7 @@ SELECT DISTINCT p.id as person_id, p.canLogin XOR (rm.gremium_id IS NOT NULL) as
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
-$r = $pdo->query("DROP VIEW {$DB_PREFIX}person_current");
+#$r = $pdo->query("DROP VIEW {$DB_PREFIX}person_current");
 $r = $pdo->query("SELECT hasUniMail FROM {$DB_PREFIX}person_current LIMIT 1");
 #$r = $pdo->query("SELECT * FROM {$DB_PREFIX}person_current LIMIT 1");
 if ($r === false) {

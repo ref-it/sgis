@@ -2,7 +2,7 @@
 <div class="panel-heading">Gremienmitgliedschaften</div>
 <div class="panel-body">
 
-<table class="table table-striped">
+<table class="table tablegremiumrolle">
 <tr>
  <?php if ($gremienmitgliedschaften_edit): ?>
   <th>
@@ -18,18 +18,27 @@ if (count($gremien) == 0):
 <tr><td colspan="<?php echo $gremienmitgliedschaften_edit ? 4 : 3; ?>"><i>Keine Gremienmitgliedschaften.</td></tr>
 <?php
 else:
+$iall = 0; $iactive=0;
 foreach($gremien as $gremium):
+  $cssclass = [];
+  $iall++;
+  if (!$gremium["active"]) {
+    $hasInactiveAssignments = true;
+    $cssclass[] = "inactiverow";
+  } else {
+    $cssclass[] = "activerow";
+    $iactive++;
+  }
+  if ($iall % 2 == 0)
+    $cssclass[] = "alleven";
+  else
+    $cssclass[] = "allodd";
+  if ($iactive % 2 == 0)
+    $cssclass[] = "activeeven";
+  else
+    $cssclass[] = "activeodd";
 ?>
-<tr
-<?php
-if (!$gremium["active"]):
-  $hasInactiveAssignments = true;
-?>
-  class="gremiumrolleinactive"
-<?php
-endif;
-?>
->
+<tr class="<?php echo implode(" ", $cssclass); ?>">
 <?php if ($gremienmitgliedschaften_edit): ?>
  <td class="nobr">
   <a target="_blank" href="?tab=rel_mitgliedschaft.edit&amp;rel_id=<?php echo $gremium["id"]; ?>">
@@ -113,9 +122,11 @@ endif;
 <script>
 $("#gremiumrolletoggle").on("change.gremiumrolle", function() {
   if ($(this).is(":checked")) {
-    $("tr.gremiumrolleinactive").show();
+    $("table.tablegremiumrolle").addClass("table-showall");
+    $("table.tablegremiumrolle").removeClass("table-showactive");
   } else {
-    $("tr.gremiumrolleinactive").hide();
+    $("table.tablegremiumrolle").addClass("table-showactive");
+    $("table.tablegremiumrolle").removeClass("table-showall");
   }
 });
 $("#gremiumrolletoggle").trigger("change");
