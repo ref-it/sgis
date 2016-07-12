@@ -825,7 +825,7 @@ function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengangabschluss,
 
 function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengangabschluss = ?, wiki_members = ?, wiki_members_table = ?, wiki_members_fulltable = ?, active = ?, wiki_members_fulltable = ? WHERE id = ?");
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengangabschluss = ?, wiki_members = ?, wiki_members_table = ?, wiki_members_fulltable = ?, active = ?, wiki_members_fulltable2 = ? WHERE id = ?");
   return $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2, $id)) or httperror(print_r($query->errorInfo(),true));
 }
 
