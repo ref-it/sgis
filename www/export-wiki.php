@@ -17,6 +17,7 @@ $rollen = getAlleRolle();
 $mapping = Array();
 $mapping_table = Array();
 $mapping_fulltable = Array();
+$mapping_coltable = Array();
 $mapping_nachbesetzung = Array();
 $name_gremien = Array();
 $name_rollen = Array();
@@ -88,6 +89,43 @@ foreach (["gremium_wiki_members_fulltable","gremium_wiki_members_fulltable2"] as
     $rel_id = $person["rel_id"];
     $active = ($person["active"] == 1) ? "active" : "inactive";
     $mapping_fulltable[$wiki][$gremium_fak][$gremium_id][$rolle_id][$active][$rel_id] = $person;
+  }
+ }
+}
+
+// group roles by wiki page, skip empty wiki pages, and list all persons
+foreach (["rolle_wiki_members_roleAsColumnTable"] as $key) {
+ foreach ($rollen as $rolle) {
+  if (strpos($rolle[$key],"#") === false) {
+    $wiki = cleanID($rolle[$key]);
+    $rolle_name = $rolle["rolle_name"];
+  } else {
+    list ($wiki1, $wiki2) = explode("#",$rolle[$key],2);
+    $wiki = cleanID($wiki1);
+    $rolle_name = $wiki2;
+  }
+  if (empty($wiki)) continue;
+  if ($rolle["gremium_active"] == 0) continue;
+  if ($rolle["rolle_active"] == 0) continue;
+  if (substr($wiki,0,strlen($wikiprefix)) != $wikiprefix) {
+    $gname = preg_replace("/\s+/"," ",trim("{$rolle["rolle_name"]} {$rolle["gremium_name"]} {$rolle["gremium_fakultaet"]} {$rolle["gremium_studiengang"]} {$rolle["gremium_studiengangabschluss"]}"));
+    echo "Rolle: ".htmlentities($gname)." hat ungültigen Wiki-Eintrag, der nicht mit :$wikiprefix beginnt.<br/>\n";
+  }
+  $gremium_id = $rolle["gremium_id"];
+  $gremium_name = $rolle["gremium_name"];
+  $gremium_fak = $rolle["gremium_fakultaet"];
+  $gremium_tmp = preg_replace("/\s+/"," ",trim("{$rolle["gremium_name"]} {$rolle["gremium_fakultaet"]} {$rolle["gremium_studiengang"]} {$rolle["gremium_studiengangabschluss"]}"));
+  $gremium_tmp = str_replace(["Ä", "Ö", "Ü", "ä", "ö", "ü", "ß"], ["Ae", "Oe", "Ue", "ae", "oe", "ue", "ss"], $gremium_tmp);
+
+  $rolle_id = $rolle["rolle_id"];
+  $name_gremien[$gremium_id] = $rolle;
+  $name_rollen[$gremium_id][$rolle_id] = $rolle;
+  $personen = getRollePersonen($rolle_id);
+  $mapping_coltable[$wiki][$rolle_name][$gremium_tmp][$gremium_id][$rolle_id]["active"] = [];
+  foreach ($personen as $person) {
+    if ($person["active"] != 1) continue;
+    $rel_id = $person["rel_id"];
+    $mapping_coltable[$wiki][$rolle_name][$gremium_tmp][$gremium_id][$rolle_id]["active"][$rel_id] = $person;
   }
  }
 }
@@ -381,6 +419,82 @@ foreach ($mapping_fulltable as $wiki => $data) {
     }
 
   } /* $gremium_name */
+
+  $text[] = "";
+
+  $pages[$wiki]["new"] = $text;
+}
+
+foreach ($mapping_coltable as $wiki => $data) {
+  $text = Array();
+  if (isset($pages[$wiki]["new"]))
+    $text = $pages[$wiki]["new"];
+  ksort($data);
+
+#  $text[] = "====== studentische Mitglieder (Ilmenau) ======";
+#  $text[] = "";
+  $headline = [ "Gremium" ];
+  foreach (array_keys($data) as $rolle_name) {
+    $headline[$rolle_name] = $rolle_name;
+  }
+  $table = ["0head" => [$headline] ];
+
+  foreach ($data as $col_name => $data0 ) {
+    foreach ($data0 as $gremium_tmp => $data1) {
+      $rowIdx = 0;
+      foreach ($data1 as $gremium_id => $data2) {
+        $g = $name_gremien[$gremium_id];
+
+        if (!$g["gremium_active"]) continue;
+
+        $prefix = preg_replace("/\s+/"," ",trim("{$g["gremium_name"]} {$g["gremium_fakultaet"]} {$g["gremium_studiengang"]} {$g["gremium_studiengangabschluss"]}"));
+
+#echo $prefix."<br>\n";
+
+        $table["1".$gremium_tmp][$rowIdx][0] = $prefix;
+        $firstRowIdx = $rowIdx;
+
+        foreach ($data2 as $rolle_id => $personen) {
+          $r = $name_rollen[$gremium_id][$rolle_id];
+          $isempty2 = $r["rolle_numPlatz"];
+
+          if (!$r["rolle_active"]) continue;
+          if (empty($personen["active"])) continue;
+
+          if ($firstRowIdx != $rowIdx)
+            $table["1".$gremium_tmp][$rowIdx][0] = " ::: ";
+
+          $ptext = [];
+          foreach($personen["active"] as $person) {
+            #$item = person2string($person);
+            $item = "[[:person:{$person["name"]}]]";
+            $ptext[] = $item;
+          }
+          $table["1".$gremium_tmp][$rowIdx][$col_name] = implode(", ", $ptext);
+          if ($r["rolle_name"] != $col_name) $table["1".$gremium_tmp][$rowIdx][$col_name] .= " ({$r["rolle_name"]})";
+          $rowIdx++;
+        }
+      }
+    }
+  } /* $col_name */
+#echo "<pre>"; print_r($table); echo "</pre>";
+  ksort($table);
+  foreach ($table as $i => $rows) {
+    $sep = ($i == "0head") ? "^" : "|";
+
+    foreach ($rows as $k=>$row) {
+      if (!isset($row[0])) {
+        echo "ERROR: \$i=$i \$k=$k ";print_r($row);echo"<br>\n";
+      }
+
+      $line = $sep." ".$row[0]." ".$sep;
+
+      foreach (array_keys($data) as $col_name) {
+        $line .= " ".@$row[$col_name]." ".$sep;
+      }
+      $text[] = $line;
+    }
+  }
 
   $text[] = "";
 

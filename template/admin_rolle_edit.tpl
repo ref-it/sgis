@@ -50,6 +50,7 @@ foreach ([
   "numPlatz" => "Plätze",
   "wahlDurchWikiSuffix" => "Wähler",
   "wahlPeriodeDays" => "Wahlperiode",
+  "wiki_members_roleAsColumnTable" => "Wiki-Seite für Mitglieder (Tabelle mit Spalten für Rollen)",
  ] as $key => $desc):
 
 ?>
@@ -60,6 +61,11 @@ foreach ([
 
       <?php
         switch($key) {
+          case "wiki_members_roleAsColumnTable":
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($rolle[$key]); ?>">
+           <i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i>
+<?php
+           break;
           case "wahlPeriodeDays":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($rolle[$key]); ?>"> Tage
 <?php

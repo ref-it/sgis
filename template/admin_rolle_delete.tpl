@@ -50,6 +50,7 @@ foreach ([
   "numPlatz" => "Plätze",
   "wahlDurchWikiSuffix" => "Wähler",
   "wahlPeriodeDays" => "Wahlperiode",
+  "wiki_members_roleAsColumnTable" => "Wiki-Seite für Mitglieder (Tabelle mit Spalten für Rollen)",
  ] as $key => $desc):
 
 ?>
