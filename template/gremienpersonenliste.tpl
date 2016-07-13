@@ -2,7 +2,7 @@
 <div class="panel-heading">Personen</div>
 <div class="panel-body">
 
-<table class="table tablerolleperson">
+<table class="table tablerolleperson table-showall">
 <tr>
 <?php if ($gremienpersonen_edit): ?>
   <th>

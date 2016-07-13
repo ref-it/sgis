@@ -2,7 +2,7 @@
 <div class="panel-heading">Rollen</div>
 <div class="panel-body">
 
-<table class="table tablerollerolle">
+<table class="table tablerollerolle table-showall">
 <tr>
 <?php if ($gremienrollen_edit): ?>
   <th><a href="?tab=rolle.new&amp;gremium_id=<?php echo $gremium["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a></th>

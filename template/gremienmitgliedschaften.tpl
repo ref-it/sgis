@@ -2,7 +2,7 @@
 <div class="panel-heading">Gremienmitgliedschaften</div>
 <div class="panel-body">
 
-<table class="table tablegremiumrolle">
+<table class="table tablegremiumrolle table-showall">
 <tr>
  <?php if ($gremienmitgliedschaften_edit): ?>
   <th>
