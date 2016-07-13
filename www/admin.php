@@ -385,7 +385,7 @@ if (isset($_POST["action"])) {
   case "rolle_gremium.insert":
    $spiGroupId = $_POST["spiGroupId"];
    if ($spiGroupId === "") $spiGroupId = NULL;
-   $ret = dbGremiumInsertRolle($_POST["gremium_id"],$_POST["name"],$_POST["active"],$spiGroupId,$_POST["numPlatz"],$_POST["wahlDurchWikiSuffix"],$_POST["wahlPeriodeDays"],$_POST["wiki_members_roleAsColumnTable"]);
+   $ret = dbGremiumInsertRolle($_POST["gremium_id"],$_POST["name"],$_POST["active"],$spiGroupId,$_POST["numPlatz"],$_POST["wahlDurchWikiSuffix"],$_POST["wahlPeriodeDays"],$_POST["wiki_members_roleAsColumnTable"],$_POST["wiki_members_roleAsColumnTableExtended"]);
    $msgs[] = "Rolle wurde angelegt.";
    if ($ret !== false)
      $target = $_SERVER["PHP_SELF"]."?tab=rolle.edit&rolle_id=".$ret;
@@ -393,7 +393,7 @@ if (isset($_POST["action"])) {
   case "rolle_gremium.update":
    $spiGroupId = $_POST["spiGroupId"];
    if ($spiGroupId === "") $spiGroupId = NULL;
-   $ret = dbGremiumUpdateRolle($_POST["id"], $_POST["name"],$_POST["active"],$spiGroupId,$_POST["numPlatz"],$_POST["wahlDurchWikiSuffix"],$_POST["wahlPeriodeDays"],$_POST["wiki_members_roleAsColumnTable"]);
+   $ret = dbGremiumUpdateRolle($_POST["id"], $_POST["name"],$_POST["active"],$spiGroupId,$_POST["numPlatz"],$_POST["wahlDurchWikiSuffix"],$_POST["wahlPeriodeDays"],$_POST["wiki_members_roleAsColumnTable"],$_POST["wiki_members_roleAsColumnTableExtended"]);
    $msgs[] = "Rolle wurde umbenannt.";
   break;
   case "rolle_gremium.delete":
