@@ -385,7 +385,7 @@ if (isset($_POST["action"])) {
   case "rolle_gremium.insert":
    $spiGroupId = $_POST["spiGroupId"];
    if ($spiGroupId === "") $spiGroupId = NULL;
-   $ret = dbGremiumInsertRolle($_POST["gremium_id"],$_POST["name"],$_POST["active"],$spiGroupId,$_REQUEST["numPlatz"],$_REQUEST["wahlDurchWikiSuffix"],$_REQUEST["wahlPeriodeDays"]);
+   $ret = dbGremiumInsertRolle($_POST["gremium_id"],$_POST["name"],$_POST["active"],$spiGroupId,$_POST["numPlatz"],$_POST["wahlDurchWikiSuffix"],$_POST["wahlPeriodeDays"]);
    $msgs[] = "Rolle wurde angelegt.";
    if ($ret !== false)
      $target = $_SERVER["PHP_SELF"]."?tab=rolle.edit&rolle_id=".$ret;

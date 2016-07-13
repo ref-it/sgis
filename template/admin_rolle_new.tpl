@@ -81,6 +81,7 @@ foreach ([
           case "wahlPeriodeDays":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="365"> Tage
 <?php
+           break;
           case "wahlDurchWikiSuffix":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="">
            <i>(Suffix für Wiki-Seite mit der zu-wählen-Liste.)</i>
