@@ -83,7 +83,7 @@ foreach ([
           case "wiki_members_roleAsColumnTable":
           case "wiki_members_roleAsColumnTableExtended":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="">
-           <i>(Wenn gesetzt beginnt immer mit :sgis:mitglieder:)</i>
+           <i>(Wenn gesetzt beginnt immer mit ":sgis:mitglieder:" . Abweichender Spaltenname mit #Spaltenname am Ende angeben.)</i>
 <?php
            break;
           case "wahlPeriodeDays":
