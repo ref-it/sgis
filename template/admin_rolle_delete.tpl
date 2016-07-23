@@ -50,8 +50,9 @@ foreach ([
   "numPlatz" => "Plätze",
   "wahlDurchWikiSuffix" => "Wähler",
   "wahlPeriodeDays" => "Wahlperiode",
-  "wiki_members_roleAsColumnTable" => "Wiki-Seite für Mitglieder (Tabelle mit Spalten für Rollen)",
-  "wiki_members_roleAsColumnTableExtended" => "Wiki-Seite für Mitglieder (Tabelle mit Spalten für Rollen und Datumsangaben)",
+  "wiki_members_roleAsColumnTable" => "Wiki-Seite für aktuelle Mitglieder (Tabelle mit Spalten für Rollen)",
+  "wiki_members_roleAsColumnTableExtended" => "Wiki-Seite für aktuelle Mitglieder (Tabelle mit Spalten für Rollen und Datumsangaben)",
+  "wiki_members_roleAsMasterTable" => "Wiki-Seite für aktuelle Mitglieder (Übersichtsseite für alle Gremien)",
  ] as $key => $desc):
 
 ?>

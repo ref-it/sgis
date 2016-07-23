@@ -2,6 +2,8 @@
 global $ADMINGROUP;
 require_once "../lib/inc.all.php";
 
+prof_flag("Start");
+
 if (isset($_REQUEST["autoExportPW"])) {
   requireExportAutoPW();
 } else {
@@ -13,17 +15,22 @@ if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
  $validnonce = true;
 }
 
+prof_flag("Init");
+
 $rollen = getAlleRolle();
 $mapping = Array();
 $mapping_table = Array();
 $mapping_fulltable = Array();
 $mapping_coltable = Array();
 $mapping_colextable = Array();
+$mapping_mastertable = Array();
 $mapping_nachbesetzung = Array();
 $name_gremien = Array();
 $name_rollen = Array();
 
 $wikiprefix = "sgis:mitglieder:";
+
+prof_flag("DB Fetch Done");
 
 // group roles by wiki page, skip empty wiki pages, and list all persons
 foreach ($rollen as $rolle) {
@@ -44,6 +51,8 @@ foreach ($rollen as $rolle) {
     $mapping[$wiki][$gremium_id][$rolle_id][$active][$rel_id] = $person;
   }
 }
+
+prof_flag("gremium_wiki_members");
 
 // group roles by wiki page, skip empty wiki pages, and list all persons
 foreach ($rollen as $rolle) {
@@ -70,6 +79,8 @@ foreach ($rollen as $rolle) {
 
 // group roles by wiki page, skip empty wiki pages, and list all persons
 foreach (["gremium_wiki_members_fulltable","gremium_wiki_members_fulltable2"] as $key) {
+  prof_flag($key);
+
  foreach ($rollen as $rolle) {
   $wiki = cleanID($rolle[$key]);
   if (empty($wiki)) continue;
@@ -133,6 +144,7 @@ foreach (["rolle_wiki_members_roleAsColumnTable"] as $key) {
 
 // group roles by wiki page, skip empty wiki pages, and list all persons
 foreach (["rolle_wiki_members_roleAsColumnTableExtended"] as $key) {
+  prof_flag($key);
  foreach ($rollen as $rolle) {
   if (strpos($rolle[$key],"#") === false) {
     $wiki = cleanID($rolle[$key]);
@@ -169,6 +181,74 @@ foreach (["rolle_wiki_members_roleAsColumnTableExtended"] as $key) {
 }
 
 // group roles by wiki page, skip empty wiki pages, and list all persons
+foreach (["rolle_wiki_members_roleAsMasterTable"] as $key) {
+  prof_flag($key);
+ foreach ($rollen as $rolle) {
+  if (strpos($rolle[$key],"#") !== false) {
+    list ($wiki1, $wiki2) = explode("#",$rolle[$key],2);
+    $wiki = cleanID($wiki1);
+    if (strpos($wiki2, " ") !== false) {
+      $section_name = $wiki2;
+    } elseif (preg_match('/^[0-9]+$/', $wiki2)) { # nur Zahlen -> Reihenfolge only
+      $section_name = $wiki2." ".$rolle["gremium_name"];
+    } elseif (preg_match('/^([0-9]+)\?(.*)$/', $wiki2, $treffer)) { # nur Zahlen -> Reihenfolge only
+      $section_name = $treffer[1]." ".$rolle["gremium_name"]."?".$treffer[2];
+    } else { # kein Leerzeichen und nicht nur Zahlen -> d.h. keine Reihenfolge
+      $section_name = " ".$wiki2;
+    }
+  } elseif (strpos($rolle[$key],"?") !== false) { # keine # aber ?
+    list ($wiki1, $wiki2) = explode("?",$rolle[$key],2);
+    $wiki = cleanID($wiki1);
+    $section_name = " ".$rolle["gremium_name"]."?".$wiki2;
+  } else {
+    $wiki = cleanID($rolle[$key]);
+    $section_name = " ".$rolle["gremium_name"];
+  }
+  if (strpos($section_name,"?") !== false) {
+    list ($wiki1, $wiki2) = explode("?",$section_name,2);
+    $section_name = $wiki1;
+    $flags = $wiki2;
+  } else {
+    $flags = "";
+  }
+  if (empty($wiki)) continue;
+  if ($rolle["gremium_active"] == 0) continue;
+  if ($rolle["rolle_active"] == 0) continue;
+  if (substr($wiki,0,strlen($wikiprefix)) != $wikiprefix) {
+    $gname = preg_replace("/\s+/"," ",trim("{$rolle["rolle_name"]} {$rolle["gremium_name"]} {$rolle["gremium_fakultaet"]} {$rolle["gremium_studiengang"]} {$rolle["gremium_studiengangabschluss"]}"));
+    echo "Rolle: ".htmlentities($gname)." hat ungültigen Wiki-Eintrag, der nicht mit :$wikiprefix beginnt.<br/>\n";
+  }
+  $gremium_id = $rolle["gremium_id"];
+  $gremium_name = $rolle["gremium_name"];
+  $gremium_fak = $rolle["gremium_fakultaet"]; if (empty($gremium_fak)) $gremium_fak="";
+  $gremium_sg = $rolle["gremium_studiengang"]; if (empty($gremium_sg)) $gremium_sg="";
+  $gremium_sga = $rolle["gremium_studiengangabschluss"];
+  if (!empty($gremium_sga)) $gremium_sg = "$gremium_sga $gremium_sg";
+
+  $rolle_id = $rolle["rolle_id"];
+  $name_gremien[$gremium_id] = $rolle;
+  $name_rollen[$gremium_id][$rolle_id] = $rolle;
+  $personen = getRollePersonen($rolle_id);
+
+  if (!isset($mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg])) {
+    $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg] = [];
+  }
+  foreach ($personen as $person) {
+    if ($person["active"] != 1) continue;
+    $rel_id = $person["rel_id"];
+    $person_id = $person["id"];
+    $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["data"][$rel_id] = $person;
+    if (!isset($mapping_mastertable[$wiki][$section_name][$person_id]["flags"])) {
+      $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["flags"] = "";
+    }
+    $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["flags"] .= $flags;
+  }
+ }
+}
+
+prof_flag("gremium_isempty");
+
+// group roles by wiki page, skip empty wiki pages, and list all persons
 $gremium_isempty = [];
 foreach ($rollen as $rolle) {
   if (!$rolle["rolle_active"]) continue;
@@ -187,6 +267,8 @@ foreach ($rollen as $rolle) {
     $gremium_isempty[$gremium_id] = false;
   }
 }
+
+prof_flag("nachbesetzung");
 
 foreach ($rollen as $rolle) {
   if (!$rolle["rolle_active"]) continue;
@@ -236,6 +318,8 @@ foreach ($rollen as $rolle) {
     $mapping_nachbesetzung[$wiki2][$gremium_sort][$gremium_id][$rolle_id]["active"][$rel_id] = $person;
   }
 }
+
+prof_flag("mapping done");
 
 // generate wiki pages
 function person2string($person) {
@@ -295,7 +379,11 @@ function cmpPerson($a, $b) {
   return 0;
 }
 
+prof_flag("render pages");
+
 $pages = Array();
+
+prof_flag("render pages: mapping");
 
 foreach ($mapping as $wiki => $data) {
   $text = Array();
@@ -327,6 +415,8 @@ foreach ($mapping as $wiki => $data) {
   }
   $pages[$wiki]["new"] = $text;
 }
+
+prof_flag("render pages: mapping_table");
 
 foreach ($mapping_table as $wiki => $data) {
   $text = Array();
@@ -396,6 +486,8 @@ foreach ($mapping_table as $wiki => $data) {
   $pages[$wiki]["new"] = $text;
 }
 
+prof_flag("render pages: mapping_fulltable");
+
 foreach ($mapping_fulltable as $wiki => $data) {
   $text = Array();
   if (isset($pages[$wiki]["new"]))
@@ -462,6 +554,8 @@ foreach ($mapping_fulltable as $wiki => $data) {
 
   $pages[$wiki]["new"] = $text;
 }
+
+prof_flag("render pages: mapping_coltable");
 
 foreach ($mapping_coltable as $wiki => $data) {
   $text = Array();
@@ -537,6 +631,8 @@ foreach ($mapping_coltable as $wiki => $data) {
 
   $pages[$wiki]["new"] = $text;
 }
+
+prof_flag("render pages: mapping_colextable");
 
 foreach ($mapping_colextable as $wiki => $data) {
   $text = Array();
@@ -629,6 +725,105 @@ foreach ($mapping_colextable as $wiki => $data) {
   $pages[$wiki]["new"] = $text;
 }
 
+prof_flag("render pages: mapping_mastertable");
+
+function cmpPersonMaster($a, $b) {
+  $ad = array_values($a["data"]);
+  $bd = array_values($b["data"]);
+  $a0 = $ad[0];
+  $b0 = $bd[0];
+
+  if ($a0["name"] < $b0["name"]) return -1;
+  if ($a0["name"] > $b0["name"]) return 1;
+  if ($a0["email"] < $b0["email"]) return -1;
+  if ($a0["email"] > $b0["email"]) return 1;
+  if ($a0["id"] < $b0["id"]) return -1;
+  if ($a0["id"] > $b0["id"]) return 1;
+  return 0;
+}
+
+foreach ($mapping_mastertable as $wiki => $data) {
+  $text = Array();
+  if (isset($pages[$wiki]["new"]))
+    $text = $pages[$wiki]["new"];
+  ksort($data);
+
+  $template = explode("\n",fetchWikiPage(":vorlagen:tree:{$wiki}"));
+  foreach ($template as $line)
+    $text[] = $line;
+
+  foreach ($data as $section_name => $data0 ) {
+
+    if (strpos($section_name, " ") !== false) {
+      list ($tmp1, $tmp2) = explode(" ", $section_name, 2);
+      $section_name = $tmp2;
+    }
+
+    if (count($data0) == 1 && array_keys($data0)[0] != "") {
+      # exactly one faculty
+      $suffixA = " (".array_keys($data0)[0]. ")";
+      $suffixB = " ".array_keys($data0)[0];
+      if ((substr($section_name, -strlen($suffixA)) != $suffixA) &&
+          (substr($section_name, -strlen($suffixB)) != $suffixB)
+         )
+        $section_name .= $suffixA;
+    }
+    $needFakCol = (count($data0) > 1);
+
+    $needSGCol = false;
+    foreach ($data0 as $gremium_fak => $data1 ) {
+      $needSGCol |= (count($data1) > 1);
+      $needSGCol |= (count($data0) > 1 && count($data1) == 1 && array_keys($data1)[0] != ""); # mehere Fakultäten mit wenigstens einem nicht-leeren Studiengang angegeben
+    }
+
+    $text[] = "===== {$section_name} =====";
+    $line = "^ Name ^ eMail ^";
+    if ($needSGCol) $line = "^ Studiengang $line";
+    if ($needFakCol) $line = "^ Fakultät $line";
+    $text[] = $line;
+
+    ksort($data0);
+    foreach ($data0 as $gremium_fak => $data1 ) {
+     ksort($data1);
+     foreach ($data1 as $gremium_sg => $data ) {
+       uasort($data, "cmpPersonMaster");
+
+       foreach ($data as $person_id => $data1) {
+
+         $person = array_values($data1["data"])[0];
+         $flags = $data1["flags"];
+         $sep = "";
+         if (strpos($flags, "i") !== false) $sep .= "//";
+         if (strpos($flags, "b") !== false) $sep .= "**";
+         if (strpos($flags, "u") !== false) $sep .= "__";
+
+         $sepr = strrev($sep);
+
+         $email = explode(",", $person["email"])[0];
+
+         $line = "| $sep [[:person:{$person["name"]}]] $sepr | $sep {$email} $sepr |";
+         if ($needSGCol) $line = "| $sep $gremium_sg $sepr $line";
+         if ($needFakCol) $line = "| $sep $gremium_fak $sepr $line";
+         $line = preg_replace("/\s+/"," ",$line);
+
+         $text[] = $line;
+
+       } /* person_id */
+     }
+    }
+    $text[] = "";
+  } /* $section_name */
+
+  $text[] = "";
+  $text[] = "";
+  $text[] = "//Stand: ".date("d.m.Y")."//";
+  $text[] = "";
+
+  $pages[$wiki]["new"] = $text;
+}
+
+prof_flag("render pages: mapping_nachbesetzung");
+
 foreach ($mapping_nachbesetzung as $wiki => $data) {
   $text = Array();
   if (isset($pages[$wiki]["new"]))
@@ -696,6 +891,8 @@ foreach ($mapping_nachbesetzung as $wiki => $data) {
   $pages[$wiki]["new"] = $text;
 }
 
+prof_flag("render pages: diff or post");
+
 foreach (array_keys($pages) as $wiki) {
   if (isset($_POST["commit"]) && is_array($_POST["commit"]) && in_array($wiki, $_POST["commit"]) && $validnonce) {
     writeWikiPage($wiki, base64_decode($_POST["text"][$wiki]));
@@ -713,6 +910,8 @@ if (isset($_POST["commit"])) {
   header("Location: ${_SERVER["PHP_SELF"]}");
   die();
 }
+
+prof_flag("render html");
 
 require_once "../template/header-old.tpl";
 
@@ -760,6 +959,10 @@ if (isset($_REQUEST["autoExportPW"]))
 <a href="index.php">Selbstauskunft</a> &bull;
 <a href="admin.php">Verwaltung</a>
 <?php
+
+prof_flag("End");
+#prof_print();
+
 require_once "../template/footer.tpl";
 
 # vim: set expandtab tabstop=8 shiftwidth=8 :

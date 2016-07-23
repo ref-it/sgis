@@ -37,6 +37,8 @@ function getSinglePersonData($username) {
     $ret["grps"]   = Array();
     return $ret;
   }
+  $emails = explode(",", $person["email"]);
+  $person["email"] = $emails[0];
   $ret["person"] = $person;
   unset($ret["person"]["password"]);
   $grps = Array();

@@ -68,8 +68,9 @@ foreach ([
   "numPlatz" => "Plätze",
   "wahlDurchWikiSuffix" => "Wähler",
   "wahlPeriodeDays" => "Wahlperiode",
-  "wiki_members_roleAsColumnTable" => "Wiki-Seite für Mitglieder (Tabelle mit Spalten für Rollen)",
-  "wiki_members_roleAsColumnTableExtended" => "Wiki-Seite für Mitglieder (Tabelle mit Spalten für Rollen und Datumsangaben)",
+  "wiki_members_roleAsColumnTable" => "Wiki-Seite für aktuelle Mitglieder (Tabelle mit Spalten für Rollen)",
+  "wiki_members_roleAsColumnTableExtended" => "Wiki-Seite für aktuelle Mitglieder (Tabelle mit Spalten für Rollen und Datumsangaben)",
+  "wiki_members_roleAsMasterTable" => "Wiki-Seite für aktuelle Mitglieder (Übersichtseite für alle Gremien)",
  ] as $key => $desc):
 
 ?>
@@ -84,6 +85,11 @@ foreach ([
           case "wiki_members_roleAsColumnTableExtended":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="">
            <i>(Wenn gesetzt beginnt immer mit ":sgis:mitglieder:" . Abweichender Spaltenname mit #Spaltenname am Ende angeben.)</i>
+<?php
+           break;
+          case "wiki_members_roleAsMasterTable":
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="" placeholder=":sgis:mitglieder:seitenname#Reihenfolge Überschrift?[ibu]*">
+           <i>(Wenn gesetzt beginnt immer mit ":sgis:mitglieder:" . Abweichende Reihenfolge oder Spaltenname mit #Spaltenname am Ende angeben. Dahinter können "?" und dann die Flags i (kursiv), b (fett) und u (Underline) angegeben werden.)</i>
 <?php
            break;
           case "wahlPeriodeDays":
