@@ -1,5 +1,7 @@
 <?php
 
+require_once(dirname(__FILE__)."/../../inc.unildap.php");
+
 /**
  * Add SGIS attributes into reply.
  *
@@ -38,6 +40,18 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                 if (!isset($config['prefix'])) {
                         throw new SimpleSAML_Error_Exception($this->authId . ': Missing required \'prefix\' option.');
                 }
+                if (!isset($config['unimail'])) {
+                        throw new SimpleSAML_Error_Exception($this->authId . ': Missing required \'unimail\' option.');
+                }
+                if (!is_array($config['unimail'])) {
+                        $config['unimail'] = [ $config['unimail'] ];
+                }
+                if (!isset($config['unildaphost'])) {
+                        throw new SimpleSAML_Error_Exception($this->authId . ': Missing required \'unildaphost\' option.');
+                }
+                if (!isset($config['unildapbase'])) {
+                        throw new SimpleSAML_Error_Exception($this->authId . ': Missing required \'unildapbase\' option.');
+                }
 
                 $this->config = $config;
         }
@@ -66,7 +80,7 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                   $user = $user[0];
                   $valid = true;
                 } else { // new user
-                  $query = $pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM {$prefix}person p WHERE p.email = ?");
+                  $query = $pdo->prepare("SELECT id, name, username, canLogin, unirzlogin FROM {$prefix}person p INNER JOIN {$prefix}person_email pe ON pe.person_id = p.id WHERE pe.email = ?");
                   $query->execute(array($mail));
                   $user = $query->fetchAll(PDO::FETCH_ASSOC);
                   if (count($user) > 0) {
@@ -101,6 +115,12 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                   $query->execute(Array($user["id"]));
                   $mailinglists = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
                   $attributes["mailinglists"] = array_unique($mailinglists);
+                }
+                if (!isset($attributes["displayName"]) && !empty($mail)) {
+                  $r = verify_tui_mail($mail, $this->config["unimail"], $this->config["unildaphost"], $this->config["unildapbase"]);
+                  if (is_array($r) && isset($r["sn"]) && isset($r["givenName"])) {
+                    $attributes["displayName"] = [ ucfirst($r["givenName"])." ".ucfirst($r["sn"]) ];
+                  }
                 }
                 if (!isset($attributes["displayName"])) {
                   $attributes["displayName"] = $attributes["eduPersonPrincipalName"];

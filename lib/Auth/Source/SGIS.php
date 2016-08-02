@@ -55,13 +55,17 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_sgis_Auth_UserPassBaseCookie {
                 $pdo = new PDO((string) $this->config["dsn"], (string) $this->config["username"], (string) $this->config["password"]);
                 $prefix = $this->config['prefix'];
 
-                $query = $pdo->prepare("SELECT id, canLogin, password, email, username, name FROM {$prefix}person WHERE username = ?");
+                $query = $pdo->prepare("SELECT id, canLogin, password, username, name FROM {$prefix}person WHERE username = ?");
                 if (!$query->execute(Array($username))) throw new SimpleSAML_Error_Exception($this->authId . ': database error.');
                 if ($query->rowCount() != 1) {
                         // no such user
                         throw new SimpleSAML_Error_Error('WRONGUSERPASS');
                 }
                 $user = $query->fetch(PDO::FETCH_ASSOC);
+
+                $query = $pdo->prepare("SELECT email FROM {$prefix}person_email WHERE person_id = ? ORDER BY srt, email");
+                $query->execute(array($user["id"]));
+                $emails = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
 
                 $query = $pdo->prepare("SELECT DISTINCT g.name FROM {$prefix}gruppe g INNER JOIN {$prefix}rel_rolle_gruppe rrg ON g.id = rrg.gruppe_id INNER JOIN {$prefix}rel_mitgliedschaft rrm ON rrg.rolle_id = rrm.rolle_id AND (rrm.von IS NULL OR rrm.von <= CURRENT_DATE) AND (rrm.bis IS NULL OR rrm.bis >= CURRENT_DATE) WHERE rrm.person_id = ?");
                 $query->execute(array($user["id"]));
@@ -80,12 +84,12 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_sgis_Auth_UserPassBaseCookie {
 
                 # Login ok
                 $attributes = Array();
-                $attributes["mail"] = Array($user["email"]);
+                $attributes["mail"] = $emails;
                 $attributes["eduPersonPrincipalName"] = Array($user["username"]);
-                if (!empty($user["name"])) {
+                if ((!empty($user["name"])) || (count($emails) < 1)) {
                         $attributes["displayName"] = Array($user["name"]);
                 } else {
-                        $attributes["displayName"] = Array($user["email"]);
+                        $attributes["displayName"] = $emails;
                 }
                 $query = $pdo->prepare("SELECT DISTINCT m.address FROM {$prefix}mailingliste m INNER JOIN {$prefix}rel_rolle_mailingliste rrm ON m.id = rrm.mailingliste_id INNER JOIN {$prefix}rel_mitgliedschaft rm ON rrm.rolle_id = rm.rolle_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ?");
                 $query->execute(array($user["id"]));
