@@ -96,6 +96,14 @@ foreach ([
   "canLogin" => "Login erlaubt?",
  ] as $key => $desc):
 
+ if ($key == "email") {
+   $vals = explode(",", $person[$key]);
+ } else {
+   $vals = [$person[$key]];
+ }
+
+ foreach ($vals as $val) {
+
 ?>
 
   <div class="form-group">
@@ -105,7 +113,7 @@ foreach ([
       <?php
         switch($key) {
           case "password":
-            echo (empty($person["$key"]) ? "nicht gesetzt" : "gesetzt");
+            echo (empty($val) ? "nicht gesetzt" : "gesetzt");
             break;
           case "canLogin":
 
@@ -113,24 +121,24 @@ foreach ([
             foreach ($gruppen as $grp) {
               $grps[] = $grp["name"];
             }
-            if ($person[$key]) {
+            if ($val) {
               $canLogin = !in_array("cannotLogin", $grps);
             } else {
               $canLogin = in_array("canLogin", $grps);
             }
 
-            if ($person[$key] && !$canLogin) {
+            if ($val && !$canLogin) {
               echo "grundsätzlich ja, aber derzeit gesperrt.";
             }
-            else if (!$person[$key] && $canLogin) {
+            else if (!$val && $canLogin) {
               echo "grundsätzlich nicht, aber derzeit erlaubt.";
             }
             else {
-              echo htmlspecialchars($person["$key"] ? "ja" : "nein");
+              echo htmlspecialchars($val ? "ja" : "nein");
             }
             break;
           default:
-            echo htmlspecialchars($person["$key"]);
+            echo htmlspecialchars($val);
             break;
         }
       ?>
@@ -139,6 +147,8 @@ foreach ([
   </div>
 
 <?php
+
+ }
 
 endforeach;
 
@@ -155,7 +165,7 @@ Angehörige der TU Ilmenau können E-Mail-Weiterleitungen auf <a href="https://w
   Auskunft über <?php echo htmlspecialchars($person["name"]); ?><br/>
  </h3>
  <h4 class="printonly">
-  <?php echo htmlspecialchars($person["email"]); ?>
+  <?php echo explode(",",htmlspecialchars($person["email"]))[0]; ?>
  </h4>
 <?php
  $gremienmitgliedschaften_edit = false;

@@ -182,7 +182,6 @@ if (isset($_POST["action"])) {
   case "verify.email":
     $r = verify_tui_mail(trim($_POST["email"]));
     if (is_array($r) && isset($r["sn"])) $r["sn"] = ucfirst($r["sn"]);
-    if (is_array($r) && isset($r["sn"])) $r["sn"] = ucfirst($r["sn"]);
     if (is_array($r) && isset($r["givenName"])) $r["givenName"] = ucfirst($r["givenName"]);
     header("Content-Type: application/json");
     echo json_encode($r);
