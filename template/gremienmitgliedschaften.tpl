@@ -9,7 +9,14 @@
    <a href="?tab=rel_mitgliedschaft.new&amp;person_id=<?php echo $person["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a>
   </th>
  <?php endif; ?>
- <th>Tätigkeit</th><th>Zeitraum</th><th class="hidden-xs">Beschluss</th>
+ <th>Tätigkeit</th>
+ <th>Zeitraum</th>
+ <th class="hidden-xs">
+  Beschluss
+  <?php if ($gremienmitgliedschaften_edit): ?>
+   / Kommentar
+  <?php endif; ?>
+ </th>
 </tr>
 <?php
 $hasInactiveAssignments = false;
@@ -100,7 +107,15 @@ foreach($gremien as $gremium):
  </td>
  <td class="hidden-xs">
 <?php
-   echo htmlspecialchars($gremium["beschlussAm"])." ".htmlspecialchars($gremium["beschlussDurch"]);
+  $a = [];
+  $a[] = trim($gremium["beschlussAm"]." ".$gremium["beschlussDurch"]);
+  if ($gremienmitgliedschaften_edit) {
+   $a[] = trim($gremium["kommentar"]);
+  }
+  // removes all NULL, FALSE and Empty Strings but leaves 0 (zero) values
+  $a = array_filter( $a, 'strlen' );
+  $a = array_map("htmlspecialchars", $a);
+  echo implode("<br>", $a);
 ?>
  </td>
 </tr>

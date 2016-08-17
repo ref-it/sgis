@@ -114,6 +114,7 @@ foreach ($otherpersons as $otherperson) {
 $gremienmitgliedschaften_edit = true;
 $gremienmitgliedschaften_link = true;
 $gremienmitgliedschaften_allByDefault = false;
+$gremienmitgliedschaften_comment = true;
 require ("../template/gremienmitgliedschaften.tpl");
 
 // vim:set filetype=php:

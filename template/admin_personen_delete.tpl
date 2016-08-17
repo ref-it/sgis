@@ -132,6 +132,7 @@ endforeach;
 $gremienmitgliedschaften_edit = false;
 $gremienmitgliedschaften_link = true;
 $gremienmitgliedschaften_allByDefault = false;
+$gremienmitgliedschaften_comment = true;
 require "../template/gremienmitgliedschaften.tpl";
 
 // vim:set filetype=php:

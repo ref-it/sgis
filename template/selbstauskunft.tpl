@@ -171,6 +171,7 @@ Angehörige der TU Ilmenau können E-Mail-Weiterleitungen auf <a href="https://w
  $gremienmitgliedschaften_edit = false;
  $gremienmitgliedschaften_link = false;
  $gremienmitgliedschaften_allByDefault = true;
+$gremienmitgliedschaften_comment = false;
  require "../template/gremienmitgliedschaften.tpl";
 ?>
 </div>
