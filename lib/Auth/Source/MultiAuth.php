@@ -48,7 +48,7 @@ class sspmod_sgis_Auth_Source_MultiAuth extends SimpleSAML_Auth_Source {
 	/**
 	 * Storage for authsource config option remember.source.checked
 	 * selectsource.php pages/templates use this option
-	 * to default the remember password checkbox to checked or not.
+	 * to default the remember source checkbox to checked or not.
 	 * @var bool
 	 */
 	protected $rememberSourceChecked = FALSE;
@@ -229,6 +229,9 @@ class sspmod_sgis_Auth_Source_MultiAuth extends SimpleSAML_Auth_Source {
 		$session = SimpleSAML_Session::getInstance();
 		$authId = $session->getData(self::SESSION_SOURCE, $this->authId);
 
+    if ($authId === NULL) /* maybe session expired */
+      return;
+
 		$source = SimpleSAML_Auth_Source::getById($authId);
 		if ($source === NULL) {
 			throw new Exception('Invalid authentication source during logout: ' . $source);
@@ -250,15 +253,17 @@ class sspmod_sgis_Auth_Source_MultiAuth extends SimpleSAML_Auth_Source {
 
 		$cookieName = 'multiauth_source_' . $this->authId;
 
-		/* We save the cookies for 90 days. */
-		$saveUntil = time() + 60*60*24*90;
-
-		/* The base path for cookies.
-		This should be the installation directory for simpleSAMLphp. */
 		$config = SimpleSAML_Configuration::getInstance();
-		$cookiePath = '/' . $config->getBaseUrl();
+		$params = array(
+			/* We save the cookies for 90 days. */
+			'lifetime' => (60*60*24*90),
+			/* The base path for cookies.
+			This should be the installation directory for simpleSAMLphp. */
+			'path' => ('/' . $config->getBaseUrl()),
+			'httponly' => FALSE,
+		);
 
-		setcookie($cookieName, $source, $saveUntil, $cookiePath);
+		SimpleSAML_Utilities::setCookie($cookieName, $source, $params, FALSE);
 	}
 
 	/**
