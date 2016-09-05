@@ -612,7 +612,7 @@ switch($_REQUEST["tab"]) {
 }
 
 require "../template/admin_footer.tpl";
-require "../template/footer.tpl";
+#require "../template/footer.tpl";
 
 exit;
 

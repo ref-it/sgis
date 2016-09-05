@@ -11,3 +11,6 @@
 
   </div><!-- /.container-fluid -->
 </nav>
+ </div> <!-- container -->
+ </body>
+</html>

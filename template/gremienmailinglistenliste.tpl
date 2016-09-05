@@ -6,7 +6,7 @@
 <tr>
 <?php if($gremienmailinglisten_edit):?>
   <th>
-    <a target="_blank" href="?tab=rel_rolle_mailingliste.new&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a>
+    <a href="?tab=rel_rolle_mailingliste.new&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a>
   </th>
 <?php endif; ?>
   <th>Adresse</th><th class="hidden-xs">Webseite</th>
@@ -22,15 +22,15 @@ foreach($mailinglisten as $mailingliste):
 <tr>
 <?php if($gremienmailinglisten_edit):?>
  <td>
-    <a target="_blank" href="?tab=rel_rolle_mailingliste.delete&amp;rolle_id=<?php echo $rolle["id"]; ?>&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank"><i class="fa fa-fw fa-trash"></i></a>
+    <a href="?tab=rel_rolle_mailingliste.delete&amp;rolle_id=<?php echo $rolle["id"]; ?>&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank"><i class="fa fa-fw fa-trash"></i></a>
  </td>
 <?php endif; ?>
  <td>
-<!--  <a target="_blank" href="?tab=mailingliste.edit&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank"><i class="fa fa-pencil"></i></a> -->
+<!--  <a href="?tab=mailingliste.edit&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank"><i class="fa fa-pencil"></i></a> -->
 <!--  <a href="mailto:<?php echo $mailingliste["address"]; ?>">
   <?php echo htmlspecialchars($mailingliste["address"]);?>
  </a> -->
- <a target="_blank" href="?tab=mailingliste.edit&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank">
+ <a href="?tab=mailingliste.edit&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank">
   <?php echo htmlspecialchars($mailingliste["address"]);?>
  </a>
 </td>
