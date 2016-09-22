@@ -6,6 +6,9 @@
        <licence>AGPL</licence>
        <author>Michael Braun &lt;michael-dev (at) fami-braun (dot) de &gt;</author>
        <require>4.9</require>
+       <dependencies>
+		<owncloud min-version="7.0"/>
+       </dependencies>
        <shipped>false</shipped>
        <types>
        		<authentication/>

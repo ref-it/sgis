@@ -35,4 +35,6 @@ if (OCP\App::isEnabled('user_sgis')) {
 	OC_User::clearBackends();
 	OC_User::useBackend( "SGIS" );
 
+	OCP\Backgroundjob::registerJob('OCA\user_sgis\lib\Jobs');
+
 }

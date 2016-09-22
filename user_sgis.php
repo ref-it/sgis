@@ -89,8 +89,23 @@ class OC_USER_SGIS {
         if ($recur > 0) return false;
         $recur++;
 
+       # OCP\Util::writeLog('OC_USER_SGIS', "userExists() for UID: $uid", OCP\Util::DEBUG);
+
         try {
+global $debugJobs;
+if ($debugJobs) {
+            if (!$this->backend->userExists($uid)) {
+                OCP\Util::writeLog('OC_USER_SGIS', "userExists() for UID: $uid -> backend does not have it", OCP\Util::DEBUG);
+            }
+            if (!OC_Group::inGroup($uid, $this->group)) {
+                OCP\Util::writeLog('OC_USER_SGIS', "userExists() for UID: $uid -> not in group ".$this->group, OCP\Util::DEBUG);
+            }
+            if (isset($this->testedUsers[$uid])) {
+                OCP\Util::writeLog('OC_USER_SGIS', "userExists() for UID: $uid -> recently checked", OCP\Util::DEBUG);
+            }
+}
             if ($this->backend->userExists($uid) && OC_Group::inGroup($uid, $this->group) && !isset($this->testedUsers[$uid])) {
+                OCP\Util::writeLog('OC_USER_SGIS', "userExists() with sGIS for UID: $uid", OCP\Util::DEBUG);
                 $nonce = self::randomstring();
                 $reply = $this->sgisRequest(Array("username" => $uid, "password" => "", "nonce" => $nonce));
                 if ($reply === false) throw new Exception("SGIS failure");
@@ -111,6 +126,7 @@ class OC_USER_SGIS {
 
     protected function sgisLoginCheck($uid, $password, $exists) {
         $nonce = self::randomstring();
+
         $reply = $this->sgisRequest(Array("username" => $uid, "password" => $password, "nonce" => $nonce));
         if ($reply === false) throw new Exception("SGIS failure");
         if ($reply["nonce"] !== $nonce) throw new Exception("SGIS failure");
@@ -147,6 +163,7 @@ class OC_USER_SGIS {
 
     # asks SGIS for details
     protected function sgisRequest($request) {
+#        OCP\Util::writeLog('OC_USER_SGIS', "sgisRequest(".json_encode($request).")", OCP\Util::DEBUG);
         if (!function_exists('curl_init')) return false;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->url);
@@ -158,6 +175,7 @@ class OC_USER_SGIS {
         if ($output === false) return false;
         $output = self::decrypt($output, $this->key);
         if ($output === false) return false;
+#        OCP\Util::writeLog('OC_USER_SGIS', "sgisRequest(".json_encode($request).") = ".$output, OCP\Util::DEBUG);
         return json_decode($output, true);
     }
 
@@ -201,7 +219,7 @@ class OC_USER_SGIS {
 #        unset($this->todoGroups);
 #      }
       if (isset($this->todoUid) && isset($this->todoDisplayName)) {
-        OC_User::setDisplayName($uid, $this->todoDisplayName);
+        OC_User::setDisplayName($this->todoUid, $this->todoDisplayName);
         unset($this->todoDisplayName);
       }
       unset($this->todoUid);
