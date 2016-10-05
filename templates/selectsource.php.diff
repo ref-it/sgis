@@ -1,0 +1,16 @@
+--- templates/selectsource.php.orig	2016-10-05 14:58:42.000000000 +0200
++++ templates/selectsource.php	2016-10-05 14:59:04.000000000 +0200
+@@ -27,5 +27,13 @@ foreach($this->data['sources'] as $sourc
+ }
+ ?>
+ </ul>
++<?php
++if ($this->data['rememberSourceEnabled']) {
++	echo str_repeat("\t", 4);
++	echo '<input type="checkbox" id="remember_source" tabindex="4" name="remember_source" value="Yes" ';
++	echo ($this->data['rememberSourceChecked'] ? 'checked="Yes" /> ' : '/> ');
++	echo $this->t('{sgis:sgis:remember_source}');
++}
++?>
+ </form>
+ <?php $this->includeAtTemplateBase('includes/footer.php');

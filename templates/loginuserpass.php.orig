@@ -6,10 +6,6 @@ if (strlen($this->data['username']) > 0) {
 } else {
     $this->data['autofocus'] = 'username';
 }
-
-$this->data['head']  = '<link rel="stylesheet" type="text/css" href="/' .
-    $this->data['baseurlpath'] . 'module.php/sgis/style.css" />' . "\n";
-
 $this->includeAtTemplateBase('includes/header.php');
 
 ?>
@@ -105,17 +101,6 @@ if ($this->data['errorcode'] !== null) {
                 </td>
             <?php
             }
-            if ($this->data['rememberPasswordEnabled']) {
-                // display the remember password checkbox (log me in again)
-            ?>
-                <td id="regular_remember_password">
-                    <input type="checkbox" id="remember_password" tabindex="6"
-                        <?php echo ($this->data['rememberPasswordChecked']) ? 'checked="checked"' : ''; ?>
-                           name="remember_password" value="Yes"/>
-                    <small><?php echo $this->t('{sgis:sgis:remember_password}'); ?></small>
-                </td>
-            <?php
-            }
             ?>
             </tr>
             <?php
@@ -131,18 +116,6 @@ if ($this->data['errorcode'] !== null) {
                     <small><?php echo $this->t('{login:remember_me}'); ?></small>
                 </td>
             </tr>
-            <?php
-            }
-            if ($this->data['rememberPasswordEnabled']) {
-                // display the remember password checkbox (log me in again)
-            ?>
-                <td></td>
-                <td id="mobile_remember_password">
-                    <input type="checkbox" id="remember_password" tabindex="6"
-                        <?php echo ($this->data['rememberPasswordChecked']) ? 'checked="checked"' : ''; ?>
-                           name="remember_password" value="Yes"/>
-                    <small><?php echo $this->t('{sgis:sgis:remember_password}'); ?></small>
-                </td>
             <?php
             }
             ?>

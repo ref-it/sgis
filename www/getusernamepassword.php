@@ -3,9 +3,9 @@
  * Consent script
  *
  * This script displays a page to the user, which requests that the user
- * authorizes the release of attributes.
+ * enters username and password to stored to SGIS.
  *
- * @package simpleSAMLphp
+ * @package sgis
  * @version $Id$
  */
 

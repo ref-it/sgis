@@ -1,0 +1,13 @@
+#mobile_remember_password {
+        display: none;
+}
+
+@media handheld, only screen and (max-width: 480px), only screen and (max-device-width: 480px) {
+        #regular_remember_password {
+                display: none;
+        }
+        #mobile_remember_password {
+                display: table-row;
+        }
+}
+
