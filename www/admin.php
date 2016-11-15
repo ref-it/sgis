@@ -6,7 +6,9 @@ ob_start('ob_gzhandler');
 require_once "../lib/inc.all.php";
 requireGroup($ADMINGROUP);
 
-function escapeMe($d, $row) {
+# 2016-11-15 somehow this is now escaped automatically
+function escapeMeNot($d, $row) {
+  return $d;
   return htmlspecialchars($d);
 }
 function trimMe($d) {
@@ -49,9 +51,9 @@ if (isset($_POST["action"])) {
    header("Content-Type: text/json; charset=UTF-8");
    $columns = [
      [ 'db' => 'id',                 'dt' => 'id' ],
-     [ 'db' => 'email',              'dt' => 'email',    'formatter' => 'escapeMe' ],
-     [ 'db' => 'name',               'dt' => 'name',     'formatter' => 'escapeMe' ],
-     [ 'db' => 'username',           'dt' => 'username', 'formatter' => 'escapeMe' ],
+     [ 'db' => 'email',              'dt' => 'email',    'formatter' => 'escapeMeNot' ],
+     [ 'db' => 'name',               'dt' => 'name',     'formatter' => 'escapeMeNot' ],
+     [ 'db' => 'username',           'dt' => 'username', 'formatter' => 'escapeMeNot' ],
 //     [ 'db' => 'password', 'dt' => 3 ],
      [ 'db' => 'unirzlogin',         'dt' => 'unirzlogin',
        'formatter' => function( $d, $row ) {
@@ -87,8 +89,8 @@ if (isset($_POST["action"])) {
    header("Content-Type: text/json; charset=UTF-8");
    $columns = array(
      array( 'db' => 'id',                    'dt' => 'id' ),
-     array( 'db' => 'address',               'dt' => 'address', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'url',                   'dt' => 'url', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'address',               'dt' => 'address', 'formatter' => 'escapeMeNot' ),
+     array( 'db' => 'url',                   'dt' => 'url', 'formatter' => 'escapeMeNot' ),
    );
    echo json_encode(
      SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}mailingliste", /* primary key */ "id", $columns )
@@ -98,8 +100,8 @@ if (isset($_POST["action"])) {
    header("Content-Type: text/json; charset=UTF-8");
    $columns = array(
      array( 'db' => 'id',                    'dt' => 'id' ),
-     array( 'db' => 'name',                  'dt' => 'name', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'beschreibung',          'dt' => 'beschreibung', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'name',                  'dt' => 'name', 'formatter' => 'escapeMeNot' ),
+     array( 'db' => 'beschreibung',          'dt' => 'beschreibung', 'formatter' => 'escapeMeNot' ),
    );
    echo json_encode(
      SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}gruppe", /* primary key */ "id", $columns )
@@ -109,11 +111,11 @@ if (isset($_POST["action"])) {
    header("Content-Type: text/json; charset=UTF-8");
    $columns = array(
      array( 'db' => 'id',                    'dt' => 'id' ),
-     array( 'db' => 'name',                  'dt' => 'name', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'fullname',              'dt' => 'fullname', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'fakultaet',             'dt' => 'fakultaet', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'studiengang',           'dt' => 'studiengang', 'formatter' => 'escapeMe' ),
-     array( 'db' => 'studiengangabschluss',  'dt' => 'studiengangabschluss', 'formatter' => 'escapeMe' ),
+     array( 'db' => 'name',                  'dt' => 'name', 'formatter' => 'escapeMeNot' ),
+     array( 'db' => 'fullname',              'dt' => 'fullname', 'formatter' => 'escapeMeNot' ),
+     array( 'db' => 'fakultaet',             'dt' => 'fakultaet', 'formatter' => 'escapeMeNot' ),
+     array( 'db' => 'studiengang',           'dt' => 'studiengang', 'formatter' => 'escapeMeNot' ),
+     array( 'db' => 'studiengangabschluss',  'dt' => 'studiengangabschluss', 'formatter' => 'escapeMeNot' ),
      array( 'db' => 'has_members',           'dt' => 'has_members',
        'formatter' => function( $d, $row ) {
          return $d ? "ja" : "nein";
@@ -149,12 +151,12 @@ if (isset($_POST["action"])) {
    $table = "rolle_searchable";
    $columns = [
      [ 'db' => 'id',                            'dt' => 'id' ],
-     [ 'db' => 'fullname',                      'dt' => 'fullname',                     'formatter' => 'escapeMe' ],
-     [ 'db' => 'rolle_name',                    'dt' => 'rolle_name',                   'formatter' => 'escapeMe' ],
-     [ 'db' => 'gremium_name',                  'dt' => 'gremium_name',                 'formatter' => 'escapeMe' ],
-     [ 'db' => 'gremium_fakultaet',             'dt' => 'gremium_fakultaet',            'formatter' => 'escapeMe' ],
-     [ 'db' => 'gremium_studiengang',           'dt' => 'gremium_studiengang',          'formatter' => 'escapeMe' ],
-     [ 'db' => 'gremium_studiengangabschluss',  'dt' => 'gremium_studiengangabschluss', 'formatter' => 'escapeMe' ],
+     [ 'db' => 'fullname',                      'dt' => 'fullname',                     'formatter' => 'escapeMeNot' ],
+     [ 'db' => 'rolle_name',                    'dt' => 'rolle_name',                   'formatter' => 'escapeMeNot' ],
+     [ 'db' => 'gremium_name',                  'dt' => 'gremium_name',                 'formatter' => 'escapeMeNot' ],
+     [ 'db' => 'gremium_fakultaet',             'dt' => 'gremium_fakultaet',            'formatter' => 'escapeMeNot' ],
+     [ 'db' => 'gremium_studiengang',           'dt' => 'gremium_studiengang',          'formatter' => 'escapeMeNot' ],
+     [ 'db' => 'gremium_studiengangabschluss',  'dt' => 'gremium_studiengangabschluss', 'formatter' => 'escapeMeNot' ],
      [ 'db'    => 'active',                     'dt' => 'active',
        'formatter' => function( $d, $row ) {
          return $d ? "ja" : "nein";
