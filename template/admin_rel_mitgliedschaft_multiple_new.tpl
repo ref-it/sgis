@@ -133,7 +133,7 @@ foreach ([
         $val = "";
         switch($key) {
           case "personfromuni":
-?>         <select name="<?php echo htmlspecialchars($key); ?>" size="1">
+?>         <select name="<?php echo htmlspecialchars($key); ?>" size="1" class="selectpicker" data-width="fit">
               <option value="1">Ja</option>
               <option value="0" selected="selected">Nein</option>
            </select><?php
