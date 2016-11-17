@@ -59,6 +59,7 @@ endforeach;
  <div class="panel-footer">
      <input type="submit" name="submit" value="Speichern" class="btn btn-primary"/>
      <input type="reset" name="reset" value="Abbrechen" onClick="self.close();" class="btn btn-default"/>
+     <a href="export-mailingliste.php?mailingliste_id=<?php echo $mailingliste["id"];?>" class="btn btn-default" target="_blank">Mailman aktualisieren</a>
      <a href="?tab=mailingliste.delete&amp;mailingliste_id=<?php echo $mailingliste["id"];?>" class="btn btn-default pull-right">Löschen</a>
  </div>
 </div>

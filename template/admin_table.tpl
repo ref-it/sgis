@@ -79,6 +79,9 @@ $(function() {
                 var emails = full.email.split(",");
                 var p3 = $("<a/>").attr("target","_blank").attr("href","index.php?mail=" + encodeURIComponent(emails[0])).html("<i class=\"fa fa-info fa-fw\"></i>").wrap("<div>").parent().html();
                 var p = p1+" "+p2+" "+p3;
+<?php elseif ($obj == "mailingliste"): ?>
+                var p3 = $("<a/>").attr("target","_blank").attr("href","export-mailingliste.php?mailingliste_id=" + encodeURIComponent(full.id)).html("<i class=\"fa fa-refresh fa-fw\"></i>").wrap("<div>").parent().html();
+                var p = p1+" "+p2+" "+p3;
 <?php else: ?>
                 var p = p1+" "+p2;
 <?php endif; ?>

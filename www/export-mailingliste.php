@@ -89,7 +89,11 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
     // password ok check
     checkResult($writeRequests[$id]["url"], $val);
   }
-  header("Location: ${_SERVER["PHP_SELF"]}");
+  if (isset($_REQUEST["mailingliste_id"])) {
+    header("Location: ${_SERVER["PHP_SELF"]}?mailingliste_id=".((int) $_REQUEST["mailingliste_id"]));
+  } else {
+    header("Location: ${_SERVER["PHP_SELF"]}");
+  }
   die();
 }
 
@@ -111,6 +115,10 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
 $alle_mailinglisten = getMailinglisten();
 $fetchRequests = Array();
 foreach ($alle_mailinglisten as $id => &$mailingliste) {
+  if (isset($_REQUEST["mailingliste_id"]) && ($mailingliste["id"] != (int) $_REQUEST["mailingliste_id"])) {
+    unset($alle_mailinglisten[$id]);
+    continue;
+  }
   $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
   $fetchRequests[$id] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id);
   $mailingliste["members"] = Array();
@@ -253,7 +261,10 @@ endif;
 <input type="reset" value="Zurücksetzen" name="reset"/>
 <?php
 if (isset($_REQUEST["autoExportPW"]))
-  echo "<input type=\"hidden\" name=\"autoExportPW\" value=\"".htmlspecialchars($_REQUEST["autoExportPW"])."\">"
+  echo "<input type=\"hidden\" name=\"autoExportPW\" value=\"".htmlspecialchars($_REQUEST["autoExportPW"])."\">";
+
+if (isset($_REQUEST["mailingliste_id"]))
+  echo "<input type=\"hidden\" name=\"mailingliste_id\" value=\"".htmlspecialchars($_REQUEST["mailingliste_id"])."\">";
 ?>
 
 </form>
