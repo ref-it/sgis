@@ -83,6 +83,12 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["unsubscribees"] = join("\n", $_POST["delmember"][$list])."\n";
       $writeRequests[] = Array("url" => $url."/members/remove", "post" => $postFields);
     }
+    if (isset($_POST["new_accept_these_nonmembers"][$list])) {
+      $postFields = Array();
+      $postFields["adminpw"] = $password;
+      $postFields["accept_these_nonmembers"] = $_POST["new_accept_these_nonmembers"][$list];
+      $writeRequests[] = Array("url" => $url."/privacy/sender", "post" => $postFields);
+    }
   }
   $writeResults = multiCurlRequest($writeRequests);
   foreach ($writeResults as $id => $val) {
@@ -120,8 +126,11 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
     continue;
   }
   $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
-  $fetchRequests[$id] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id);
+  $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "members");
+  $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/privacy/sender";
+  $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "privacy");
   $mailingliste["members"] = Array();
+  $mailingliste["accept_these_nonmembers"] = Array();
   $mailingliste["numMembers"] = 0;
 }
 unset($mailingliste);
@@ -132,29 +141,39 @@ while (count($fetchRequests) > 0) {
     checkResult($fetchRequests[$id]["url"], $result);
     $mailingliste_id = $fetchRequests[$id]["mailingliste"];
     $mailingliste = &$alle_mailinglisten[$mailingliste_id];
-    $mailingliste["numMembers"] = parseMembersPage($result, $fetchRequests[$id]["url"], $mailingliste["members"]);
-    $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
-    if (!isset($fetchRequests[$id]["letter"])) {
-      // need to fetch per-letter page
-      $letters = parseLettersPage($result, $url);
-      foreach ($letters as $letter) {
-        $newFetchRequests[] = Array("url" => $url.'?'.http_build_query(Array("letter" => $letter)),
-                                    "post" => Array("adminpw" => $mailingliste["password"]),
-                                    "mailingliste" => $mailingliste_id,
-                                    "letter" => $letter);
-      }
-    } elseif (!isset($fetchRequests[$id]["chunk"])) {
-      // need to fetch per-chunk page
-      $letter = $fetchRequests[$id]["letter"];
-      $chunks = parseChunksPage($result, $url);
-      foreach ($chunks as $chunk) {
-        $newFetchRequests[] = Array("url" => $url.'?'.http_build_query(Array("letter" => $letter, "chunk" => $chunk)),
-                                    "post" => Array("adminpw" => $mailingliste["password"]),
-                                    "mailingliste" => $mailingliste_id,
-                                    "letter" => $letter,
-                                    "chunk" => $chunk);
+
+    if ($fetchRequests[$id]["parser"] == "members") {
+      $mailingliste["numMembers"] = parseMembersPage($result, $fetchRequests[$id]["url"], $mailingliste["members"]);
+      $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
+      if (!isset($fetchRequests[$id]["letter"])) {
+        // need to fetch per-letter page
+        $letters = parseLettersPage($result, $url);
+        foreach ($letters as $letter) {
+          $newFetchRequests[] = Array("url" => $url.'?'.http_build_query(Array("letter" => $letter)),
+                                      "post" => Array("adminpw" => $mailingliste["password"]),
+                                      "mailingliste" => $mailingliste_id,
+                                      "letter" => $letter,
+                                      "parser" => "members");
+        }
+      } elseif (!isset($fetchRequests[$id]["chunk"])) {
+        // need to fetch per-chunk page
+        $letter = $fetchRequests[$id]["letter"];
+        $chunks = parseChunksPage($result, $url);
+        foreach ($chunks as $chunk) {
+          $newFetchRequests[] = Array("url" => $url.'?'.http_build_query(Array("letter" => $letter, "chunk" => $chunk)),
+                                      "post" => Array("adminpw" => $mailingliste["password"]),
+                                      "mailingliste" => $mailingliste_id,
+                                      "letter" => $letter,
+                                      "chunk" => $chunk,
+                                      "parser" => "members");
+        }
       }
     }
+
+    if ($fetchRequests[$id]["parser"] == "privacy") {
+      $mailingliste["accept_these_nonmembers"] = parsePrivacyPage($result, $fetchRequests[$id]["url"]);
+    }
+
   }
   $fetchRequests = $newFetchRequests;
 }
@@ -166,6 +185,22 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
   }
 }
 unset($mailingliste);
+
+function parsePrivacyPage($output, $url) {
+  $matches = Array();
+
+  $doc = new DOMDocument();
+  @$doc->loadHTML($output);
+  $nodes = $doc->getElementsByTagName('textarea');
+  for ($i=0; $i<$nodes->length; $i++) {
+    $node = $nodes->item($i);
+    if ($node->getAttribute("name") !== "accept_these_nonmembers")
+      continue;
+    $lines = explode("\n",$node->nodeValue);
+    return $lines;
+  }
+  die("Missing accept_these_nonmembers in $url");
+}
 
 function parseMembersPage($output, $url, &$members) {
   $matches = Array();
@@ -202,7 +237,12 @@ function parseChunksPage($output, $url) {
 
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
 <table>
-<tr><th></th><th>Mailingliste</th><th>Einfügen</th><th>Entfernen</th> <!-- <th>IST</th><th>SOLL</th> --> </tr>
+<tr><th></th><th>Mailingliste</th>
+    <th>Einfügen</th><th>Entfernen</th> 
+    <!-- <th>IST</th><th>SOLL</th> -->
+    <th>Accept These Nonmembers: ALT</th>
+    <th>Accept These Nonmembers: NEU</th>
+</tr>
 <?php
 foreach($alle_mailinglisten as $mailingliste) {
   echo "<tr>";
@@ -248,6 +288,30 @@ endforeach;
   echo "</ul>";
 endif;
 */
+
+  $old_accept_these_nonmembers = array_unique($mailingliste["accept_these_nonmembers"]);
+  $new_accept_these_nonmembers = array_unique(array_merge($old_accept_these_nonmembers, ['^.*@tu-ilmenau\.de','^.*@.*\.tu-ilmenau\.de']));
+  sort($old_accept_these_nonmembers);
+  sort($new_accept_these_nonmembers);
+  $isdiff = $old_accept_these_nonmembers != $new_accept_these_nonmembers;
+  $rows = 10; $cols = 10;
+  foreach ($old_accept_these_nonmembers as $line) $cols = max($cols, strlen($line)+5);
+  $rows = max($rows, count($old_accept_these_nonmembers)+5);
+  foreach ($new_accept_these_nonmembers as $line) $cols = max($cols, strlen($line)+5);
+  $rows = max($rows, count($new_accept_these_nonmembers)+5);
+
+  echo "<td valign=\"top\">";
+  if ($isdiff) {
+    echo "<textarea name=\"old_accept_these_nonmembers[".htmlspecialchars($mailingliste["address"])."]\" rows=$rows cols=$cols>";
+    echo implode("\n", $old_accept_these_nonmembers);
+    echo "</textarea>";
+  }
+  echo "</td><td valign=\"top\">";
+  if ($isdiff) {
+    echo "<textarea name=\"new_accept_these_nonmembers[".htmlspecialchars($mailingliste["address"])."]\" rows=$rows cols=$cols>";
+    echo implode("\n", $new_accept_these_nonmembers);
+    echo "</textarea>";
+  }
   echo "</td></tr>";
 }
 
