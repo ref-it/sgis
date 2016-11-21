@@ -89,6 +89,12 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["accept_these_nonmembers"] = $_POST["new_accept_these_nonmembers"][$list];
       $writeRequests[] = Array("url" => $url."/privacy/sender", "post" => $postFields);
     }
+    if (isset($_POST["new_max_num_recipients"][$list])) {
+      $postFields = Array();
+      $postFields["adminpw"] = $password;
+      $postFields["max_num_recipients"] = $_POST["new_max_num_recipients"][$list];
+      $writeRequests[] = Array("url" => $url."/privacy/recipient", "post" => $postFields);
+    }
   }
   $writeResults = multiCurlRequest($writeRequests);
   foreach ($writeResults as $id => $val) {
@@ -128,7 +134,9 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
   $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
   $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "members");
   $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/privacy/sender";
-  $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "privacy");
+  $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "privacy.sender");
+  $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/privacy/recipient";
+  $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "privacy.recipient");
   $mailingliste["members"] = Array();
   $mailingliste["accept_these_nonmembers"] = Array();
   $mailingliste["numMembers"] = 0;
@@ -170,8 +178,12 @@ while (count($fetchRequests) > 0) {
       }
     }
 
-    if ($fetchRequests[$id]["parser"] == "privacy") {
-      $mailingliste["accept_these_nonmembers"] = parsePrivacyPage($result, $fetchRequests[$id]["url"]);
+    if ($fetchRequests[$id]["parser"] == "privacy.sender") {
+      $mailingliste["accept_these_nonmembers"] = parsePrivacySenderPage($result, $fetchRequests[$id]["url"]);
+    }
+
+    if ($fetchRequests[$id]["parser"] == "privacy.recipient") {
+      $mailingliste["max_num_recipients"] = parsePrivacyRecipientPage($result, $fetchRequests[$id]["url"]);
     }
 
   }
@@ -186,7 +198,23 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
 }
 unset($mailingliste);
 
-function parsePrivacyPage($output, $url) {
+function parsePrivacyRecipientPage($output, $url) {
+  $matches = Array();
+
+  $doc = new DOMDocument();
+  @$doc->loadHTML($output);
+  $nodes = $doc->getElementsByTagName('input');
+  for ($i=0; $i<$nodes->length; $i++) {
+    $node = $nodes->item($i);
+    if ($node->getAttribute("name") !== "max_num_recipients")
+      continue;
+    $value = $node->getAttribute("value");
+    return (int) $value;
+  }
+  die("Missing max_num_recipients in $url");
+}
+
+function parsePrivacySenderPage($output, $url) {
   $matches = Array();
 
   $doc = new DOMDocument();
@@ -242,6 +270,8 @@ function parseChunksPage($output, $url) {
     <!-- <th>IST</th><th>SOLL</th> -->
     <th>Accept These Nonmembers: ALT</th>
     <th>Accept These Nonmembers: NEU</th>
+    <th>max_num_recipients: ALT</th>
+    <th>max_num_recipients: NEU</th>
 </tr>
 <?php
 foreach($alle_mailinglisten as $mailingliste) {
@@ -270,8 +300,9 @@ foreach($alle_mailinglisten as $mailingliste) {
     }
     echo "</ul>";
   }
+  echo "</td>";
 /*
-  echo "</td><td>";
+  echo "<td>";
 if (count($members) > 0):
   echo "<ul>";
 foreach ($members as $member):
@@ -287,13 +318,14 @@ foreach ($dbmembers as $member):
 endforeach;
   echo "</ul>";
 endif;
+  echo "</td>"
 */
 
   $old_accept_these_nonmembers = array_unique($mailingliste["accept_these_nonmembers"]);
   $new_accept_these_nonmembers = array_unique(array_merge($old_accept_these_nonmembers, ['^.*@tu-ilmenau\.de','^.*@.*\.tu-ilmenau\.de']));
   sort($old_accept_these_nonmembers);
-  sort($new_accept_these_nonmembers);
-  $isdiff = $old_accept_these_nonmembers != $new_accept_these_nonmembers;
+  ;sort($new_accept_these_nonmembers);
+  $isdiff_accept_these_nonmembers = $old_accept_these_nonmembers != $new_accept_these_nonmembers;
   $rows = 10; $cols = 10;
   foreach ($old_accept_these_nonmembers as $line) $cols = max($cols, strlen($line)+5);
   $rows = max($rows, count($old_accept_these_nonmembers)+5);
@@ -301,18 +333,34 @@ endif;
   $rows = max($rows, count($new_accept_these_nonmembers)+5);
 
   echo "<td valign=\"top\">";
-  if ($isdiff) {
-    echo "<textarea name=\"old_accept_these_nonmembers[".htmlspecialchars($mailingliste["address"])."]\" rows=$rows cols=$cols>";
+  if ($isdiff_accept_these_nonmembers) {
+    echo "<textarea readonly=\"readonly\" name=\"old_accept_these_nonmembers[".htmlspecialchars($mailingliste["address"])."]\" rows=$rows cols=$cols>";
     echo implode("\n", $old_accept_these_nonmembers);
     echo "</textarea>";
   }
   echo "</td><td valign=\"top\">";
-  if ($isdiff) {
+  if ($isdiff_accept_these_nonmembers) {
     echo "<textarea name=\"new_accept_these_nonmembers[".htmlspecialchars($mailingliste["address"])."]\" rows=$rows cols=$cols>";
     echo implode("\n", $new_accept_these_nonmembers);
     echo "</textarea>";
   }
-  echo "</td></tr>";
+  echo "</td>";
+
+  $old_max_num_recipients = $mailingliste["max_num_recipients"];
+  $new_max_num_recipients = ($old_max_num_recipients > 0) ? max(1000, $old_max_num_recipients) : $old_max_num_recipients;
+  $isdiff_max_num_recipients = $old_max_num_recipients != $new_max_num_recipients || true;
+
+  echo "<td valign=\"top\">";
+  if ($isdiff_max_num_recipients) {
+    echo "<input readonly=\"readonly\" name=\"old_max_num_recipients[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($old_max_num_recipients)."\">";
+  }
+  echo "</td><td valign=\"top\">";
+  if ($isdiff_max_num_recipients) {
+    echo "<input readonly=\"readonly\" name=\"new_max_num_recipients[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($new_max_num_recipients)."\">";
+  }
+  echo "</td>";
+
+  echo "</tr>";
 }
 
 ?></table>
