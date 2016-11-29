@@ -5,6 +5,9 @@
       <ul class="nav navbar-nav navbar-right">
         <li><a href="<?php echo $logoutUrl; ?>">Logout</a></li>
         <li><a href="index.php">Startseite</a></li>
+<?php if (hasGroup($AUTHGROUP)): ?>
+        <li><a href="admin.php">Verwaltung</a></li>
+<?php endif; ?>
 <!--        <li><a href="admin-old.php">Alte Verwaltung</a></li> -->
       </ul>
     </div>
