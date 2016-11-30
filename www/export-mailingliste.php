@@ -115,7 +115,8 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
   die();
 }
 
-require_once "../template/header-old.tpl";
+require "../template/header.tpl";
+require "../template/admin.tpl";
 
 if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0 && !$validnonce) {
   echo "<b class=\"msg\">CSRF Schutz fehlgeschlagen</b>";
@@ -292,28 +293,24 @@ function parseChunksPage($output, $url) {
 ?>
 
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
-<table>
+<table class="table table-striped">
 <tr><th></th><th>Mailingliste</th>
     <th>Einfügen</th><th>Entfernen</th> 
     <!-- <th>IST</th><th>SOLL</th> -->
-    <th>Accept These Nonmembers: ALT</th>
-    <th>Accept These Nonmembers: NEU</th>
-    <th>max_num_recipients: ALT</th>
-    <th>max_num_recipients: NEU</th>
-    <th>max_message_size: ALT</th>
-    <th>max_message_size: NEU</th>
+    <th>Einstellungen</th>
 </tr>
 <?php
 foreach($alle_mailinglisten as $mailingliste) {
-  echo "<tr>";
-  echo "<td valign=\"top\"><input class=\"mls\" type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($mailingliste["address"])."\"></td>";
-  echo "<td valign=\"top\"><a href=\"".htmlspecialchars($mailingliste["url"])."\">".htmlspecialchars($mailingliste["address"])."</a></td>\n";
   $members = $mailingliste["members"];
   $dbmembers = getMailinglistePerson($mailingliste["id"]);
   foreach ($dbmembers as $i => $e) { $dbmembers[$i] = strtolower($e); }
   foreach ($members as $i => $e) { $members[$i] = strtolower($e); }
   $addmembers = array_diff($dbmembers, $members);
   $delmembers = array_diff($members, $dbmembers);
+
+  echo "<tr>";
+  echo "<td valign=\"top\"><input class=\"mls\" type=\"checkbox\" checked=\"checked\" name=\"commit[]\" value=\"".htmlspecialchars($mailingliste["address"])."\"></td>";
+  echo "<td valign=\"top\"><a href=\"".htmlspecialchars($mailingliste["url"])."\">".htmlspecialchars($mailingliste["address"])."</a></td>\n";
   echo "<td valign=\"top\">";
   if (count($addmembers) > 0) {
     echo "<ul>";
@@ -363,45 +360,48 @@ endif;
   $rows = max($rows, count($new_accept_these_nonmembers)+5);
 
   echo "<td valign=\"top\">";
+
+  echo "<table class=\"table table-striped\">";
   if ($isdiff_accept_these_nonmembers) {
+    echo "<tr><td>old accept these nonmembers</td><td valign=\"top\">";
     echo "<textarea readonly=\"readonly\" name=\"old_accept_these_nonmembers[".htmlspecialchars($mailingliste["address"])."]\" rows=$rows cols=$cols>";
     echo implode("\n", $old_accept_these_nonmembers);
     echo "</textarea>";
-  }
-  echo "</td><td valign=\"top\">";
-  if ($isdiff_accept_these_nonmembers) {
+    echo "</td></tr>";
+    echo "<tr><td>new accept these nonmembers</td><td valign=\"top\">";
     echo "<textarea name=\"new_accept_these_nonmembers[".htmlspecialchars($mailingliste["address"])."]\" rows=$rows cols=$cols>";
     echo implode("\n", $new_accept_these_nonmembers);
     echo "</textarea>";
+    echo "</td></tr>";
   }
-  echo "</td>";
 
   $old_max_num_recipients = $mailingliste["max_num_recipients"];
   $new_max_num_recipients = ($old_max_num_recipients > 0) ? max(1000, $old_max_num_recipients) : $old_max_num_recipients;
   $isdiff_max_num_recipients = $old_max_num_recipients != $new_max_num_recipients;
 
-  echo "<td valign=\"top\">";
   if ($isdiff_max_num_recipients) {
+    echo "<tr><td>old max num recipients</td><td valign=\"top\">";
     echo "<input readonly=\"readonly\" name=\"old_max_num_recipients[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($old_max_num_recipients)."\">";
-  }
-  echo "</td><td valign=\"top\">";
-  if ($isdiff_max_num_recipients) {
+    echo "</td></tr>";
+    echo "<tr><td>new max num recipients</td><td valign=\"top\">";
     echo "<input readonly=\"readonly\" name=\"new_max_num_recipients[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($new_max_num_recipients)."\">";
+    echo "</td></tr>";
   }
-  echo "</td>";
 
   $old_max_message_size = $mailingliste["max_message_size"];
   $new_max_message_size = ($old_max_message_size > 0) ? max(10000, $old_max_message_size) : $old_max_message_size;
   $isdiff_max_message_size = $old_max_message_size != $new_max_message_size;
 
-  echo "<td valign=\"top\">";
   if ($isdiff_max_message_size) {
+    echo "<tr><td>old max message size</td><td valign=\"top\">";
     echo "<input readonly=\"readonly\" name=\"old_max_message_size[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($old_max_message_size)."\">";
-  }
-  echo "</td><td valign=\"top\">";
-  if ($isdiff_max_message_size) {
+    echo "</td></tr>";
+    echo "<tr><td>new max message size</td><td valign=\"top\">";
     echo "<input readonly=\"readonly\" name=\"new_max_message_size[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($new_max_message_size)."\">";
+    echo "</td></tr>";
   }
+
+  echo "</table>";
   echo "</td>";
 
   echo "</tr>";
@@ -424,10 +424,6 @@ if (isset($_REQUEST["mailingliste_id"]))
 ?>
 
 </form>
-<hr/>
-<a href="<?php echo $logoutUrl; ?>">Logout</a> &bull;
-<a href="index.php">Selbstauskunft</a> &bull;
-<a href="admin.php">Verwaltung</a>
 <?php
 require_once "../template/footer.tpl";
 
