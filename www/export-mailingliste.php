@@ -95,6 +95,12 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
       $postFields["max_num_recipients"] = $_POST["new_max_num_recipients"][$list];
       $writeRequests[] = Array("url" => $url."/privacy/recipient", "post" => $postFields);
     }
+    if (isset($_POST["new_max_message_size"][$list])) {
+      $postFields = Array();
+      $postFields["adminpw"] = $password;
+      $postFields["max_message_size"] = $_POST["new_max_message_size"][$list];
+      $writeRequests[] = Array("url" => $url."/general", "post" => $postFields);
+    }
   }
   $writeResults = multiCurlRequest($writeRequests);
   foreach ($writeResults as $id => $val) {
@@ -137,6 +143,8 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
   $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "privacy.sender");
   $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/privacy/recipient";
   $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "privacy.recipient");
+  $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/general";
+  $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "general");
   $mailingliste["members"] = Array();
   $mailingliste["accept_these_nonmembers"] = Array();
   $mailingliste["numMembers"] = 0;
@@ -186,6 +194,10 @@ while (count($fetchRequests) > 0) {
       $mailingliste["max_num_recipients"] = parsePrivacyRecipientPage($result, $fetchRequests[$id]["url"]);
     }
 
+    if ($fetchRequests[$id]["parser"] == "general") {
+      $mailingliste["max_message_size"] = parseGeneralPage($result, $fetchRequests[$id]["url"]);
+    }
+
   }
   $fetchRequests = $newFetchRequests;
 }
@@ -197,6 +209,22 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
   }
 }
 unset($mailingliste);
+
+function parseGeneralPage($output, $url) {
+  $matches = Array();
+
+  $doc = new DOMDocument();
+  @$doc->loadHTML($output);
+  $nodes = $doc->getElementsByTagName('input');
+  for ($i=0; $i<$nodes->length; $i++) {
+    $node = $nodes->item($i);
+    if ($node->getAttribute("name") !== "max_message_size")
+      continue;
+    $value = $node->getAttribute("value");
+    return (int) $value;
+  }
+  die("Missing max_message_size in $url");
+}
 
 function parsePrivacyRecipientPage($output, $url) {
   $matches = Array();
@@ -272,6 +300,8 @@ function parseChunksPage($output, $url) {
     <th>Accept These Nonmembers: NEU</th>
     <th>max_num_recipients: ALT</th>
     <th>max_num_recipients: NEU</th>
+    <th>max_message_size: ALT</th>
+    <th>max_message_size: NEU</th>
 </tr>
 <?php
 foreach($alle_mailinglisten as $mailingliste) {
@@ -348,7 +378,7 @@ endif;
 
   $old_max_num_recipients = $mailingliste["max_num_recipients"];
   $new_max_num_recipients = ($old_max_num_recipients > 0) ? max(1000, $old_max_num_recipients) : $old_max_num_recipients;
-  $isdiff_max_num_recipients = $old_max_num_recipients != $new_max_num_recipients || true;
+  $isdiff_max_num_recipients = $old_max_num_recipients != $new_max_num_recipients;
 
   echo "<td valign=\"top\">";
   if ($isdiff_max_num_recipients) {
@@ -357,6 +387,20 @@ endif;
   echo "</td><td valign=\"top\">";
   if ($isdiff_max_num_recipients) {
     echo "<input readonly=\"readonly\" name=\"new_max_num_recipients[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($new_max_num_recipients)."\">";
+  }
+  echo "</td>";
+
+  $old_max_message_size = $mailingliste["max_message_size"];
+  $new_max_message_size = ($old_max_message_size > 0) ? max(10000, $old_max_message_size) : $old_max_message_size;
+  $isdiff_max_message_size = $old_max_message_size != $new_max_message_size;
+
+  echo "<td valign=\"top\">";
+  if ($isdiff_max_message_size) {
+    echo "<input readonly=\"readonly\" name=\"old_max_message_size[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($old_max_message_size)."\">";
+  }
+  echo "</td><td valign=\"top\">";
+  if ($isdiff_max_message_size) {
+    echo "<input readonly=\"readonly\" name=\"new_max_message_size[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($new_max_message_size)."\">";
   }
   echo "</td>";
 
