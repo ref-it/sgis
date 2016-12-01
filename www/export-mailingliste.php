@@ -411,10 +411,12 @@ endif;
 
 <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
 
-<a href="#" onClick="$('.mls').attr('checked',true); return false;">alle auswählen</a>
-<a href="#" onClick="$('.mls').attr('checked',false); return false;">keine auswählen</a>
-<input type="submit" value="Anwenden" name="submit"/>
-<input type="reset" value="Zurücksetzen" name="reset"/>
+<a class="btn btn-default" href="#" onClick="$('.mls').attr('checked',true); return false;">alle auswählen</a>
+<a class="btn btn-default" href="#" onClick="$('.mls').attr('checked',false); return false;">keine auswählen</a>
+<input class="btn btn-primary" type="submit" value="Anwenden" name="submit"/>
+<input class="btn btn-danger" type="reset" value="Zurücksetzen" name="reset"/>
+<br/>
+<br/>
 <?php
 if (isset($_REQUEST["autoExportPW"]))
   echo "<input type=\"hidden\" name=\"autoExportPW\" value=\"".htmlspecialchars($_REQUEST["autoExportPW"])."\">";
