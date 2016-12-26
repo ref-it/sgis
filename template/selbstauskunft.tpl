@@ -89,6 +89,7 @@ foreach ([
   "id" => "ID",
   "name" => "Name",
   "email" => "eMail",
+  "_contactDetails" => "Kontaktdaten",
   "username" => "Login-Name",
   "password" => "Login-Password",
   "unirzlogin" => "UniRZ-Login",
@@ -98,6 +99,8 @@ foreach ([
 
  if ($key == "email") {
    $vals = explode(",", $person[$key]);
+ } elseif ($key == "_contactDetails") {
+   $vals = [""];
  } else {
    $vals = [$person[$key]];
  }
@@ -109,13 +112,44 @@ foreach ([
   <div class="form-group">
     <label class="control-label col-sm-2"><?php echo htmlspecialchars($desc); ?></label>
     <div class="col-sm-10">
-      <div class="form-control">
       <?php
         switch($key) {
+          case "_contactDetails":
+            if (count($contactDetails) > 0) {
+?>
+      <div class="row">
+        <div class="col-sm-2"><b><center>Typ</center></b></div>
+        <div class="col-sm-8"><b><center>Erreichbar unter</center></b></div>
+        <div class="col-sm-2"><b><center>Quelle</center></b></div>
+      </div> <!-- row -->
+<?php         foreach ($contactDetails as $c) { ?>
+      <div class="row">
+        <div class="col-sm-2">
+          <div class="form-control"><?php echo htmlspecialchars(contactType2Str($c["type"])); ?></div>
+        </div>
+        <div class="col-sm-8">
+          <div class="form-control contactDetails <?php if (!$c["active"] && $c["fromWiki"]) echo "inactive"; else echo "active"; ?>"><?php echo htmlspecialchars($c["details"]); ?></div>
+        </div>
+        <div class="col-sm-2">
+<?php if ($c["fromWiki"]) { ?>
+         <i>Gremien-Wiki</i>
+<?php } else { ?>
+         <i>manuell / sGIS</i>
+<?php } ?>
+        </div>
+      </div> <!-- row -->
+<?php         }
+            } else {
+?>            <i>Keine</i><?php
+}
+            break;
           case "password":
+?>      <div class="form-control"> <?php
             echo (empty($val) ? "nicht gesetzt" : "gesetzt");
+?>      </div><?php
             break;
           case "canLogin":
+?>      <div class="form-control"> <?php
 
             $grps = Array();
             foreach ($gruppen as $grp) {
@@ -136,13 +170,15 @@ foreach ([
             else {
               echo htmlspecialchars($val ? "ja" : "nein");
             }
+?>      </div><?php
             break;
           default:
+?>      <div class="form-control"> <?php
             echo htmlspecialchars($val);
+?>      </div><?php
             break;
         }
       ?>
-      </div>
     </div>
   </div>
 

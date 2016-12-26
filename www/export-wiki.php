@@ -29,6 +29,17 @@ $name_gremien = Array();
 $name_rollen = Array();
 
 $wikiprefix = "sgis:mitglieder:";
+$wikiperson = "person:";
+
+$pp = getAllePersonCurrent();
+$contactPersonen = [];
+foreach ($pp as $p) {
+  if (!$p["canLoginCurrent"]) continue;
+  $wiki = ($p["wikiPage"] !== NULL) ? $p["wikiPage"] : $wikiperson.$p["name"];
+  $wiki = cleanID($wiki);
+  if (substr($wiki, 0, strlen($wikiperson)) != $wikiperson) continue;
+  $contactPersonen[] = [ "person_id" => $p["id"], "wiki" => $wiki, "old" => getPersonContactDetails($p["id"]) ];
+}
 
 prof_flag("DB Fetch Done");
 
@@ -891,6 +902,56 @@ foreach ($mapping_nachbesetzung as $wiki => $data) {
   $pages[$wiki]["new"] = $text;
 }
 
+prof_flag("render pages: import contact from wiki");
+
+foreach($contactPersonen as $i => $p) {
+  $text = fetchWikiPage($p["wiki"]);
+  // get Telefon= Mobil= Jabber=
+  $matches = ["tel" => [], "xmpp" => []];
+  #$r1 = preg_match_all('#\|\s*\(Telefon|Mobil\)\*s=\s*([^|\n]+)#i', $text, $matches["tel"],  PREG_PATTERN_ORDER);
+  $r1 = preg_match_all('#\|\s*(Telefon|Mobil)\s*=\s*([^|\n]+)#i', $text, $matches["tel"],  PREG_PATTERN_ORDER);
+  $r2 = preg_match_all('#\|\s*(Jabber)\s*=\s*([^|\n]+)#i', $text, $matches["xmpp"],  PREG_PATTERN_ORDER);
+  if ($r1 === false) continue;
+  if ($r2 === false) continue;
+
+  $old = ["tel" => [], "xmpp" => []];
+  foreach ($p["old"] as $c) {
+    if (!$c["fromWiki"]) continue;
+    switch (strtolower($c["type"])) {
+      case "tel":
+      case "xmpp":
+        $old[strtolower($c["type"])][] = trim($c["details"]);
+        break;
+    }
+  }
+  foreach ($old as $k => $m) {
+    $old[$k] = array_unique($m);
+    sort($old[$k]);
+  }
+
+  $new = [];
+  foreach ($matches as $k => $m) {
+    $new[$k] = array_unique($m[2]);
+    sort($new[$k]);
+  }
+
+  $remove = []; $add = [];
+  foreach(array_keys($matches) as $k) {
+    $remove[$k] = array_diff($old[$k], $new[$k]);
+    $add[$k] = array_diff($new[$k], $old[$k]);
+  }
+
+  $contactPersonen[$i]["add"] = $add;
+  $contactPersonen[$i]["remove"] = [];
+
+  foreach($p["old"] as $c) {
+    if (!$c["fromWiki"]) continue;
+    if (!isset($remove[strtolower($c["type"])])) continue;
+    if (!in_array(trim($c["details"]), $remove[strtolower($c["type"])])) continue;
+    $contactPersonen[$i]["remove"][] = $c["id"];
+  }
+}
+
 prof_flag("render pages: diff or post");
 
 foreach (array_keys($pages) as $wiki) {
@@ -903,6 +964,22 @@ foreach (array_keys($pages) as $wiki) {
     $x = new Text_Diff('auto',Array($pages[$wiki]["old"],$pages[$wiki]["new"]));
     $y = new Text_Diff_Renderer_unified();
     $pages[$wiki]["diff"] = $y->render($x);
+  }
+}
+
+foreach ($contactPersonen as $p) {
+  $wiki = $p["wiki"];
+  if (isset($_POST["commit"]) && is_array($_POST["commit"]) && in_array($wiki, $_POST["commit"]) && $validnonce) {
+    foreach ($p["remove"] as $id) {
+      dbPersonDeleteContact($id);
+    }
+    foreach ($p["add"] as $type => $list) {
+      foreach ($list as $details) {
+        dbPersonInsertContact($p["person_id"], $type, $details, 1, 1);
+      }
+    }
+  } elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && isset($_POST["commit"][$wiki])) {
+    echo "<b class=\"msg\">CSRF Schutz.</b>";
   }
 }
 
@@ -937,6 +1014,26 @@ foreach ($pages as $wiki => $data):
   echo " <td><input ".(($data["diff"] != "") ? "class=\"mls\"" : "")." type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($wiki)."\"></td>";
   echo " <td><a href=\"".htmlspecialchars($openUrl.str_replace(":","/",$wiki))."\">".htmlspecialchars($wiki)."</a></td>\n";
   echo " <td><pre>{$data["diff"]}</pre><input type=\"hidden\" readonly=readonly name=\"text[".htmlspecialchars($wiki)."]\" value=\"".base64_encode(implode("\n",$data["new"]))."\"></td>\n";
+  echo "</tr>";
+endforeach;
+
+?></table>
+
+<h2>Kontaktdaten aus Wiki aktualisieren</h2>
+<table>
+<tr><th></th><th>Seite</th><th>Änderung</th></tr>
+<?php
+
+global $wikiUrl;
+$url = parse_url($wikiUrl);
+$openUrl = http_build_url($url, Array(), HTTP_URL_STRIP_AUTH);
+foreach ($contactPersonen as $p):
+  $wiki = $p["wiki"];
+
+  echo "<tr>";
+  echo " <td><input ".((count($p["add"]) + count($p["remove"]) > 0) ? "class=\"mls\"" : "")." type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($wiki)."\"></td>";
+  echo " <td><a href=\"".htmlspecialchars($openUrl.str_replace(":","/",$wiki))."\">".htmlspecialchars($wiki)."</a></td>\n";
+  echo " <td><pre>\nAdd:"; print_r($p["add"]); echo "\nRemove:\n"; print_r($p["remove"]); echo "</pre></td>\n";
   echo "</tr>";
 endforeach;
 

@@ -568,6 +568,13 @@ function getAllePerson() {
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function getAllePersonCurrent() {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT p.* FROM {$DB_PREFIX}person_current p ORDER BY p.name");
+  $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
 function dbPersonMerge($person_id, $target_id) {
   global $pdo, $DB_PREFIX;
   $pdo->beginTransaction() or httperror(print_r($query->errorInfo(),true));

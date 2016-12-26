@@ -17,6 +17,7 @@ $person= getPersonDetailsByMail($mail);
 $gremien = getPersonRolle($person["id"]);
 $gruppen = getPersonGruppe($person["id"]);
 $mailinglisten = getPersonMailingliste($person["id"]);
+$contactDetails = getPersonContactDetails($person["id"]);
 
 if (isset($_POST["action"]) && ($_POST["action"] == "pwchange")) {
   if (!isset($_REQUEST["nonce"]) || $_REQUEST["nonce"] !== $nonce) {
