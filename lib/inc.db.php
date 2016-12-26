@@ -23,6 +23,11 @@ if ($r === false) {
   require SGISBASE.'/lib/inc.db.person.php';
 }
 
+$r = $pdo->query("SELECT wikiPage FROM {$DB_PREFIX}person LIMIT 1");
+if ($r === false) {
+  $pdo->query("ALTER TABLE {$DB_PREFIX}person ADD COLUMN wikiPage VARCHAR(256) NULL DEFAULT NULL");
+}
+
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_email");
 if ($r === false) {
   $pdo->beginTransaction();
@@ -57,6 +62,22 @@ if ($r === false) {
        FROM {$DB_PREFIX}person_email NATURAL JOIN {$DB_PREFIX}person_email_primary_ids
    GROUP BY person_id;")
   or httperror(print_r($pdo->errorInfo(),true));
+}
+
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_contact");
+if ($r === false) {
+  $pdo->query("CREATE TABLE {$DB_PREFIX}person_contact (
+                id INT NOT NULL AUTO_INCREMENT,
+                person_id INT NOT NULL,
+                type VARCHAR(64) NOT NULL,
+                details VARCHAR(128) NOT NULL,
+                fromWiki BOOLEAN NOT NULL DEFAULT 0,
+                active BOOLEAN NOT NULL DEFAULT 1,
+                PRIMARY KEY (id),
+                UNIQUE(person_id, type, details, fromWiki),
+                INDEX(person_id, type),
+                FOREIGN KEY (person_id) REFERENCES {$DB_PREFIX}person(id) ON DELETE CASCADE
+               ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
 }
 
 # Gremium & Rollen
@@ -279,7 +300,7 @@ SELECT DISTINCT p.id as person_id, p.canLogin XOR (rm.gremium_id IS NOT NULL) as
 }
 
 #$r = $pdo->query("DROP VIEW {$DB_PREFIX}person_current");
-$r = $pdo->query("SELECT hasUniMail FROM {$DB_PREFIX}person_current LIMIT 1");
+$r = $pdo->query("SELECT wikiPage FROM {$DB_PREFIX}person_current LIMIT 1");
 #$r = $pdo->query("SELECT * FROM {$DB_PREFIX}person_current LIMIT 1");
 if ($r === false) {
   $pdo->query("CREATE OR REPLACE VIEW {$DB_PREFIX}person_current AS
@@ -432,6 +453,13 @@ function getPersonMailingliste($personId) {
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function getPersonContactDetails($personId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT t.* FROM {$DB_PREFIX}person_contact t WHERE t.person_id = ? ORDER BY t.type, t.details, t.id");
+  $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
 function setPersonUsername($personId, $username) {
   global $pdo, $DB_PREFIX;
   # username needs to match ^[a-z][-a-z0-9_]*\$
@@ -577,11 +605,12 @@ function dbPersonDisable($id) {
   return $ret1 && $ret2 && $ret3;
 }
 
-function dbPersonUpdate($id,$name,$emails,$unirzlogin,$username,$password,$canlogin) {
+function dbPersonUpdate($id,$name,$emails,$unirzlogin,$username,$password,$canlogin,$wikiPage) {
   global $pdo, $DB_PREFIX, $pwObj;
   if (empty($name)) $name = NULL;
   if (empty($unirzlogin)) $unirzlogin = NULL;
   if (empty($username)) $username = NULL;
+  if (empty($wikiPage)) $wikiPage = NULL;
 
   $numEmail = 0; $tmp = [];
   foreach ($emails as $i => $email) {
@@ -605,8 +634,8 @@ function dbPersonUpdate($id,$name,$emails,$unirzlogin,$username,$password,$canlo
   $emails = array_unique($tmp);
 
   $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET name = ?, unirzlogin = ?, username = ?, canLogin = ? WHERE id = ?");
-  $ret1 = $query->execute([$name, $unirzlogin, $username, $canlogin, $id]) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET name = ?, unirzlogin = ?, username = ?, canLogin = ?, wikiPage = ? WHERE id = ?");
+  $ret1 = $query->execute([$name, $unirzlogin, $username, $canlogin, $wikiPage, $id]) or httperror(print_r($query->errorInfo(),true));
   if (empty($password)) {
     $ret2 = true;
   } else {
@@ -648,12 +677,13 @@ function isValidEmail($email) {
         && preg_match('/@.+\./', $email);
 }
 
-function dbPersonInsert($name,$emails,$unirzlogin,$username,$password,$canlogin, $quiet=false) {
+function dbPersonInsert($name,$emails,$unirzlogin,$username,$password,$canlogin,$wikiPage, $quiet=false) {
   global $pdo, $DB_PREFIX, $pwObj;
   if (empty($name)) $name = NULL;
   if (empty($unirzlogin)) $unirzlogin = NULL;
   if (empty($username)) $username = NULL;
   if (empty($password)) { $passwordHash = NULL;  } else { $passwordHash = @$pwObj->createPasswordHash($password); }
+  if (empty($wikiPage)) $wikiPage = NULL;
   if (!is_array($emails)) $emails = [$emails];
   $numEmail = 0;
   foreach ($emails as $i => $email) {
@@ -679,8 +709,8 @@ function dbPersonInsert($name,$emails,$unirzlogin,$username,$password,$canlogin,
     return $ret;
   }
 
-  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person (name, unirzlogin, username, password, canLogin) VALUES (?, ?, ?, ?, ?)");
-  $ret = $query->execute(Array($name, $unirzlogin, $username, $passwordHash, $canlogin));
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person (name, unirzlogin, username, password, canLogin, wikiPage) VALUES (?, ?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($name, $unirzlogin, $username, $passwordHash, $canlogin, $wikiPage));
   if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
   if ($ret === false) {
     $pdo->rollback();
@@ -773,6 +803,28 @@ function dbPersonDisableRolle($id, $bis = NULL, $grund = "") {
   if (empty($grund)) $grund = NULL;
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = STR_TO_DATE(?, '%Y-%m-%d'), kommentar = concat_ws('\n', kommentar, ?) WHERE id = ? AND (bis IS NULL OR bis > STR_TO_DATE(?, '%Y-%m-%d'))");
   return $query->execute(Array($bis,$grund,$id,$bis)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbPersonInsertContact($person_id,$type,$details,$fromWiki,$active) {
+  global $pdo, $DB_PREFIX;
+  $active = ($active || $fromWiki) ? 1 : 0;
+  $fromWiki = $fromWiki ? 1 : 0;
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person_contact (person_id, type, details, fromWiki, active) VALUES (?, ?, ?, ?, ?)");
+  return $query->execute(Array($person_id,$type,$details,$fromWiki,$active)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbPersonUpdateContact($id, $person_id,$type,$details,$fromWiki,$active) {
+  global $pdo, $DB_PREFIX;
+  $active = ($active || $fromWiki) ? 1 : 0;
+  $fromWiki = $fromWiki ? 1 : 0;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person_contact SET person_id = ?, type = ?, details = ?, fromWiki = ?, active = ? WHERE id = ?");
+  return $query->execute(Array($person_id,$type,$details,$fromWiki,$active,$id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbPersonDeleteContact($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person_contact WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function getGruppeRolle($grpId) {

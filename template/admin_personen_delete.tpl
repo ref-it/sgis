@@ -4,6 +4,8 @@ $person = getPersonDetailsById($_REQUEST["person_id"]);
 if ($person === false) die("Invalid Id");
 $gremien = getPersonRolle($person["id"]);
 
+$contactDetails = getPersonContactDetails($person["id"]);
+
 $vals = explode(",", $person["email"]);
 $otherpersons = [];
 foreach ($vals as $val) {
@@ -38,11 +40,13 @@ foreach ([
   "id" => "ID",
   "name" => "Name",
   "email" => "eMail",
+  "_contactDetails" => "Kontaktdaten",
   "username" => "Login-Name",
   "password" => "Login-Password",
   "unirzlogin" => "UniRZ-Login",
   "lastLogin" => "letztes Login",
   "canLogin" => "Login erlaubt?",
+  "wikiPage" => "Wiki-Seite zur Person",
  ] as $key => $desc):
 
 ?>
@@ -50,13 +54,36 @@ foreach ([
   <div class="form-group">
     <label class="control-label col-sm-2"><?php echo htmlspecialchars($desc); ?></label>
     <div class="col-sm-10">
-      <div class="form-control">
       <?php
         switch($key) {
+          case "_contactDetails":
+            if (count($contactDetails) > 0) {
+?>
+      <div class="row">
+        <div class="col-sm-2"><b><center>Typ</center></b></div>
+        <div class="col-sm-10"><b><center>Erreichbar unter</center></b></div>
+      </div> <!-- row -->
+<?php         foreach ($contactDetails as $c) { ?>
+      <div class="row">
+        <div class="col-sm-2">
+          <div class="form-control"><?php echo htmlspecialchars(contactType2Str($c["type"])); ?></div>
+        </div>
+        <div class="col-sm-10">
+          <div class="form-control contactDetails <?php if (!$c["active"] && $c["fromWiki"]) echo "inactive"; else echo "active"; ?>"><?php echo htmlspecialchars($c["details"]); ?></div>
+        </div>
+      </div> <!-- row -->
+<?php         }
+            } else {
+?>            <i>Keine</i><?php
+}
+            break;
           case "password":
+?>      <div class="form-control"> <?php
             echo (empty($person["$key"]) ? "nicht gesetzt" : "gesetzt");
+?>      </div><?php
             break;
           case "canLogin":
+?>      <div class="form-control"> <?php
 
             $grps = Array();
             foreach (getPersonGruppe($person["id"]) as $grp) {
@@ -77,13 +104,21 @@ foreach ([
             else {
               echo htmlspecialchars($person["$key"] ? "ja" : "nein");
             }
+?>      </div><?php
+            break;
+          case "wikiPage":
+?>      <div class="form-control"> <?php
+            echo htmlspecialchars($person["$key"]);
+?>           <i>(Wenn gesetzt beginnt immer mit ":person:" .)</i><?php
+?>      </div><?php
             break;
           default:
+?>      <div class="form-control"> <?php
             echo htmlspecialchars($person["$key"]);
+?>      </div><?php
             break;
         }
       ?>
-      </div>
     </div>
   </div>
 

@@ -59,3 +59,5 @@ table.table-showactive tr.activeodd { background-color: white; }
 table.table-showall tr.alleven,th { background-color: #f9f9f9; }
 table.table-showall tr.allodd { background-color: white; }
 
+.contactDetails.inactive { text-decoration: line-through; }
+

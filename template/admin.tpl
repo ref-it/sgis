@@ -94,11 +94,17 @@ $(function () {
        } else {
         alert(txt);
        }
-       if (values.ret && !values.target && cls) {
-        if (self.opener) {
-         self.opener.focus();
+       if (values.ret && !values.target) {
+        if (cls) {
+         if (self.opener) {
+          self.opener.focus();
+         }
+         self.close();
+        } else {
+         if (values.needReload) {
+          self.location.reload();
+         }
         }
-        self.close();
        }
        if (values.ret && values.target) {
         if (cls) {

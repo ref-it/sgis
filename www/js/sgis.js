@@ -4,6 +4,17 @@ $(function() {
     var cls = $(this).data('class');
     $("."+cls).prop('checked', $(this).prop('checked'));
   });
+  $(".new-row-replicate *").on('focus.sgis-new-row-replicate', function () {
+    var $r = $(this).parents(".new-row-replicate");
+    var $sp = $r.find('.selectpicker');
+    $sp.selectpicker('destroy');
+    $sp.addClass("selectpicker");
+    var $n = $r.clone(true);
+    $r.find("*").off('focus.sgis-new-row-replicate');
+    $n.insertAfter($r);
+    $n.find('.selectpicker').selectpicker({});
+    $r.find('.selectpicker').selectpicker({});
+  });
 });
 
 function checkMail(email, form, nonce) {
@@ -42,3 +53,9 @@ function checkMail(email, form, nonce) {
    }
   });
 }
+
+function clearValue(id) {
+  $('#'+id).val('');
+  return false;
+}
+

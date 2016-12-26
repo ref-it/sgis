@@ -27,6 +27,7 @@ if (isset($_POST["action"])) {
  $msgs = Array();
  $ret = false;
  $target = false;
+ $needReload = false;
 
  if (substr($_POST["action"],0,13) == "person.merge.") {
    $_POST["merge_person_id"] = substr($_POST["action"], 13);
@@ -60,6 +61,7 @@ if (isset($_POST["action"])) {
          return str_replace("@tu-ilmenau.de","",$d);
        }
      ],
+     [ 'db' => 'wikiPage',         'dt' => 'wikiPage', 'formatter' => 'escapeMeNot' ],
      [ 'db' => 'lastLogin',          'dt' => 'lastLogin',
        'formatter' => function( $d, $row ) {
          return $d ? date( 'Y-m-d', strtotime($d)) : "";
@@ -288,17 +290,47 @@ if (isset($_POST["action"])) {
    $msgs[] = "Person wurde deaktiviert.";
   break;
   case "person.update":
-   $ret = dbPersonUpdate($_POST["id"],trim($_POST["name"]),$_POST["email"],trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"]);
+   $ret = dbPersonUpdate($_POST["id"],trim($_POST["name"]),$_POST["email"],trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"],$_POST["wikiPage"]);
    $msgs[] = "Person wurde aktualisiert.";
+
+   foreach ($_POST["_contactDetails_id"] as $i => $id) {
+     if ($id < 0 && (trim($_POST["_contactDetails_details"][$i]) != "")) {
+       $ret1 = dbPersonInsertContact($_POST["id"],trim($_POST["_contactDetails_type"][$i]),trim($_POST["_contactDetails_details"][$i]),$_POST["_contactDetails_fromWiki"][$i],$_POST["_contactDetails_active"][$i]);
+       $msgs[] = "Kontaktdaten wurden ergänzt.";
+       $needReload = true;
+     } elseif ($id < 0) {
+       /* leere neue Kontaktdaten */
+       $ret1 = true;
+     } elseif (trim($_POST["_contactDetails_details"][$i]) != "") {
+       $ret1 = dbPersonUpdateContact($id, $_POST["id"],trim($_POST["_contactDetails_type"][$i]),trim($_POST["_contactDetails_details"][$i]),$_POST["_contactDetails_fromWiki"][$i],$_POST["_contactDetails_active"][$i]);
+       $msgs[] = "Kontaktdaten wurden aktualisiert.";
+       $needReload = true;
+     } else {
+       $ret1 = dbPersonDeleteContact($id);
+       $msgs[] = "Kontaktdaten wurden entfernt.";
+       $needReload = true;
+     }
+     $ret = $ret && $ret1;
+   }
+
   break;
   case "person.insert":
    $quiet = isset($_FILES["csv"]) && !empty($_FILES["csv"]["tmp_name"]);
    $ret = true;
    if (!empty($_POST["email"]) || !$quiet) {
-     $ret = dbPersonInsert(trim($_POST["name"]),$_POST["email"],trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"], $quiet);
-     if ($ret !== false)
-       $target = $_SERVER["PHP_SELF"]."?tab=person.edit&person_id=".$ret;
+     $ret = dbPersonInsert(trim($_POST["name"]),$_POST["email"],trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"], $_POST["wikiPage"], $quiet);
+     $personId = $ret;
      $msgs[] = "Person {$_POST["name"]} wurde ".(($ret !== false) ? "": "nicht ")."angelegt.";
+     if ($ret !== false) {
+       $target = $_SERVER["PHP_SELF"]."?tab=person.edit&person_id=".$ret;
+       foreach (array_keys($_POST["_contactDetails_details"]) as $i) {
+         if (trim($_POST["_contactDetails_details"][$i]) != "") {
+           $ret1 = dbPersonInsertContact($personId,trim($_POST["_contactDetails_type"][$i]),trim($_POST["_contactDetails_details"][$i]),$_POST["_contactDetails_fromWiki"][$i],$_POST["_contactDetails_active"][$i]);
+           $msgs[] = "Kontaktdaten wurden ergänzt.";
+           $ret = $ret && $ret1;
+         }
+       }
+     }
    }
    if ($quiet) {
      if (($handle = fopen($_FILES["csv"]["tmp_name"], "r")) !== FALSE) {
@@ -503,6 +535,7 @@ if (isset($_POST["action"])) {
  $result = Array();
  $result["msgs"] = $msgs;
  $result["ret"] = ($ret !== false);
+ $result["needReload"] = ($needReload !== false);
  if ($target !== false)
    $result["target"] = $target;
 

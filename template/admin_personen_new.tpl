@@ -15,11 +15,13 @@
 foreach ([
   "email"      => "eMail",
   "name"       => "Name",
+  "_contactDetails" => "Kontaktdaten",
   "username"   => "Login-Name",
   "password"   => "Login-Password",
   "unirzlogin" => "UniRZ-Login",
   "canLogin"   => "Login erlaubt?",
   "csv"        => "Datei importieren",
+  "wikiPage" => "Wiki-Seite zur Person",
  ] as $key => $desc):
 
 ?>
@@ -30,6 +32,29 @@ foreach ([
 
       <?php
         switch($key) {
+          case "_contactDetails":
+?>
+      <div class="row">
+        <div class="col-sm-2"><b><center>Typ</center></b></div>
+        <div class="col-sm-10"><b><center>Erreichbar unter</center></b></div>
+      </div> <!-- row -->
+      <!-- NEUE ZEILE -->
+      <div class="row new-row-replicate">
+        <input type="hidden" name="_contactDetails_id[]" value="-1">
+        <div class="col-sm-2">
+          <!-- SELECT TYPE / NEW TYPE -->
+          <select class="selectpicker" data-width="fit" name="_contactDetails_type[]">
+<?php      foreach ($contactTypes as $ctid => $ctstr) { ?>
+             <option value="<?php echo htmlspecialchars($ctid);?>"><?php echo htmlspecialchars($ctstr); ?></option>
+<?php      } ?>
+          </select>
+        </div>
+        <div class="col-sm-10"><input class="form-control" type="text" name="_contactDetails_details[]" value="" placeholder="Telefonnummer o.ä."></div>
+        <input type="hidden" name="_contactDetails_fromWiki[]" value="0">
+        <input type="hidden" name="_contactDetails_active[]" value="1">
+      </div> <!-- row -->
+<?php
+            break;
           case "password":
 ?>          <input class="form-control" type="password" name="<?php echo htmlspecialchars($key); ?>" value=""><?php
             break;
@@ -46,6 +71,9 @@ foreach ([
             break;
           case "email":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>[]" value="" placeholder="@tu-ilmenau.de" onChange="checkMail(this.value, this.form, '<?php echo $nonce; ?>');"><?php
+            break;
+          case "wikiPage":
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="" placeholder=":person:name"><?php
             break;
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value=""><?php
@@ -77,6 +105,9 @@ foreach ([
 ?>
            <i>(optional, Trennung durch Komma, Texttrenner: ", Spalten: Name, eMail, RZ-Login erste Zeile ist Kopfzeile, "Login-Erlaubt"-Wert wird aus Eingabe übernommen.)</i>
 <?php
+            break;
+          case "wikiPage":
+?>           <i>(Wenn gesetzt beginnt immer mit ":person:" .)</i><?php
             break;
           default:
         }

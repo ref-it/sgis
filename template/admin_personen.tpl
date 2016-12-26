@@ -10,6 +10,7 @@ $metadata = [
   "canLogin" => "<small>Sperre</small>",
   "active" => "<small>aktiv</small>",
   "hasUniMail" => false,
+  "wikiPage" => false,
  ];
 
 ?>
