@@ -1,5 +1,5 @@
 <?php
-global $ADMINGROUP;
+global $ADMINGROUP, $wikiperson;
 require_once "../lib/inc.all.php";
 
 prof_flag("Start");
@@ -332,9 +332,19 @@ foreach ($rollen as $rolle) {
 
 prof_flag("mapping done");
 
+function person2link($person) {
+  global $wikiperson;
+  $wikiPage = $person["wikiPage"];
+  if (empty($wikiPage) || (substr($wikiPage,0,strlen($wikiperson)) != $wikiperson)) {
+    $wikiPage = "{$wikiperson}{$person["name"]}";
+  }
+  $line = "[[:{$wikiPage}|{$person["name"]}]]";
+  return $line;
+}
+
 // generate wiki pages
 function person2string($person) {
-  $line = "[[:person:{$person["name"]}]] ";
+  $line = person2link($person)." ";
   if (!empty($person["von"]) && !empty($person["bis"])) {
     $line .= "{$person["von"]} - {$person["bis"]}";
   } else if (!empty($person["von"])) {
@@ -609,7 +619,7 @@ foreach ($mapping_coltable as $wiki => $data) {
           $ptext = [];
           foreach($personen["active"] as $person) {
             #$item = person2string($person);
-            $item = "[[:person:{$person["name"]}]]";
+            $item = person2link($person);
             $ptext[] = $item;
           }
           $table["1".$gremium_tmp][$rowIdx][$col_name] = implode(", ", $ptext);
@@ -812,7 +822,7 @@ foreach ($mapping_mastertable as $wiki => $data) {
 
          $email = explode(",", $person["email"])[0];
 
-         $line = "| $sep [[:person:{$person["name"]}]] $sepr | $sep {$email} $sepr |";
+         $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr |";
          if ($needSGCol) $line = "| $sep $gremium_sg $sepr $line";
          if ($needFakCol) $line = "| $sep $gremium_fak $sepr $line";
          $line = preg_replace("/\s+/"," ",$line);
