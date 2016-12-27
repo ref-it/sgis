@@ -1026,7 +1026,17 @@ foreach ($contactPersonen as $p) {
 }
 
 if (isset($_POST["commit"])) {
-  header("Location: ${_SERVER["PHP_SELF"]}");
+  $wikiStr = "";
+  if (isset($_POST["wiki"]) && !is_array($_POST["wiki"])) {
+    $wikiStr = "wiki=".urlencode($_POST["wiki"])."&";
+  }
+  if (isset($_POST["wiki"]) && is_array($_POST["wiki"])) {
+    foreach ($_POST["wiki"] as $wiki) {
+      $wikiStr = "wiki[]=".urlencode($wiki)."&";
+    }
+  }
+
+  header("Location: ${_SERVER["PHP_SELF"]}?$wikiStr");
   die();
 }
 
@@ -1091,7 +1101,19 @@ endforeach;
 <input type="reset" value="Zurücksetzen" name="reset"/>
 <?php
 if (isset($_REQUEST["autoExportPW"]))
-  echo "<input type=\"hidden\" name=\"autoExportPW\" value=\"".htmlspecialchars($_REQUEST["autoExportPW"])."\">"
+  echo "<input type=\"hidden\" name=\"autoExportPW\" value=\"".htmlspecialchars($_REQUEST["autoExportPW"])."\">";
+
+if (isset($_REQUEST["wiki"])) {
+  if (!is_array($_REQUEST["wiki"])) {
+    echo "<input type=\"hidden\" name=\"wiki\" value=\"".htmlspecialchars($_REQUEST["wiki"])."\">\n";
+  }
+  if (is_array($_REQUEST["wiki"])) {
+    foreach ($_REQUEST["wiki"] as $wiki) {
+      echo "<input type=\"hidden\" name=\"wiki[]\" value=\"".htmlspecialchars($wiki)."\">\n";
+    }
+  }
+}
+
 ?>
 
 </form>
