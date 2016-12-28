@@ -851,7 +851,7 @@ foreach ($mapping_mastertable as $wiki => $data) {
 
     $text[] = "===== {$section_name} =====";
     $line = "^ Name ^ ";
-    if ($withContactDetails) $line .= "Kontakt ^^"; else $line .= "eMail ^";
+    if ($withContactDetails) $line .= "Kontakt ^^^"; else $line .= "eMail ^";
     if ($needSGCol) $line = "^ Studiengang $line";
     if ($needFakCol) $line = "^ Fakultät $line";
     $text[] = $line;
@@ -874,19 +874,31 @@ foreach ($mapping_mastertable as $wiki => $data) {
          $sepr = strrev($sep);
 
          $email = explode(",", $person["email"])[0];
-         $contact = [ ];
+         $contact = [ ]; $hasDetails = false; $qr = [];
          if ($withContactDetails && isset($person["_contactDetails"])) {
            foreach ( $person["_contactDetails"] as $c) {
              if ($c["fromWiki"] && !$c["active"]) continue;
              $contact[] = contactType2Str($c["type"]).": ".escapeContactForWiki($c["details"]);
+             if (strtolower($c["type"]) == "tel") {
+               $hasDetails = true;
+               $qr[] = "TEL:".escapeContactForWiki($c["details"]);
+             }
+             if (strtolower($c["type"]) == "xmpp") {
+               $hasDetails = true;
+               $qr[] = "X-JABBER:".escapeContactForWiki($c["details"]);
+             }
            }
          }
          $contact = array_unique($contact);
          sort($contact);
          $contact = implode('\\\\ ', $contact);
+         $qrcode = "";
+         if ($hasDetails) {
+           $qrcode = " <qrcode>BEGIN:VCARD####VERSION:2.1####N:{$person["name"]}####EMAIL:{$email}####".implode("####",$qr)."####END:VCARD</qrcode> ";
+         }
 
          if ($withContactDetails)
-           $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr | $sep {$contact} $sepr |";
+           $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr | $sep {$contact} $sepr | $qrcode |";
          else
            $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr |";
          if ($needSGCol) $line = "| $sep $gremium_sg $sepr $line";
@@ -1115,7 +1127,7 @@ foreach ($pages as $wiki => $data):
   echo "<tr>";
   echo " <td><input ".(($data["diff"] != "") ? "class=\"mls\"" : "")." type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($wiki)."\"></td>";
   echo " <td><a href=\"".htmlspecialchars($openUrl.str_replace(":","/",$wiki))."\">".htmlspecialchars($wiki)."</a></td>\n";
-  echo " <td><pre>{$data["diff"]}</pre><input type=\"hidden\" readonly=readonly name=\"text[".htmlspecialchars($wiki)."]\" value=\"".base64_encode(implode("\n",$data["new"]))."\"></td>\n";
+  echo " <td><pre>".htmlspecialchars($data["diff"])."</pre><input type=\"hidden\" readonly=readonly name=\"text[".htmlspecialchars($wiki)."]\" value=\"".base64_encode(implode("\n",$data["new"]))."\"></td>\n";
   echo "</tr>";
 endforeach;
 
