@@ -406,6 +406,9 @@ function getClient() {
 function fetchWikiPage($wiki) {
   try {
     $wikiClient = getClient();
+    # getPage returns template for new page if page does not exist -> check existance before
+    $method="wiki.getPageVersions";
+    if (count($wikiClient->$method($wiki)) == 0) return "";
     $method="wiki.getPage";
     return $wikiClient->$method($wiki);
   } catch (XML_RPC2_FaultException $e) {
