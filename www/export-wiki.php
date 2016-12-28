@@ -32,6 +32,10 @@ $wikiprefix = "sgis:mitglieder:";
 $wikiperson = "person:";
 $skippedPages = [];
 
+function escapeContactForWiki($str) {
+  return preg_replace('#[^a-zA-Z0-9 -_()]/#','',$str);
+}
+
 function startsWith($prefix, $str) {
   return substr($str, 0, strlen($prefix)) == $prefix;
 }
@@ -874,7 +878,7 @@ foreach ($mapping_mastertable as $wiki => $data) {
          if ($withContactDetails && isset($person["_contactDetails"])) {
            foreach ( $person["_contactDetails"] as $c) {
              if ($c["fromWiki"] && !$c["active"]) continue;
-             $contact[] = contactType2Str($c["type"]).": ".$c["details"]; // FIXME escape details
+             $contact[] = contactType2Str($c["type"]).": ".escapeContactForWiki($c["details"]);
            }
          }
          $contact = array_unique($contact);
