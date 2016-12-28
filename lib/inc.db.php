@@ -130,6 +130,7 @@ if ($r === false) {
                 wiki_members_roleAsColumnTable VARCHAR(128) NULL,
                 wiki_members_roleAsColumnTableExtended VARCHAR(128) NULL,
                 wiki_members_roleAsMasterTable VARCHAR(128) NULL,
+                wiki_members_roleAsMasterTableExtended VARCHAR(128) NULL,
                 PRIMARY KEY(id),
                 FOREIGN KEY (gremium_id) REFERENCES {$DB_PREFIX}gremium(id) ON DELETE CASCADE,
                 UNIQUE(gremium_id, name),
@@ -161,6 +162,10 @@ if ($r === false) {
 $r = $pdo->query("SELECT wiki_members_roleAsMasterTable FROM {$DB_PREFIX}rolle");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN wiki_members_roleAsMasterTable VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+}
+$r = $pdo->query("SELECT wiki_members_roleAsMasterTableExtended FROM {$DB_PREFIX}rolle");
+if ($r === false) {
+  $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN wiki_members_roleAsMasterTableExtended VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
 }
 
 # Log
@@ -340,11 +345,11 @@ if ($r === false) {
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
-$r = $pdo->query("SELECT rolle_wiki_members_roleAsMasterTable FROM {$DB_PREFIX}rolle_searchable");
+$r = $pdo->query("SELECT rolle_wiki_members_roleAsMasterTableExtended FROM {$DB_PREFIX}rolle_searchable");
 if ($r === false) {
   $pdo->query("CREATE OR REPLACE VIEW {$DB_PREFIX}rolle_searchable AS
     SELECT TRIM(CONCAT_WS(' ',r.name,g.name,g.fakultaet,g.studiengang,g.studiengangabschluss)) as fullname,
-           r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz, r.wahlDurchWikiSuffix as rolle_wahlDurchWikiSuffix, r.wahlPeriodeDays as rolle_wahlPeriodeDays, r.wiki_members_roleAsColumnTable as rolle_wiki_members_roleAsColumnTable, r.wiki_members_roleAsColumnTableExtended as rolle_wiki_members_roleAsColumnTableExtended, r.wiki_members_roleAsMasterTable as rolle_wiki_members_roleAsMasterTable,
+           r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz, r.wahlDurchWikiSuffix as rolle_wahlDurchWikiSuffix, r.wahlPeriodeDays as rolle_wahlPeriodeDays, r.wiki_members_roleAsColumnTable as rolle_wiki_members_roleAsColumnTable, r.wiki_members_roleAsColumnTableExtended as rolle_wiki_members_roleAsColumnTableExtended, r.wiki_members_roleAsMasterTable as rolle_wiki_members_roleAsMasterTable, r.wiki_members_roleAsMasterTableExtended as rolle_wiki_members_roleAsMasterTableExtended,
            g.id as gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as wiki_members, g.wiki_members_table as wiki_members_table, g.wiki_members_fulltable as wiki_members_fulltable, g.wiki_members_fulltable2 as wiki_members_fulltable2, g.active as gremium_active,
            r.id as id, (r.active AND g.active) as active
       FROM {$DB_PREFIX}gremium g
@@ -353,11 +358,11 @@ if ($r === false) {
   or httperror(print_r($pdo->errorInfo(),true));
 }
 
-$r = $pdo->query("SELECT rolle_wiki_members_roleAsMasterTable FROM {$DB_PREFIX}rolle_searchable_mailingliste");
+$r = $pdo->query("SELECT rolle_wiki_members_roleAsMasterTableExtended FROM {$DB_PREFIX}rolle_searchable_mailingliste");
 if ($r === false) {
   $pdo->query("CREATE OR REPLACE VIEW {$DB_PREFIX}rolle_searchable_mailingliste AS
     SELECT TRIM(CONCAT_WS(' ',r.name,g.name,g.fakultaet,g.studiengang,g.studiengangabschluss)) as fullname,
-           r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz, r.wahlDurchWikiSuffix as rolle_wahlDurchWikiSuffix, r.wahlPeriodeDays as rolle_wahlPeriodeDays, r.wiki_members_roleAsColumnTable as rolle_wiki_members_roleAsColumnTable, r.wiki_members_roleAsColumnTableExtended as rolle_wiki_members_roleAsColumnTableExtended, r.wiki_members_roleAsMasterTable as rolle_wiki_members_roleAsMasterTable,
+           r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz, r.wahlDurchWikiSuffix as rolle_wahlDurchWikiSuffix, r.wahlPeriodeDays as rolle_wahlPeriodeDays, r.wiki_members_roleAsColumnTable as rolle_wiki_members_roleAsColumnTable, r.wiki_members_roleAsColumnTableExtended as rolle_wiki_members_roleAsColumnTableExtended, r.wiki_members_roleAsMasterTable as rolle_wiki_members_roleAsMasterTable, r.wiki_members_roleAsMasterTableExtended as rolle_wiki_members_roleAsMasterTableExtended,
            g.id as gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as wiki_members, g.wiki_members_table as wiki_members_table, g.wiki_members_fulltable as wiki_members_fulltable, g.wiki_members_fulltable2 as wiki_members_fulltable2, g.active as gremium_active,
            r.id as id, (r.active AND g.active) as active,
            m.id as mailingliste_id,
@@ -556,7 +561,7 @@ function getRolleById($rolleId) {
 
 function getAlleRolle() {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, g.wiki_members_fulltable2 as gremium_wiki_members_fulltable2, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz, r.wahlDurchWikiSuffix as rolle_wahlDurchWikiSuffix, r.wahlPeriodeDays as rolle_wahlPeriodeDays, r.wiki_members_roleAsColumnTable as rolle_wiki_members_roleAsColumnTable, r.wiki_members_roleAsColumnTableExtended as rolle_wiki_members_roleAsColumnTableExtended, r.wiki_members_roleAsMasterTable as rolle_wiki_members_roleAsMasterTable, (rm.id IS NOT NULL) as rolle_hat_mitglied FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, g.wiki_members_fulltable2 as gremium_wiki_members_fulltable2, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz, r.wahlDurchWikiSuffix as rolle_wahlDurchWikiSuffix, r.wahlPeriodeDays as rolle_wahlPeriodeDays, r.wiki_members_roleAsColumnTable as rolle_wiki_members_roleAsColumnTable, r.wiki_members_roleAsColumnTableExtended as rolle_wiki_members_roleAsColumnTableExtended, r.wiki_members_roleAsMasterTable as rolle_wiki_members_roleAsMasterTable, r.wiki_members_roleAsMasterTableExtended as rolle_wiki_members_roleAsMasterTableExtended, (rm.id IS NOT NULL) as rolle_hat_mitglied FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
   $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -921,19 +926,19 @@ function dbGremiumDisable($id) {
   return $ret1 && $ret2 && $ret3;
 }
 
-function dbGremiumInsertRolle($gremium_id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable) {
+function dbGremiumInsertRolle($gremium_id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name, active, spiGroupId, numPlatz, wahlDurchWikiSuffix, wahlPeriodeDays, wiki_members_roleAsColumnTable, wiki_members_roleAsColumnTableExtended, wiki_members_roleAsMasterTable) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-  $ret = $query->execute(Array($gremium_id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name, active, spiGroupId, numPlatz, wahlDurchWikiSuffix, wahlPeriodeDays, wiki_members_roleAsColumnTable, wiki_members_roleAsColumnTableExtended, wiki_members_roleAsMasterTable, wiki_members_roleAsMasterTableExtended) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($gremium_id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended)) or httperror(print_r($query->errorInfo(),true));
   if ($ret === false)
     return $ret;
   return $pdo->lastInsertId();
 }
 
-function dbGremiumUpdateRolle($id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable) {
+function dbGremiumUpdateRolle($id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rolle SET name = ?, active = ?, spiGroupId = ?, numPlatz = ?, wahlDurchWikiSuffix = ?, wahlPeriodeDays = ?, wiki_members_roleAsColumnTable = ?, wiki_members_roleAsColumnTableExtended = ?, wiki_members_roleAsMasterTable = ? WHERE id = ?");
-  return $query->execute(Array($name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $id)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rolle SET name = ?, active = ?, spiGroupId = ?, numPlatz = ?, wahlDurchWikiSuffix = ?, wahlPeriodeDays = ?, wiki_members_roleAsColumnTable = ?, wiki_members_roleAsColumnTableExtended = ?, wiki_members_roleAsMasterTable = ?, wiki_members_roleAsMasterTableExtended = ? WHERE id = ?");
+  return $query->execute(Array($name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended, $id)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function dbGremiumDeleteRolle($id) {

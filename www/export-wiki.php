@@ -32,11 +32,19 @@ $wikiprefix = "sgis:mitglieder:";
 $wikiperson = "person:";
 $skippedPages = [];
 
+function startsWith($prefix, $str) {
+  return substr($str, 0, strlen($prefix)) == $prefix;
+}
+
 function skipWiki($wiki) {
   global $skippedPages;
   if (empty($wiki)) return true;
   if (!isset($_REQUEST["wiki"])) return false;
-  if (!is_array($_REQUEST["wiki"]) && cleanID($_REQUEST["wiki"]) != cleanID($wiki)) {
+  if (!is_array($_REQUEST["wiki"]) && substr($_REQUEST["wiki"],-1) != "*" && cleanID($_REQUEST["wiki"]) != cleanID($wiki)) {
+    $skippedPages[] = $wiki;
+    return true;
+  }
+  if (!is_array($_REQUEST["wiki"]) && substr($_REQUEST["wiki"],-1) == "*" && !startsWith(cleanID(substr($_REQUEST["wiki"],0,-1)), cleanID($wiki))) {
     $skippedPages[] = $wiki;
     return true;
   }
@@ -209,8 +217,9 @@ foreach (["rolle_wiki_members_roleAsColumnTableExtended"] as $key) {
 }
 
 // group roles by wiki page, skip empty wiki pages, and list all persons
-foreach (["rolle_wiki_members_roleAsMasterTable"] as $key) {
+foreach (["rolle_wiki_members_roleAsMasterTable","rolle_wiki_members_roleAsMasterTableExtended"] as $key) {
   prof_flag($key);
+ $withContactDetails = ($key == "rolle_wiki_members_roleAsMasterTableExtended");
  foreach ($rollen as $rolle) {
   if (strpos($rolle[$key],"#") !== false) {
     list ($wiki1, $wiki2) = explode("#",$rolle[$key],2);
@@ -258,18 +267,25 @@ foreach (["rolle_wiki_members_roleAsMasterTable"] as $key) {
   $name_rollen[$gremium_id][$rolle_id] = $rolle;
   $personen = getRollePersonen($rolle_id);
 
-  if (!isset($mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg])) {
-    $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg] = [];
+  if (!isset($mapping_mastertable[$wiki][$section_name]["data"][$gremium_fak][$gremium_sg])) {
+    $mapping_mastertable[$wiki][$section_name]["data"][$gremium_fak][$gremium_sg] = [];
   }
+  if (!isset($mapping_mastertable[$wiki][$section_name]["meta"]["withContactDetails"])) {
+    $mapping_mastertable[$wiki][$section_name]["meta"]["withContactDetails"] = false;
+  }
+  $mapping_mastertable[$wiki][$section_name]["meta"]["withContactDetails"] |= $withContactDetails;
   foreach ($personen as $person) {
     if ($person["active"] != 1) continue;
     $rel_id = $person["rel_id"];
     $person_id = $person["id"];
-    $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["data"][$rel_id] = $person;
-    if (!isset($mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["flags"])) {
-      $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["flags"] = "";
+    if ($withContactDetails) {
+      $person["_contactDetails"] = getPersonContactDetails($person_id);
     }
-    $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["flags"] .= $flags;
+    $mapping_mastertable[$wiki][$section_name]["data"][$gremium_fak][$gremium_sg][$person_id]["data"][$rel_id] = $person;
+    if (!isset($mapping_mastertable[$wiki][$section_name]["data"][$gremium_fak][$gremium_sg][$person_id]["flags"])) {
+      $mapping_mastertable[$wiki][$section_name]["data"][$gremium_fak][$gremium_sg][$person_id]["flags"] = "";
+    }
+    $mapping_mastertable[$wiki][$section_name]["data"][$gremium_fak][$gremium_sg][$person_id]["flags"] .= $flags;
   }
  }
 }
@@ -800,7 +816,9 @@ foreach ($mapping_mastertable as $wiki => $data) {
   foreach ($template as $line)
     $text[] = $line;
 
-  foreach ($data as $section_name => $data0 ) {
+  foreach ($data as $section_name => $data00 ) {
+    $data0 = $data00["data"];
+    $withContactDetails = $data00["meta"]["withContactDetails"];
 
     if (strpos($section_name, " ") !== false) {
       list ($tmp1, $tmp2) = explode(" ", $section_name, 2);
@@ -821,11 +839,12 @@ foreach ($mapping_mastertable as $wiki => $data) {
     $needSGCol = false;
     foreach ($data0 as $gremium_fak => $data1 ) {
       $needSGCol |= (count($data1) > 1);
-      $needSGCol |= (count($data0) > 1 && count($data1) == 1 && array_keys($data1)[0] != ""); # mehere Fakultäten mit wenigstens einem nicht-leeren Studiengang angegeben
+      $needSGCol |= (count($data0) > 1 && count($data1) == 1 && array_keys($data1)[0] != ""); # mehrere Fakultäten mit wenigstens einem nicht-leeren Studiengang angegeben
     }
 
     $text[] = "===== {$section_name} =====";
-    $line = "^ Name ^ eMail ^";
+    $line = "^ Name ^ ";
+    if ($withContactDetails) $line .= "Kontakt ^^"; else $line .= "eMail ^";
     if ($needSGCol) $line = "^ Studiengang $line";
     if ($needFakCol) $line = "^ Fakultät $line";
     $text[] = $line;
@@ -848,8 +867,21 @@ foreach ($mapping_mastertable as $wiki => $data) {
          $sepr = strrev($sep);
 
          $email = explode(",", $person["email"])[0];
+         $contact = [ ];
+         if ($withContactDetails && isset($person["_contactDetails"])) {
+           foreach ( $person["_contactDetails"] as $c) {
+             if ($c["fromWiki"] && !$c["active"]) continue;
+             $contact[] = contactType2Str($c["type"]).": ".$c["details"]; // FIXME escape details
+           }
+         }
+         $contact = array_unique($contact);
+         sort($contact);
+         $contact = implode('\\\\ ', $contact);
 
-         $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr |";
+         if ($withContactDetails)
+           $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr | $sep {$contact} $sepr |";
+         else
+           $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr |";
          if ($needSGCol) $line = "| $sep $gremium_sg $sepr $line";
          if ($needFakCol) $line = "| $sep $gremium_fak $sepr $line";
          $line = preg_replace("/\s+/"," ",$line);
@@ -971,7 +1003,17 @@ foreach($contactPersonen as $i => $p) {
 
   $new = [];
   foreach ($matches as $k => $m) {
-    $new[$k] = array_unique($m[2]);
+    $details = [];
+    foreach($m[2] as $dd) {
+      $dd = explode("\\\\ ", $dd);
+      foreach ($dd as $d) {
+        $d = trim($d);
+        $d = preg_replace('#\s*/\s*#',' / ',$d);
+        if (filterContact($d)) continue;
+        $details[] = $d;
+      }
+    }
+    $new[$k] = array_unique($details);
     sort($new[$k]);
   }
 
@@ -1087,7 +1129,24 @@ foreach ($contactPersonen as $p):
   echo "<tr>";
   echo " <td><input ".((count($p["add"]) + count($p["remove"]) > 0) ? "class=\"mls\"" : "")." type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($wiki)."\"></td>";
   echo " <td><a href=\"".htmlspecialchars($openUrl.str_replace(":","/",$wiki))."\">".htmlspecialchars($wiki)."</a></td>\n";
-  echo " <td><pre>\nAdd:"; print_r($p["add"]); echo "\nRemove:\n"; print_r($p["remove"]); echo "</pre></td>\n";
+  echo " <td>\n";
+  foreach ($p["add"] as $key => $list) {
+    if (count($list) > 0) {
+      echo "Add $key:<br/>\n<ul>";
+      foreach ($list as $l) {
+        echo "<li>".htmlspecialchars($l)."</li>\n";
+      }
+      echo "</ul><br/>\n";
+    }
+  }
+  if (count($p["remove"]) > 0) {
+   echo "Remove:<br/>\n<ul>";
+   foreach ($p["remove"] as $l) {
+     echo "<li>".htmlspecialchars($l)."</li>\n";
+   }
+   echo "</ul><br/>\n";
+  }
+  echo "</td>\n";
   echo "</tr>";
 endforeach;
 
