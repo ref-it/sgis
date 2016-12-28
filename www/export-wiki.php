@@ -36,11 +36,11 @@ function skipWiki($wiki) {
   global $skippedPages;
   if (empty($wiki)) return true;
   if (!isset($_REQUEST["wiki"])) return false;
-  if (!is_array($_REQUEST["wiki"]) && $_REQUEST["wiki"] != $wiki) {
+  if (!is_array($_REQUEST["wiki"]) && cleanID($_REQUEST["wiki"]) != cleanID($wiki)) {
     $skippedPages[] = $wiki;
     return true;
   }
-  if (is_array($_REQUEST["wiki"]) && !in_array($wiki, $_REQUEST["wiki"])) {
+  if (is_array($_REQUEST["wiki"]) && !in_array(cleanID($wiki), array_map("cleanID",$_REQUEST["wiki"]))) {
     $skippedPages[] = $wiki;
     return true;
   }
@@ -266,7 +266,7 @@ foreach (["rolle_wiki_members_roleAsMasterTable"] as $key) {
     $rel_id = $person["rel_id"];
     $person_id = $person["id"];
     $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["data"][$rel_id] = $person;
-    if (!isset($mapping_mastertable[$wiki][$section_name][$person_id]["flags"])) {
+    if (!isset($mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["flags"])) {
       $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["flags"] = "";
     }
     $mapping_mastertable[$wiki][$section_name][$gremium_fak][$gremium_sg][$person_id]["flags"] .= $flags;
