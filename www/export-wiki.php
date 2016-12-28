@@ -876,7 +876,7 @@ foreach ($mapping_mastertable as $wiki => $data) {
          $email = explode(",", $person["email"])[0];
          $contact = [ ]; $qr = [];
          if ($withContactDetails && isset($person["_contactDetails"])) {
-           $qr[] = "N:{$person["name"]}";
+           $qr[] = "FN:{$person["name"]}";
            $qr[] = "EMAIL:{$email}";
            foreach ( $person["_contactDetails"] as $c) {
              if ($c["fromWiki"] && !$c["active"]) continue;
