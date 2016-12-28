@@ -874,17 +874,17 @@ foreach ($mapping_mastertable as $wiki => $data) {
          $sepr = strrev($sep);
 
          $email = explode(",", $person["email"])[0];
-         $contact = [ ]; $hasDetails = false; $qr = [];
+         $contact = [ ]; $qr = [];
          if ($withContactDetails && isset($person["_contactDetails"])) {
+           $qr[] = "N:{$person["name"]}";
+           $qr[] = "EMAIL:{$email}";
            foreach ( $person["_contactDetails"] as $c) {
              if ($c["fromWiki"] && !$c["active"]) continue;
              $contact[] = contactType2Str($c["type"]).": ".escapeContactForWiki($c["details"]);
              if (strtolower($c["type"]) == "tel") {
-               $hasDetails = true;
                $qr[] = "TEL:".escapeContactForWiki($c["details"]);
              }
              if (strtolower($c["type"]) == "xmpp") {
-               $hasDetails = true;
                $qr[] = "X-JABBER:".escapeContactForWiki($c["details"]);
              }
            }
@@ -893,8 +893,8 @@ foreach ($mapping_mastertable as $wiki => $data) {
          sort($contact);
          $contact = implode('\\\\ ', $contact);
          $qrcode = "";
-         if ($hasDetails) {
-           $qrcode = " <qrcode>BEGIN:VCARD####VERSION:2.1####N:{$person["name"]}####EMAIL:{$email}####".implode("####",$qr)."####END:VCARD</qrcode> ";
+         if (count($qr) > 0) {
+           $qrcode = " <qrcode>BEGIN:VCARD####VERSION:2.1####".implode("####",$qr)."####END:VCARD</qrcode> ";
          }
 
          if ($withContactDetails)
