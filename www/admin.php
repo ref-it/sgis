@@ -204,6 +204,18 @@ if (isset($_POST["action"])) {
    $ret = dbMailinglisteDelete($_POST["id"]);
    $msgs[] = "Mailingliste wurde entfernt.";
   break;
+  case "mailingliste_mailman.insert":
+   $ret = dbMailinglisteMailmanInsert($_POST["mailingliste_id"], $_POST["url"], $_POST["field"], $_POST["mode"], $_POST["priority"], $_POST["value"]);
+   $msgs[] = "Mailinglisteneinstellung wurde erstellt.";
+  break;
+  case "mailingliste_mailman.update":
+   $ret = dbMailinglisteMailmanUpdate($_POST["id"], $_POST["mailingliste_id"], $_POST["url"], $_POST["field"], $_POST["mode"], $_POST["priority"], $_POST["value"]);
+   $msgs[] = "Mailinglisteneinstellung wurde aktualisiert.";
+  break;
+  case "mailingliste_mailman.delete":
+   $ret = dbMailinglisteMailmanDelete($_POST["id"]);
+   $msgs[] = "Mailinglisteneinstellung wurde entfernt.";
+  break;
   case "rolle_mailingliste.delete":
    $ret = dbMailinglisteDropRolle($_POST["mailingliste_id"], $_POST["rolle_id"]);
    $msgs[] = "Mailinglisten-Rollenzuordnung wurde entfernt.";
@@ -635,6 +647,15 @@ switch($_REQUEST["tab"]) {
   break;
   case "mailingliste.delete":
   require "../template/admin_mailinglisten_delete.tpl";
+  break;
+  case "mailingliste_mailman.new":
+  require "../template/admin_mailingliste_mailman_new.tpl";
+  break;
+  case "mailingliste_mailman.edit":
+  require "../template/admin_mailingliste_mailman_edit.tpl";
+  break;
+  case "mailingliste_mailman.delete":
+  require "../template/admin_mailingliste_mailman_delete.tpl";
   break;
   case "export":
   require "../template/admin_export.tpl";

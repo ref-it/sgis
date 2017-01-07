@@ -11,4 +11,5 @@ lib/inc.db.mitgliedschaft.php
 lib/inc.db.person.php
 lib/inc.db.rolle-mailingliste.php
 lib/inc.db.rolle.php
+lib/inc.db.mailingliste-mailman.php
 lib/Gremienbesetzung Studierende.csv

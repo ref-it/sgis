@@ -211,6 +211,22 @@ if ($r === false) {
   require SGISBASE.'/lib/inc.db.mailingliste.php';
 }
 
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}mailingliste_mailman");
+if ($r === false) {
+  $pdo->query("CREATE TABLE {$DB_PREFIX}mailingliste_mailman (
+                id INT NOT NULL AUTO_INCREMENT,
+                mailingliste_id INT NULL,
+                url VARCHAR(128) NOT NULL,
+                field VARCHAR(128) NOT NULL,
+                priority INT NOT NULL DEFAULT 100,
+                mode VARCHAR(128) NOT NULL DEFAULT 'set',
+                value TEXT NOT NULL,
+                PRIMARY KEY(id),
+                FOREIGN KEY (mailingliste_id) REFERENCES {$DB_PREFIX}mailingliste(id) ON DELETE CASCADE,
+                UNIQUE (mailingliste_id, url, field, priority) ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
+  require SGISBASE.'/lib/inc.db.mailingliste-mailman.php';
+}
+
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}gruppe");
 if ($r === false) {
   $pdo->query("CREATE TABLE {$DB_PREFIX}gruppe (
@@ -516,6 +532,43 @@ function dbMailinglisteUpdate($id, $address, $url, $password) {
 function dbMailinglisteDelete($id) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}mailingliste WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function getMailinglisteMailmanByMailinglisteId($mlId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}mailingliste_mailman mm WHERE (mm.mailingliste_id IS NULL) OR (mm.mailingliste_id = ?) ORDER BY url, field, priority, mailingliste_id");
+  $query->execute([$mlId]) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getMailinglisteMailmanById($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}mailingliste_mailman mm WHERE id = ?");
+  $query->execute([$id]) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function dbMailinglisteMailmanInsert($mailingliste_id, $url, $field, $mode, $priority, $value) {
+  global $pdo, $DB_PREFIX;
+  if ($mailingliste_id == "") $mailingliste_id = NULL;
+  $query = $pdo->prepare("INSERT {$DB_PREFIX}mailingliste_mailman (mailingliste_id, url, field, mode, priority, value) VALUES ( ?, ?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($mailingliste_id, $url, $field, $mode, $priority, $value)) or httperror(print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
+}
+
+function dbMailinglisteMailmanUpdate($id, $mailingliste_id, $url, $field, $mode, $priority, $value) {
+  global $pdo, $DB_PREFIX;
+  if ($mailingliste_id == "") $mailingliste_id = NULL;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}mailingliste_mailman SET mailingliste_id = ?, url = ?, field = ?, mode = ?, priority = ?, value = ? WHERE id = ?");
+  return $query->execute(Array($mailingliste_id, $url, $field, $mode, $priority, $value, $id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbMailinglisteMailmanDelete($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}mailingliste_mailman WHERE id = ?");
   return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
 }
 

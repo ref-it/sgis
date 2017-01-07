@@ -45,63 +45,22 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
     if (!in_array($list, $_POST["commit"])) continue;
     $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"]);
     $password = $mailingliste["password"];
-    if (true) {
-      $postFields = Array();
-      $postFields["adminpw"] = $password;
-      $postFields["subscribe_policy"] = 2; // Bestätigung / Genehmigung
-      $postFields["unsubscribe_policy"] = 1; // Genehmigung
-      $postFields["private_roster"] = 2; // nur Admin darf Mitglieder auflisten
-      $writeRequests[] = Array("url" => $url."/privacy/subscribing", "post" => $postFields);
 
-      $postFields = Array();
-      $postFields["adminpw"] = $password;
-      $postFields["send_reminders"] = 0; // no password reminder
-      $postFields["admin_notify_mchanges"] = 1; // tell konsul about new/lost members
-      $postFields["include_rfc2369_headers"] = 1; // add List-Id Header
-      $writeRequests[] = Array("url" => $url."/general", "post" => $postFields);
-
-      $postFields = Array();
-      $postFields["adminpw"] = $password;
-      $postFields["archive_private"] = 1; // private archive
-      $writeRequests[] = Array("url" => $url."/archive", "post" => $postFields);
-    }
-    if (isset($_POST["addmember"][$list])) {
-      $postFields = Array();
-      $postFields["adminpw"] = $password;
-      $postFields["subscribe_or_invite"] = 0; # abbonieren
-      $postFields["send_welcome_msg_to_this_batch"] = 0; # don't send welcome
-      $postFields["send_notifications_to_list_owner"] = 1; # send notify
-      $postFields["subscribees"] = join("\n", $_POST["addmember"][$list])."\n";
-      $postFields["invitation"] = "";
-      $writeRequests[] = Array("url" => $url."/members/add", "post" => $postFields);
-    }
-    if (isset($_POST["delmember"][$list])) {
-      $postFields = Array();
-      $postFields["adminpw"] = $password;
-      $postFields["send_unsub_ack_to_this_batch"] = 0; # don't tell unsubscriber
-      $postFields["send_unsub_notifications_to_list_owner"] = 1; # tell owner
-      $postFields["unsubscribees"] = join("\n", $_POST["delmember"][$list])."\n";
-      $writeRequests[] = Array("url" => $url."/members/remove", "post" => $postFields);
-    }
-    if (isset($_POST["new_accept_these_nonmembers"][$list])) {
-      $postFields = Array();
-      $postFields["adminpw"] = $password;
-      $postFields["accept_these_nonmembers"] = $_POST["new_accept_these_nonmembers"][$list];
-      $writeRequests[] = Array("url" => $url."/privacy/sender", "post" => $postFields);
-    }
-    if (isset($_POST["new_max_num_recipients"][$list])) {
-      $postFields = Array();
-      $postFields["adminpw"] = $password;
-      $postFields["max_num_recipients"] = $_POST["new_max_num_recipients"][$list];
-      $writeRequests[] = Array("url" => $url."/privacy/recipient", "post" => $postFields);
-    }
-    if (isset($_POST["new_max_message_size"][$list])) {
-      $postFields = Array();
-      $postFields["adminpw"] = $password;
-      $postFields["max_message_size"] = $_POST["new_max_message_size"][$list];
-      $writeRequests[] = Array("url" => $url."/general", "post" => $postFields);
+    if (isset($_POST["write"][$list])) {
+      foreach ($_POST["write"][$list] as $settingsUrl => $settings) {
+        $postFields = Array();
+        $postFields["adminpw"] = $password;
+        foreach ($settings as $field => $value) {
+          if (is_array($value)) $value = implode("\n", $value);
+          $postFields["$field"] = $value;
+        }
+        if ($settingsUrl == "members/add" && !isset($postFields["subscribees"])) continue;
+        if ($settingsUrl == "members/remove" && !isset($postFields["unsubscribees"])) continue;
+        $writeRequests[] = Array("url" => $url."/".$settingsUrl, "post" => $postFields);
+      }
     }
   }
+
   $writeResults = multiCurlRequest($writeRequests);
   foreach ($writeResults as $id => $val) {
     // password ok check
@@ -119,7 +78,7 @@ require "../template/header.tpl";
 require "../template/admin.tpl";
 
 if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commit"]) > 0 && !$validnonce) {
-  echo "<b class=\"msg\">CSRF Schutz fehlgeschlagen</b>";
+  echo "<b class=\"msg\">CSRF Schutz fehlgeschlagen</b><br/>\n";
 }
 
 ?>
@@ -140,16 +99,52 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
   }
   $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
   $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "members");
-  $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/privacy/sender";
-  $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "privacy.sender");
-  $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/privacy/recipient";
-  $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "privacy.recipient");
-  $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/general";
-  $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "general");
+
+  $config = getMailinglisteMailmanByMailinglisteId($id);
+  $mailingliste["config"] = $config;
+  $needRead = [];
+  $canRead = [];
+
+  foreach ($config as $cfg) {
+    $url = strtolower(trim(trim($cfg["url"]),"/"));
+    $field = strtolower(trim($cfg["field"]));
+    $canRead[$url][$field] = true;
+    switch ($cfg["mode"]) {
+      case "set":
+        $needRead[$url][$field] = false;
+        break;
+      case "increase-to":
+      case "add":
+        $needRead[$url][$field] = true;
+        break;
+      case "ignore":
+        $needRead[$url][$field] = false;
+        break;
+      default:
+        echo "<b class=\"msg\">Unbekannte Mailinglisten-Konfigurationsmodus: ".htmlspecialchars($cfg["mode"])."</b><br/>\n";
+    }
+  }
+
+  foreach (array_keys($needRead) as $url) {
+    $needRead[$url] = array_filter($needRead[$url]);
+  }
+  $needRead = array_filter($needRead);
+
+  foreach($needRead as $url => $vars) {
+    if ($url == "members/add" || $url == "members/remove") continue;
+
+    $fetchUrl = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/".$url;
+    $fetchRequests[] = Array("url" => $fetchUrl, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "settings", "settingsUrl" => $url);
+  }
+
   $mailingliste["members"] = Array();
-  $mailingliste["accept_these_nonmembers"] = Array();
   $mailingliste["numMembers"] = 0;
+  $mailingliste["oldSettings"] = Array();
+  $mailingliste["newSettings"] = Array();
+  $mailingliste["needRead"] = $needRead;
+  $mailingliste["canRead"] = $canRead;
 }
+
 unset($mailingliste);
 while (count($fetchRequests) > 0) {
   $fetchResults = multiCurlRequest($fetchRequests);
@@ -157,6 +152,7 @@ while (count($fetchRequests) > 0) {
   foreach ($fetchResults as $id => $result) {
     checkResult($fetchRequests[$id]["url"], $result);
     $mailingliste_id = $fetchRequests[$id]["mailingliste"];
+    unset($mailingliste);
     $mailingliste = &$alle_mailinglisten[$mailingliste_id];
 
     if ($fetchRequests[$id]["parser"] == "members") {
@@ -187,76 +183,101 @@ while (count($fetchRequests) > 0) {
       }
     }
 
-    if ($fetchRequests[$id]["parser"] == "privacy.sender") {
-      $mailingliste["accept_these_nonmembers"] = parsePrivacySenderPage($result, $fetchRequests[$id]["url"]);
+    if ($fetchRequests[$id]["parser"] == "settings") {
+      parseSettingsPage($result, $fetchRequests[$id]["url"], $fetchRequests[$id]["settingsUrl"], $mailingliste);
     }
-
-    if ($fetchRequests[$id]["parser"] == "privacy.recipient") {
-      $mailingliste["max_num_recipients"] = parsePrivacyRecipientPage($result, $fetchRequests[$id]["url"]);
-    }
-
-    if ($fetchRequests[$id]["parser"] == "general") {
-      $mailingliste["max_message_size"] = parseGeneralPage($result, $fetchRequests[$id]["url"]);
-    }
-
   }
   $fetchRequests = $newFetchRequests;
 }
+unset($mailingliste);
 foreach ($alle_mailinglisten as $id => &$mailingliste) {
   $mailingliste["members"] = array_unique($mailingliste["members"]);
   sort($mailingliste["members"]);
   if (count($mailingliste["members"]) != $mailingliste["numMembers"]) {
     die("Fehler bei Mailingliste {$mailingliste["address"]} : {$mailingliste["numMembers"]} Mitglieder erwartet, aber nur ".count($mailingliste["members"])." gefunden.");
   }
+
+  $config = $mailingliste["config"];
+  $newSettings = $mailingliste["newSettings"];
+  $oldSettings = $mailingliste["oldSettings"];
+
+  foreach ($config as $cfg) {
+    $url = strtolower(trim(trim($cfg["url"]),"/"));
+    $field = strtolower(trim($cfg["field"]));
+    switch ($cfg["mode"]) {
+      case "set":
+        $newSettings[$url][$field] = $cfg["value"];
+        break;
+      case "increase-to":
+        if (!isset($newSettings[$url][$field]))
+          $newSettings[$url][$field]= $oldSettings[$url][$field];
+        $newSettings[$url][$field] = max((int) $cfg["value"], (int)$oldSettings[$url][$field]);
+        break;
+      case "add":
+        if (!isset($newSettings[$url][$field]))
+          $newSettings[$url][$field]= $oldSettings[$url][$field];
+
+        $value = explode("\n", $newSettings[$url][$field]);
+        if (!in_array($cfg["value"], $value)) {
+          $value[] = $cfg["value"];
+        }
+        $value = implode("\n", $value);
+        $newSettings[$url][$field] = $value;
+        unset($value);
+        break;
+      case "ignore":
+        if (isset($newSettings[$url][$field])) {
+          unset($newSettings[$url][$field]);
+        }
+        break;
+      default:
+        echo "<b class=\"msg\">Unbekannte Mailinglisten-Konfigurationsmodus: ".htmlspecialchars($cfg["mode"])."</b><br/>\n";
+    }
+  }
+  $mailingliste["newSettings"] = $newSettings;
 }
 unset($mailingliste);
 
-function parseGeneralPage($output, $url) {
+function parseSettingsPage($output, $url, $settingsUrl, &$mailingliste) {
   $matches = Array();
+
+  $needRead = $mailingliste["needRead"];
+  $canRead = $mailingliste["canRead"];
+  $oldSettings = &$mailingliste["oldSettings"];
+
+  if (!isset($needRead[$settingsUrl])) return;
+  $needReadFields = array_keys($needRead[$settingsUrl]);
+  $canReadFields = array_keys($canRead[$settingsUrl]);
 
   $doc = new DOMDocument();
   @$doc->loadHTML($output);
   $nodes = $doc->getElementsByTagName('input');
-  for ($i=0; $i<$nodes->length; $i++) {
+  for ($i=0; $i < $nodes->length; $i++) {
     $node = $nodes->item($i);
-    if ($node->getAttribute("name") !== "max_message_size")
+    $name = $node->getAttribute("name");
+    if (!in_array($name, $needReadFields) && !in_array($name, $canReadFields))
+      continue;
+    $type = $node->getAttribute("type");
+    if ((strtolower($type) == "radio") && !$node->hasAttribute("checked"))
       continue;
     $value = $node->getAttribute("value");
-    return (int) $value;
+    $oldSettings[$settingsUrl][$name] = $value;
+    unset($needRead[$settingsUrl][$name]);
   }
-  die("Missing max_message_size in $url");
-}
-
-function parsePrivacyRecipientPage($output, $url) {
-  $matches = Array();
-
-  $doc = new DOMDocument();
-  @$doc->loadHTML($output);
-  $nodes = $doc->getElementsByTagName('input');
-  for ($i=0; $i<$nodes->length; $i++) {
-    $node = $nodes->item($i);
-    if ($node->getAttribute("name") !== "max_num_recipients")
-      continue;
-    $value = $node->getAttribute("value");
-    return (int) $value;
-  }
-  die("Missing max_num_recipients in $url");
-}
-
-function parsePrivacySenderPage($output, $url) {
-  $matches = Array();
-
-  $doc = new DOMDocument();
-  @$doc->loadHTML($output);
   $nodes = $doc->getElementsByTagName('textarea');
-  for ($i=0; $i<$nodes->length; $i++) {
+  for ($i=0; $i < $nodes->length; $i++) {
     $node = $nodes->item($i);
-    if ($node->getAttribute("name") !== "accept_these_nonmembers")
+    $name = $node->getAttribute("name");
+    if (!in_array($name, $needReadFields) && !in_array($name, $canReadFields))
       continue;
-    $lines = explode("\n",$node->nodeValue);
-    return $lines;
+    $value = $node->nodeValue;
+    $oldSettings[$settingsUrl][$name] = $value;
+    unset($needRead[$settingsUrl][$name]);
   }
-  die("Missing accept_these_nonmembers in $url");
+
+  if (count($needRead[$settingsUrl]) > 0) {
+    die("Missing ".implode(",", array_keys($needRead[$settingsUrl]))." in $url");
+  }
 }
 
 function parseMembersPage($output, $url, &$members) {
@@ -315,7 +336,7 @@ foreach($alle_mailinglisten as $mailingliste) {
   if (count($addmembers) > 0) {
     echo "<ul>";
     foreach ($addmembers as $member) {
-      echo "<li>$member <input type=\"hidden\" name=\"addmember[".htmlspecialchars($mailingliste["address"])."][]\" value=\"".htmlspecialchars($member)."\"></li>";
+      echo "<li>$member <input type=\"hidden\" name=\"write[".htmlspecialchars($mailingliste["address"])."][members/add][subscribees][]\" value=\"".htmlspecialchars($member)."\"></li>";
     }
     echo "</ul>";
   }
@@ -323,7 +344,7 @@ foreach($alle_mailinglisten as $mailingliste) {
   if (count($delmembers) > 0) {
     echo "<ul>";
     foreach ($delmembers as $member) {
-      echo "<li>$member <input type=\"hidden\" name=\"delmember[".htmlspecialchars($mailingliste["address"])."][]\" value=\"".htmlspecialchars($member)."\"></li>";
+      echo "<li>$member <input type=\"hidden\" name=\"write[".htmlspecialchars($mailingliste["address"])."][members/remove][unsubscribees][]\" value=\"".htmlspecialchars($member)."\"></li>";
     }
     echo "</ul>";
   }
@@ -348,57 +369,61 @@ endif;
   echo "</td>"
 */
 
-  $old_accept_these_nonmembers = array_unique($mailingliste["accept_these_nonmembers"]);
-  $new_accept_these_nonmembers = array_unique(array_merge($old_accept_these_nonmembers, ['^.*@tu-ilmenau\.de','^.*@.*\.tu-ilmenau\.de']));
-  sort($old_accept_these_nonmembers);
-  ;sort($new_accept_these_nonmembers);
-  $isdiff_accept_these_nonmembers = $old_accept_these_nonmembers != $new_accept_these_nonmembers;
-  $rows = 10; $cols = 10;
-  foreach ($old_accept_these_nonmembers as $line) $cols = max($cols, strlen($line)+5);
-  $rows = max($rows, count($old_accept_these_nonmembers)+5);
-  foreach ($new_accept_these_nonmembers as $line) $cols = max($cols, strlen($line)+5);
-  $rows = max($rows, count($new_accept_these_nonmembers)+5);
-
   echo "<td valign=\"top\">";
-
   echo "<table class=\"table table-striped\">";
-  if ($isdiff_accept_these_nonmembers) {
-    echo "<tr><td>old accept these nonmembers</td><td valign=\"top\">";
-    echo "<textarea readonly=\"readonly\" name=\"old_accept_these_nonmembers[".htmlspecialchars($mailingliste["address"])."]\" rows=$rows cols=$cols>";
-    echo implode("\n", $old_accept_these_nonmembers);
-    echo "</textarea>";
-    echo "</td></tr>";
-    echo "<tr><td>new accept these nonmembers</td><td valign=\"top\">";
-    echo "<textarea name=\"new_accept_these_nonmembers[".htmlspecialchars($mailingliste["address"])."]\" rows=$rows cols=$cols>";
-    echo implode("\n", $new_accept_these_nonmembers);
-    echo "</textarea>";
-    echo "</td></tr>";
-  }
+  foreach ($mailingliste["newSettings"] as $url => $settings) {
+    foreach ($settings as $field => $newValue) {
+      if (isset($mailingliste["oldSettings"][$url][$field])) {
+        $oldValue = $mailingliste["oldSettings"][$url][$field];
+        if ($newValue == $oldValue) continue;
+      } else {
+        $oldValue = false;
+      }
 
-  $old_max_num_recipients = $mailingliste["max_num_recipients"];
-  $new_max_num_recipients = ($old_max_num_recipients > 0) ? max(1000, $old_max_num_recipients) : $old_max_num_recipients;
-  $isdiff_max_num_recipients = $old_max_num_recipients != $new_max_num_recipients;
+      $multiline = (strpos($newValue,"\n") !== false);
+      if ($oldValue !== false) {
+        $multiline |= (strpos($oldValue,"\n") !== false);
+      }
 
-  if ($isdiff_max_num_recipients) {
-    echo "<tr><td>old max num recipients</td><td valign=\"top\">";
-    echo "<input readonly=\"readonly\" name=\"old_max_num_recipients[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($old_max_num_recipients)."\">";
-    echo "</td></tr>";
-    echo "<tr><td>new max num recipients</td><td valign=\"top\">";
-    echo "<input readonly=\"readonly\" name=\"new_max_num_recipients[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($new_max_num_recipients)."\">";
-    echo "</td></tr>";
-  }
+      if ($multiline) {
+        $rows = 3; $cols = 10;
+        $newValue = explode("\n", $newValue);
+        foreach ($newValue as $line) $cols = max($cols, strlen($line)+5);
+        $rows = max($rows, count($newValue)+1);
+        if ($oldValue !== false) {
+          $oldValue = explode("\n", $oldValue);
+          $rows = max($rows, count($oldValue)+1);
+          foreach ($oldValue as $line) $cols = max($cols, strlen($line)+5);
+        }
+      }
 
-  $old_max_message_size = $mailingliste["max_message_size"];
-  $new_max_message_size = ($old_max_message_size > 0) ? max(10000, $old_max_message_size) : $old_max_message_size;
-  $isdiff_max_message_size = $old_max_message_size != $new_max_message_size;
+      if ($oldValue !== false) {
+        echo "<tr>";
+        echo "<td>".htmlspecialchars($url)."</td>";
+        echo "<td>".htmlspecialchars($field)."</td><td>(ALT)</td><td valign=\"top\">";
+        if ($multiline) {
+          echo "<textarea readonly=\"readonly\" name=\"oldSettings[".htmlspecialchars($mailingliste["address"])."][".htmlspecialchars($url)."][".htmlspecialchars($field)."]\" rows=$rows cols=$cols>";
+          echo htmlspecialchars(implode("\n", $oldValue));
+          echo "</textarea>";
+        } else {
+          echo "<input readonly=\"readonly\" name=\"oldSettings[".htmlspecialchars($mailingliste["address"])."][".htmlspecialchars($url)."][".htmlspecialchars($field)."]\" value=\"".htmlspecialchars($oldValue)."\">";
+        }
+        echo "</td></tr>";
+      }
 
-  if ($isdiff_max_message_size) {
-    echo "<tr><td>old max message size</td><td valign=\"top\">";
-    echo "<input readonly=\"readonly\" name=\"old_max_message_size[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($old_max_message_size)."\">";
-    echo "</td></tr>";
-    echo "<tr><td>new max message size</td><td valign=\"top\">";
-    echo "<input readonly=\"readonly\" name=\"new_max_message_size[".htmlspecialchars($mailingliste["address"])."]\" value=\"".htmlspecialchars($new_max_message_size)."\">";
-    echo "</td></tr>";
+      echo "<tr>";
+      echo "<td>".htmlspecialchars($url)."</td>";
+      echo "<td>".htmlspecialchars($field)."</td><td>(NEU)</td><td valign=\"top\">";
+      if ($multiline) {
+        echo "<textarea readonly=\"readonly\" name=\"write[".htmlspecialchars($mailingliste["address"])."][".htmlspecialchars($url)."][".htmlspecialchars($field)."]\" rows=$rows cols=$cols>";
+        echo htmlspecialchars(implode("\n", $newValue));
+        echo "</textarea>";
+      } else {
+        echo "<input readonly=\"readonly\" name=\"write[".htmlspecialchars($mailingliste["address"])."][".htmlspecialchars($url)."][".htmlspecialchars($field)."]\" value=\"".htmlspecialchars($newValue)."\">";
+      }
+
+      echo "</td></tr>";
+    }
   }
 
   echo "</table>";

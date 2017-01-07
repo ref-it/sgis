@@ -1103,7 +1103,8 @@ if (isset($_POST["commit"])) {
 
 prof_flag("render html");
 
-require_once "../template/header-old.tpl";
+require "../template/header.tpl";
+require "../template/admin.tpl";
 
 
 ?>
@@ -1115,7 +1116,8 @@ require_once "../template/header-old.tpl";
 </style>
 
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
-<table>
+
+<table class="table table-striped">
 <tr><th></th><th>Seite</th><th>Änderung</th></tr>
 <?php
 
@@ -1127,14 +1129,14 @@ foreach ($pages as $wiki => $data):
   echo "<tr>";
   echo " <td><input ".(($data["diff"] != "") ? "class=\"mls\"" : "")." type=\"checkbox\" name=\"commit[]\" value=\"".htmlspecialchars($wiki)."\"></td>";
   echo " <td><a href=\"".htmlspecialchars($openUrl.str_replace(":","/",$wiki))."\">".htmlspecialchars($wiki)."</a></td>\n";
-  echo " <td><pre>".htmlspecialchars($data["diff"])."</pre><input type=\"hidden\" readonly=readonly name=\"text[".htmlspecialchars($wiki)."]\" value=\"".base64_encode(implode("\n",$data["new"]))."\"></td>\n";
+  echo " <td><pre class=\"diffcode\">".htmlspecialchars($data["diff"])."</pre><input type=\"hidden\" readonly=readonly name=\"text[".htmlspecialchars($wiki)."]\" value=\"".base64_encode(implode("\n",$data["new"]))."\"></td>\n";
   echo "</tr>";
 endforeach;
 
 ?></table>
 
 <h2>Kontaktdaten aus Wiki aktualisieren</h2>
-<table>
+<table class="table table-striped">
 <tr><th></th><th>Seite</th><th>Änderung</th></tr>
 <?php
 

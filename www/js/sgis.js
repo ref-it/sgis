@@ -15,6 +15,9 @@ $(function() {
     $n.find('.selectpicker').selectpicker({});
     $r.find('.selectpicker').selectpicker({});
   });
+  $('pre.diffcode').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
 });
 
 function checkMail(email, form, nonce) {

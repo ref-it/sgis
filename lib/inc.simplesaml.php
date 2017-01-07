@@ -50,6 +50,10 @@ function getUsername() {
 function hasGroup($group) {
   global $attributes;
 
+  if (!is_array($attributes["groups"])) {
+    return false;
+  }
+
   if (count(array_intersect(explode(",",$group), $attributes["groups"])) == 0) {
     return false;
   }

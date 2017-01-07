@@ -149,7 +149,8 @@ if (isset($_POST["commit"])) {
   die();
 }
 
-require_once "../template/header-old.tpl";
+require "../template/header.tpl";
+require "../template/admin.tpl";
 
 
 ?>
@@ -161,7 +162,7 @@ require_once "../template/header-old.tpl";
 </style>
 
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
-<table>
+<table class="table table-striped">
 <tr><th></th><th>Gruppe</th><th>Änderung</th></tr>
 <?php
 

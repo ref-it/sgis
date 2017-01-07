@@ -1,6 +1,6 @@
 <?php
 
-global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP, $rpcKey, $wikiUrl, $CA_file, $rpcKey2, $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file, $autoExportPW;
+global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP, $rpcKey, $wikiUrl, $CA_file, $rpcKey2, $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file, $autoExportPW, $mailmanSettingModes;
 global $unimail, $unildaphost, $unildapbase, $contactTypes;
 
 $DB_DSN = "FIXME";
@@ -33,4 +33,6 @@ $autoExportPW = "...."
 $unimail = Array("tu-ilmenau.de","stud.tu-ilmenau.de");
 $unildaphost = "imp.tu-ilmenau.de";
 $unildapbase = "ou=members,dc=tu-ilmenau,dc=de";
+
+$mailmanSettingModes = [ "set" => "festlegen", "increase-to" => "erhöhen auf", "add" => "Zeile ergänzen", "ignore" => "unverändert lassen" ];
 

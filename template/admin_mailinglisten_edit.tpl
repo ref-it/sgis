@@ -4,6 +4,7 @@ $mailingliste = getMailinglisteById($_REQUEST["mailingliste_id"]);
 if ($mailingliste === false) die("Invalid Id");
 $personen = getMailinglistePersonDetails($mailingliste["id"]);
 $gremien = getMailinglisteRolle($mailingliste["id"]);
+$mailman = getMailinglisteMailmanByMailinglisteId($mailingliste["id"]);
 
 ?>
 
@@ -118,6 +119,72 @@ endforeach;
        </a>
       </nobr>
      </td>
+    </tr>
+    <?php
+    endforeach;
+    endif;
+    ?>
+  </table>
+ </div>
+</div>
+
+<div class="panel panel-default">
+ <div class="panel-heading">
+  Mailman-Einstellungen
+ </div>
+ <div class="panel-body">
+  <table class="table table-striped">
+    <tr>
+      <th>
+        <a href="?tab=mailingliste_mailman.new&amp;mailingliste_id=<?php echo $mailingliste["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus"></i></a>
+      </th>
+      <th>Feld</th><th>Priorität</th><th>Änderungsmodus</th><th>Wert</th>
+    </tr>
+<?php
+    if (count($mailman) == 0):
+?>
+    <tr><td colspan="5"><i>Es sind keine Einstellungen der Mailingliste zugeordnet.</td></tr>
+<?php
+    else:
+    foreach($mailman as $setting):
+?>
+    <tr>
+     <td class="nobr">
+<?php if($setting["mailingliste_id"] === NULL) { ?>
+      <i class="fa fa-fw fa-globe" aria-hidden="true" title="Globale Einstellung für alle Mailinglisten"></i>
+<?php } ?>
+      <a target="_blank" href="?tab=mailingliste_mailman.delete&amp;mailingliste_mailman_id=<?php echo $setting["id"]; ?>&amp;mailingliste_id=<?php echo $mailingliste["id"];?>">
+       <i class="fa fa-trash fa-fw"></i>
+      </a>
+      <a target="_blank" href="?tab=mailingliste_mailman.edit&amp;mailingliste_mailman_id=<?php echo $setting["id"]; ?>&amp;mailingliste_id=<?php echo $mailingliste["id"];?>">
+       <i class="fa fa-pencil fa-fw"></i>
+      </a>
+     </td>
+
+     <td>
+<?php
+       $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"]);
+       $url .= "?VARHELP=".trim($setting["url"],"/")."/".$setting["field"];
+       echo "<a href=\"".htmlspecialchars($url)."\" target=\"_blank\">";
+       echo htmlspecialchars($setting["field"]);
+       echo "</a>";
+?>
+     </td>
+     <td>
+       <?php echo htmlspecialchars($setting["priority"]); ?>
+     </td>
+     <td>
+<?php
+       if (isset($mailmanSettingModes[$setting["mode"]])) {
+         echo htmlspecialchars($mailmanSettingModes[$setting["mode"]]);
+       } else {
+         echo htmlspecialchars($setting["mode"]);
+       }
+?>
+     </td>
+     <td><span class="nowrap">
+       <?php echo implode("<br>\n", explode("\n", htmlspecialchars($setting["value"]))); ?>
+     </span></td>
     </tr>
     <?php
     endforeach;
