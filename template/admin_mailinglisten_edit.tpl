@@ -28,6 +28,7 @@ foreach ([
   "address" => "Adresse",
   "password" => "Passwort",
   "url" => "Webseite (listinfo)",
+  "adminurl" => "Webseite (Admin)",
  ] as $key => $desc):
 
 ?>
@@ -40,6 +41,10 @@ foreach ([
         switch($key) {
           case "id":
 ?>         <div class="form-control"><?php echo htmlspecialchars($mailingliste[$key]); ?></div><?php
+            break;
+          case "adminurl":
+           $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"]);
+?>         <div class="form-control"><a href="<?php echo htmlspecialchars($url); ?>" target="_blank"><?php echo htmlspecialchars($url); ?></a></div><?php
             break;
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($mailingliste[$key]); ?>"><?php
