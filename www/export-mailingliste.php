@@ -100,7 +100,7 @@ foreach ($alle_mailinglisten as $id => &$mailingliste) {
   $url = str_replace("mailman/listinfo", "mailman/admin", $mailingliste["url"])."/members";
   $fetchRequests[] = Array("url" => $url, "post" => Array("adminpw" => $mailingliste["password"]), "mailingliste" => $id, "parser" => "members");
 
-  $config = getMailinglisteMailmanByMailinglisteId($id);
+  $config = getMailinglisteMailmanByMailinglisteId($mailingliste["id"]);
   $mailingliste["config"] = $config;
   $needRead = [];
   $canRead = [];
