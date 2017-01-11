@@ -314,6 +314,9 @@ function parseChunksPage($output, $url) {
 ?>
 
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
+
+<input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
+
 <table class="table table-striped">
 <tr><th></th><th>Mailingliste</th>
     <th>Einfügen</th><th>Entfernen</th> 
@@ -433,8 +436,6 @@ endif;
 }
 
 ?></table>
-
-<input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
 
 <a class="btn btn-default" href="#" onClick="$('.mls').attr('checked',true); return false;">alle auswählen</a>
 <a class="btn btn-default" href="#" onClick="$('.mls').attr('checked',false); return false;">keine auswählen</a>
