@@ -111,10 +111,16 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                   $query = $pdo->prepare("UPDATE {$prefix}person SET lastLogin = CURRENT_TIMESTAMP WHERE id = ?");
                   $query->execute(Array($user["id"]));
                   $attributes["groups"] = array_unique(array_merge($attributes["groups"], $grps));
+
                   $query = $pdo->prepare("SELECT DISTINCT m.address FROM {$prefix}mailingliste m INNER JOIN {$prefix}rel_rolle_mailingliste rrm ON m.id = rrm.mailingliste_id INNER JOIN {$prefix}rel_mitgliedschaft rm ON rrm.rolle_id = rm.rolle_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ?");
                   $query->execute(Array($user["id"]));
                   $mailinglists = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
                   $attributes["mailinglists"] = array_unique($mailinglists);
+
+                  $query = $pdo->prepare("SELECT DISTINCT g.name FROM {$prefix}gremium g INNER JOIN {$prefix}rel_mitgliedschaft rm ON g.id = rm.gremium_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ?");
+                  $query->execute(Array($user["id"]));
+                  $gremien = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
+                  $attributes["gremien"] = array_unique($gremien);
                 }
                 if (!isset($attributes["displayName"]) && !empty($mail)) {
                   $r = verify_tui_mail($mail, $this->config["unimail"], $this->config["unildaphost"], $this->config["unildapbase"]);

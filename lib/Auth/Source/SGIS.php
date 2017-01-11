@@ -103,6 +103,11 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_sgis_Auth_UserPassBaseCookie {
                 $grps[] = "user";
                 $attributes["groups"] = array_unique($grps);
 
+                $query = $pdo->prepare("SELECT DISTINCT g.name FROM {$prefix}gremium g INNER JOIN {$prefix}rel_mitgliedschaft rm ON g.id = rm.gremium_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ?");
+                $query->execute(Array($user["id"]));
+                $gremien = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
+                $attributes["gremien"] = array_unique($gremien);
+
                 return $attributes;
         }
 
