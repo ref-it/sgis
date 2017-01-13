@@ -355,7 +355,7 @@ if (isset($_POST["action"])) {
          } else {
            $emails = [$email];
          }
-         $ret2 = dbPersonInsert(trim($data[0]),$emails,trim((string)$data[2]),"","",$_POST["canlogin"], $quiet);
+         $ret2 = dbPersonInsert(trim($data[0]),$emails,trim((string)$data[2]),"","",$_POST["canlogin"], "", $quiet);
          $msgs[] = "Person {$data[0]} <{$data[1]}> wurde ".(($ret2 !== false) ? "": "nicht ")."angelegt.";
          $ret = $ret && $ret2;
        }
@@ -481,7 +481,7 @@ if (isset($_POST["action"])) {
          } else {
            $newemails = [$email];
          }
-         $ret = dbPersonInsert($name,$newemails,"","","",true);
+         $ret = dbPersonInsert($name,$newemails,"","","","",true);
          if ($ret !== false) {
            $person = ["id" => $ret];
            $msgs[] = "OK  Person $name <$email> wurde angelegt.";
