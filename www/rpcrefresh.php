@@ -8,7 +8,7 @@ global $rpcKey2;
 if (!isset($_POST["login"])) die ("missing login");
 
 function getData() {
-  global $rpcKey2, $pwObj;
+  global $rpcKey2;
   $ret = Array();
 
 

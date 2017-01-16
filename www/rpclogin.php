@@ -39,7 +39,7 @@ function handleLogin() {
 		$canLogin = in_array("canLogin", $grps);
 	}
 	$ret["canLogin"] = $canLogin;
-    	if (!@$pwObj->verifyPasswordHash($login["password"], $person["password"])) {
+	if (!@$pwObj->verifyPasswordHash($login["password"], $person["password"])) {
 		$ret["status"] = "badlogin";
 		$ret["msg"]    = "wrong password";
 		return $ret;

@@ -1,6 +1,6 @@
 <?php
 
-global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP, $rpcKey, $wikiUrl, $CA_file, $rpcKey2, $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file, $autoExportPW, $mailmanSettingModes;
+global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP, $rpcKey, $wikiUrl, $CA_file, $rpcKey2, $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file, $autoExportPW, $mailmanSettingModes, $rpcKey3;
 global $unimail, $unildaphost, $unildapbase, $contactTypes;
 
 $DB_DSN = "FIXME";
@@ -15,6 +15,7 @@ $AUTHGROUP = "FIXME";
 $ADMINGROUP = "FIXME";
 $rpcKey = "FIXME"; # ownCloud shared secret
 $rpcKey2 = "FIXME"; # box-services shared secret
+$rpcKey3 = "FIXME"; # box-local shared secret
 # dokuwiki exporter
 $wikiUrl = "https://sgis:PASSWORD@WIKIHOST"; # + /lib/exe/xmlrpc.php -> valid path
 $CA_file = dirname(__FILE__).'/ca.pem';
