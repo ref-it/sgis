@@ -1028,7 +1028,8 @@ foreach($contactPersonen as $i => $p) {
       foreach ($dd as $d) {
         $d = trim($d);
         $d = preg_replace('#\s*/\s*#',' / ',$d);
-        if (filterContact($d)) continue;
+        $d = trim($d, "-/");
+        if (empty($d)) continue;
         $details[] = $d;
       }
     }
