@@ -852,6 +852,7 @@ foreach ($mapping_mastertable as $wiki => $data) {
     $text[] = "===== {$section_name} =====";
     $line = "^ Name ^ ";
     if ($withContactDetails) $line .= "Kontakt ^^^"; else $line .= "eMail ^";
+#    if ($withContactDetails) $line .= "Kontakt ^^"; else $line .= "eMail ^";
     if ($needSGCol) $line = "^ Studiengang $line";
     if ($needFakCol) $line = "^ Fakultät $line";
     $text[] = $line;
@@ -899,6 +900,7 @@ foreach ($mapping_mastertable as $wiki => $data) {
 
          if ($withContactDetails)
            $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr | $sep {$contact} $sepr | $qrcode |";
+#           $line = "| $sep ".person2link($person)." $sepr | $sep {$email} \\\\ {$contact} $sepr | $qrcode |";
          else
            $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr |";
          if ($needSGCol) $line = "| $sep $gremium_sg $sepr $line";
