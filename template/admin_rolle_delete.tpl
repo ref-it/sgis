@@ -54,6 +54,7 @@ foreach ([
   "wiki_members_roleAsColumnTableExtended" => "Wiki-Seite für aktuelle Mitglieder (Tabelle mit Spalten für Rollen und Datumsangaben)",
   "wiki_members_roleAsMasterTable" => "Wiki-Seite für aktuelle Mitglieder (Übersichtsseite für alle Gremien)",
   "wiki_members_roleAsMasterTableExtended" => "Wiki-Seite für aktuelle Mitglieder (Kontaktseite)",
+  "wiki_members" => "Wiki-Seite für aktuelle Mitglieder (GeKo-Seite)",
  ] as $key => $desc):
 
 ?>

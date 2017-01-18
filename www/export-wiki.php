@@ -25,6 +25,7 @@ $mapping_coltable = Array();
 $mapping_colextable = Array();
 $mapping_mastertable = Array();
 $mapping_nachbesetzung = Array();
+$mapping_ptable = Array();
 $name_gremien = Array();
 $name_rollen = Array();
 
@@ -89,6 +90,60 @@ foreach ($rollen as $rolle) {
     $rel_id = $person["rel_id"];
     $active = ($person["active"] == 1) ? "active" : "inactive";
     $mapping[$wiki][$gremium_id][$rolle_id][$active][$rel_id] = $person;
+  }
+}
+
+// group roles by wiki page, skip empty wiki pages, and list all active persons
+foreach ($rollen as $rolle) {
+  $key = "rolle_wiki_members";
+  if (strpos($rolle[$key],"#") !== false) {
+    list ($wiki1, $wiki2) = explode("#",$rolle[$key],2);
+    $wiki = cleanID($wiki1);
+    if (strpos($wiki2, " ") !== false) {
+      $section_name = $wiki2;
+    } elseif (preg_match('/^[0-9]+$/', $wiki2)) { # nur Zahlen -> Reihenfolge only
+      $section_name = $wiki2." ".$rolle["gremium_name"];
+    } elseif (preg_match('/^([0-9]+)\?(.*)$/', $wiki2, $treffer)) { # nur Zahlen -> Reihenfolge only
+      $section_name = $treffer[1]." ".$rolle["gremium_name"]."?".$treffer[2];
+    } else { # kein Leerzeichen und nicht nur Zahlen -> d.h. keine Reihenfolge
+      $section_name = " ".$wiki2;
+    }
+  } elseif (strpos($rolle[$key],"?") !== false) { # keine # aber ?
+    list ($wiki1, $wiki2) = explode("?",$rolle[$key],2);
+    $wiki = cleanID($wiki1);
+    $section_name = " ".$rolle["gremium_name"]."?".$wiki2;
+  } else {
+    $wiki = cleanID($rolle[$key]);
+    $section_name = " ".$rolle["gremium_name"];
+  }
+  if (strpos($section_name,"?") !== false) {
+    list ($wiki1, $wiki2) = explode("?",$section_name,2);
+    $section_name = $wiki1;
+    $flags = $wiki2;
+  } else {
+    $flags = "";
+  }
+  if (skipWiki($wiki)) continue;
+  if ($rolle["gremium_active"] == 0) continue;
+  if ($rolle["rolle_active"] == 0) continue;
+  if (substr($wiki,0,strlen($wikiprefix)) != $wikiprefix) {
+    $gname = preg_replace("/\s+/"," ",trim("{$rolle["gremium_name"]} {$rolle["gremium_fakultaet"]} {$rolle["gremium_studiengang"]} {$rolle["gremium_studiengangabschluss"]}"));
+    echo "Gremium: ".htmlentities($gname)." hat ungültigen Wiki-Eintrag, der nicht mit :$wikiprefix beginnt.<br/>\n";
+  }
+  $gremium_id = $rolle["gremium_id"];
+  $gremium_name = $rolle["gremium_name"];
+  $rolle_id = $rolle["rolle_id"];
+  $name_gremien[$gremium_id] = $rolle;
+  $name_rollen[$gremium_id][$rolle_id] = $rolle;
+  $personen = getRollePersonen($rolle_id);
+  foreach ($personen as $person) {
+    $rel_id = $person["rel_id"];
+    $person_id = $person["id"];
+    if ($person["active"] != 1) continue;
+    if (!isset($mapping_ptable[$wiki][$section_name][$person_id]["flags"]))
+      $mapping_ptable[$wiki][$section_name][$person_id]["flags"] = "";
+    $mapping_ptable[$wiki][$section_name][$person_id]["data"][$rel_id] = $person;
+    $mapping_ptable[$wiki][$section_name][$person_id]["flags"] .= $flags;
   }
 }
 
@@ -912,6 +967,77 @@ foreach ($mapping_mastertable as $wiki => $data) {
        } /* person_id */
      }
     }
+    $text[] = "";
+  } /* $section_name */
+
+  $text[] = "";
+  $text[] = "";
+  $text[] = "//Stand: ".date("d.m.Y")."//";
+  $text[] = "";
+
+  $pages[$wiki]["new"] = $text;
+}
+
+prof_flag("render pages: mapping_mastertable");
+
+function cmpPersonPTable($a, $b) {
+  $ad = array_values($a["data"]);
+  $bd = array_values($b["data"]);
+  $a0 = $ad[0];
+  $b0 = $bd[0];
+
+  if ($a0["name"] < $b0["name"]) return -1;
+  if ($a0["name"] > $b0["name"]) return 1;
+  if ($a0["email"] < $b0["email"]) return -1;
+  if ($a0["email"] > $b0["email"]) return 1;
+  if ($a0["id"] < $b0["id"]) return -1;
+  if ($a0["id"] > $b0["id"]) return 1;
+  return 0;
+}
+
+foreach ($mapping_ptable as $wiki => $data) {
+  if (skipWiki($wiki)) continue;
+  $text = Array();
+  if (isset($pages[$wiki]["new"]))
+    $text = $pages[$wiki]["new"];
+  ksort($data);
+  $alreadyPersons = [];
+
+  $template = explode("\n",fetchWikiPage(":vorlagen:tree:{$wiki}"));
+  foreach ($template as $line)
+    $text[] = $line;
+
+  foreach ($data as $section_name => $data0 ) {
+
+    if (strpos($section_name, " ") !== false) {
+      list ($tmp1, $tmp2) = explode(" ", $section_name, 2);
+      $section_name = $tmp2;
+    }
+
+    $text[] = "===== {$section_name} =====";
+    $text[] = "^ Name ^ eMail ^";
+
+    uasort($data0, "cmpPersonMaster");
+    foreach ($data0 as $person_id => $data1 ) {
+      if (in_array($person_id, $alreadyPersons)) continue;
+      $alreadyPersons[] = $person_id;
+
+      $person = array_values($data1["data"])[0];
+      $flags = $data1["flags"];
+      $sep = "";
+      if (strpos($flags, "i") !== false) $sep .= "//";
+      if (strpos($flags, "b") !== false) $sep .= "**";
+      if (strpos($flags, "u") !== false) $sep .= "__";
+
+      $sepr = strrev($sep);
+
+      $email = explode(",", $person["email"])[0];
+      $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr |";
+      $line = preg_replace("/\s+/"," ",$line);
+
+      $text[] = $line;
+
+    } /* person_id */
     $text[] = "";
   } /* $section_name */
 

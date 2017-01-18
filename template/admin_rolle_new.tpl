@@ -72,6 +72,7 @@ foreach ([
   "wiki_members_roleAsColumnTableExtended" => "Wiki-Seite für aktuelle Mitglieder (Tabelle mit Spalten für Rollen und Datumsangaben)",
   "wiki_members_roleAsMasterTable" => "Wiki-Seite für aktuelle Mitglieder (Übersichtseite für alle Gremien)",
   "wiki_members_roleAsMasterTableExtended" => "Wiki-Seite für aktuelle Mitglieder (Kontaktseite)",
+  "wiki_members" => "Wiki-Seite für aktuelle Mitglieder (GeKo-Seite)",
  ] as $key => $desc):
 
 ?>
@@ -88,6 +89,7 @@ foreach ([
            <i>(Wenn gesetzt beginnt immer mit ":sgis:mitglieder:" . Abweichender Spaltenname mit #Spaltenname am Ende angeben.)</i>
 <?php
            break;
+          case "wiki_members":
           case "wiki_members_roleAsMasterTable":
           case "wiki_members_roleAsMasterTableExtended":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="" placeholder=":sgis:mitglieder:seitenname#Reihenfolge Überschrift?[ibu]*">
