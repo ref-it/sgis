@@ -7,7 +7,7 @@ set_time_limit(120);
 require_once "../lib/inc.all.php";
 
 if (isset($_REQUEST["_firstFormValue"]) && !isset($_REQUEST["_lastFormValue"]))
-  die("Form input was truncated");
+  httperror("Form input was truncated");
 
 if (isset($_REQUEST["autoExportPW"])) {
   requireExportAutoPW();
