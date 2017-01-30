@@ -5,6 +5,7 @@ SetENV TMP /var/www.iscsi/tu-ilmenau.de/helfer.stura/sgis/tmp/
 SetENV TMPDIR /var/www.iscsi/tu-ilmenau.de/helfer.stura/sgis/tmp/
 SetENV TEMP /var/www.iscsi/tu-ilmenau.de/helfer.stura/sgis/tmp/
 php_value include_path "/var/www/tu-ilmenau.de/helfer.stura/pear/pear/php:."
+php_value max_input_vars 10000
 
 #php_flag  log_errors on
 #php_value error_log  /var/www/tu-ilmenau.de/wiki.stura/tmp/PHP_errors.log

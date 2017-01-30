@@ -145,7 +145,9 @@ foreach ($mapping as $group_id => $data) {
 }
 
 if (isset($_POST["commit"])) {
-  header("Location: ${_SERVER["PHP_SELF"]}");
+  if (!isset($_REQUEST["autoExportPW"])) {
+    header("Location: ${_SERVER["PHP_SELF"]}");
+  }
   die();
 }
 

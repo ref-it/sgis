@@ -5,6 +5,10 @@ global $ADMINGROUP;
 set_time_limit(120);
 
 require_once "../lib/inc.all.php";
+
+if (isset($_REQUEST["_firstFormValue"]) && !isset($_REQUEST["_lastFormValue"]))
+  die("Form input was truncated");
+
 if (isset($_REQUEST["autoExportPW"])) {
   requireExportAutoPW();
 } else {
@@ -66,10 +70,12 @@ if (isset($_POST["commit"]) && is_array($_POST["commit"]) && count($_POST["commi
     // password ok check
     checkResult($writeRequests[$id]["url"], $val);
   }
-  if (isset($_REQUEST["mailingliste_id"])) {
-    header("Location: ${_SERVER["PHP_SELF"]}?mailingliste_id=".((int) $_REQUEST["mailingliste_id"]));
-  } else {
-    header("Location: ${_SERVER["PHP_SELF"]}");
+  if (!isset($_REQUEST["autoExportPW"])) {
+    if (isset($_REQUEST["mailingliste_id"])) {
+      header("Location: ${_SERVER["PHP_SELF"]}?mailingliste_id=".((int) $_REQUEST["mailingliste_id"]));
+    } else {
+      header("Location: ${_SERVER["PHP_SELF"]}");
+    }
   }
   die();
 }
@@ -314,6 +320,7 @@ function parseChunksPage($output, $url) {
 ?>
 
 <form action="<?php echo $_SERVER["PHP_SELF"];?>" method="POST">
+<input type="hidden" name="_firstFormValue" value="<?php echo htmlspecialchars(uniqid());?>"/>
 
 <input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
 
@@ -450,6 +457,8 @@ if (isset($_REQUEST["autoExportPW"]))
 if (isset($_REQUEST["mailingliste_id"]))
   echo "<input type=\"hidden\" name=\"mailingliste_id\" value=\"".htmlspecialchars($_REQUEST["mailingliste_id"])."\">";
 ?>
+
+<input type="hidden" name="_lastFormValue" value="<?php echo htmlspecialchars(uniqid());?>"/>
 
 </form>
 <?php

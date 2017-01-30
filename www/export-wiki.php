@@ -1188,7 +1188,9 @@ if (isset($_POST["commit"])) {
     }
   }
 
-  header("Location: ${_SERVER["PHP_SELF"]}?$wikiStr");
+  if (!isset($_REQUEST["autoExportPW"])) {
+    header("Location: ${_SERVER["PHP_SELF"]}?$wikiStr");
+  }
   die();
 }
 
