@@ -886,7 +886,7 @@ function dbPersonInsertContact($person_id,$type,$details,$fromWiki,$active) {
 
 function dbPersonUpdateContact($id, $person_id,$type,$details,$fromWiki,$active) {
   global $pdo, $DB_PREFIX;
-  $active = ($active || $fromWiki) ? 1 : 0;
+  $active = ($active || !$fromWiki) ? 1 : 0;
   $fromWiki = $fromWiki ? 1 : 0;
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person_contact SET person_id = ?, type = ?, details = ?, fromWiki = ?, active = ? WHERE id = ?");
   return $query->execute(Array($person_id,$type,$details,$fromWiki,$active,$id)) or httperror(print_r($query->errorInfo(),true));
