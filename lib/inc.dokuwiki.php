@@ -33,13 +33,69 @@ function getClient() {
   return $wikiClient;
 }
 
+function listWikiNS($wiki, $depth = 0, $autoDie = true) {
+  try {
+    $wikiClient = getClient();
+    $method="plugin.remotelistnamespace.listNamespace";
+    return $wikiClient->$method($wiki, [ "depth" => $depth ]);
+  } catch (XML_RPC2_FaultException $e) {
+    if ($autoDie)
+      die(__LINE__."@".__FILE__.': Exception listing '.$wiki.' #' . $e->getFaultCode() . ' : ' . $e->getFaultString());
+    return false;
+  } catch (Exception $e) {
+    if ($autoDie)
+      die(__LINE__."@".__FILE__.': Exception listing '.$wiki.': ' . $e->getMessage() );
+    return false;
+  }
+}
+
+function listWikiPages($wiki, $depth = 0, $autoDie = true) {
+  try {
+    $wikiClient = getClient();
+    $method="dokuwiki.getPagelist";
+    return $wikiClient->$method($wiki, [ "depth" => $depth ]);
+  } catch (XML_RPC2_FaultException $e) {
+    if ($autoDie)
+      die(__LINE__."@".__FILE__.': Exception listing '.$wiki.' #' . $e->getFaultCode() . ' : ' . $e->getFaultString());
+    return false;
+  } catch (Exception $e) {
+    if ($autoDie)
+      die(__LINE__."@".__FILE__.': Exception listing '.$wiki.': ' . $e->getMessage() );
+    return false;
+  }
+}
+
+function getAllWikiPage($autoDie = true) {
+  try {
+    $wikiClient = getClient();
+    $method="wiki.getAllPages";
+    return $wikiClient->$method();
+  } catch (XML_RPC2_FaultException $e) {
+    if ($autoDie)
+      die(__LINE__."@".__FILE__.': Exception listing all pages #' . $e->getFaultCode() . ' : ' . $e->getFaultString());
+    return false;
+  } catch (Exception $e) {
+    if ($autoDie)
+      die(__LINE__."@".__FILE__.': Exception listing all pages: ' . $e->getMessage() );
+    return false;
+  }
+}
+
 function existsWikiPage($wiki, $autoDie = true) {
   try {
     $wikiClient = getClient();
     # getPage returns template for new page if page does not exist -> check existance before
-    $method="wiki.getPageVersions";
-    return (count($wikiClient->$method($wiki)) > 0);
+#    $method="wiki.getPageVersions";
+#    $rev = $wikiClient->$method($wiki);
+#    $numRev = count($rev);
+#    $doesExist = ($numRev > 0);
+    $method = "wiki.getPageInfo";
+    $ret = $wikiClient->$method($wiki);
+    $doesExist = true; # XML_RPC2 Exception will catch this
+     return $doesExist;
   } catch (XML_RPC2_FaultException $e) {
+    if ($e->getFaultCode() == 121)
+      return false;
     if ($autoDie)
       die(__LINE__."@".__FILE__.': Exception reading '.$wiki.' #' . $e->getFaultCode() . ' : ' . $e->getFaultString());
     return false;
