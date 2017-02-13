@@ -121,6 +121,11 @@ class sspmod_sgis_Auth_Process_SGIS extends SimpleSAML_Auth_ProcessingFilter {
                   $query->execute(Array($user["id"]));
                   $gremien = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
                   $attributes["gremien"] = array_unique($gremien);
+
+                  $query = $pdo->prepare("SELECT email FROM {$prefix}person_email pe WHERE pe.person_id = ?");
+                  $query->execute(array($user["id"]));
+                  $mails = $query->fetchAll(PDO::FETCH_ASSOC);
+                  $attributes["extra-mail"] = array_unique($mails);
                 }
                 if (!isset($attributes["displayName"]) && !empty($mail)) {
                   $r = verify_tui_mail($mail, $this->config["unimail"], $this->config["unildaphost"], $this->config["unildapbase"]);
