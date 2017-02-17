@@ -2,10 +2,15 @@
 global $pdo;
 global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX;
 
-$pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8; SET lc_time_names = 'de_DE';"));
+#$pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8; SET lc_time_names = 'de_DE';"));
+$pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array());
+
+$r = $pdo->query("SET NAMES utf8;");
+$r->fetchAll();
+$r = $pdo->query("SET lc_time_names = 'de_DE';");
+$r->fetchAll();
 
 # Personen
-
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person");
 if ($r === false) {
   $pdo->query("CREATE TABLE {$DB_PREFIX}person (
@@ -21,11 +26,15 @@ if ($r === false) {
                 PRIMARY KEY (id)
                ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.person.php';
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT wikiPage FROM {$DB_PREFIX}person LIMIT 1");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}person ADD COLUMN wikiPage VARCHAR(256) NULL DEFAULT NULL");
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_email");
@@ -44,6 +53,8 @@ if ($r === false) {
     $pdo->query("ALTER TABLE {$DB_PREFIX}person DROP COLUMN email");
   }
   $pdo->commit();
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_email_primary_ids");
@@ -53,6 +64,8 @@ if ($r === false) {
        FROM {$DB_PREFIX}person_email
    GROUP BY person_id;")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_email_primary");
@@ -62,6 +75,8 @@ if ($r === false) {
        FROM {$DB_PREFIX}person_email NATURAL JOIN {$DB_PREFIX}person_email_primary_ids
    GROUP BY person_id;")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_contact");
@@ -78,6 +93,8 @@ if ($r === false) {
                 INDEX(person_id, type),
                 FOREIGN KEY (person_id) REFERENCES {$DB_PREFIX}person(id) ON DELETE CASCADE
                ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 # Gremium & Rollen
@@ -99,21 +116,29 @@ if ($r === false) {
                 UNIQUE(name, fakultaet, studiengang, studiengangabschluss)
                ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.gremium.php';
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT wiki_members_table FROM {$DB_PREFIX}gremium");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}gremium ADD COLUMN wiki_members_table VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT wiki_members_fulltable FROM {$DB_PREFIX}gremium");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}gremium ADD COLUMN wiki_members_fulltable VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT wiki_members_fulltable2 FROM {$DB_PREFIX}gremium");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}gremium ADD COLUMN wiki_members_fulltable2 VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}rolle");
@@ -139,38 +164,56 @@ if ($r === false) {
               ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
 
   require SGISBASE.'/lib/inc.db.rolle.php';
+} else {
+  $r->fetchAll();
 }
 $r = $pdo->query("SELECT numPlatz FROM {$DB_PREFIX}rolle LIMIT 1");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN numPlatz INT NOT NULL DEFAULT 0;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 $r = $pdo->query("SELECT wahlDurchWikiSuffix FROM {$DB_PREFIX}rolle LIMIT 1");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN wahlDurchWikiSuffix VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 $r = $pdo->query("SELECT wahlPeriodeDays FROM {$DB_PREFIX}rolle LIMIT 1");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN wahlPeriodeDays INT NOT NULL DEFAULT 365;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 $r = $pdo->query("SELECT wiki_members_roleAsColumnTable FROM {$DB_PREFIX}rolle");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN wiki_members_roleAsColumnTable VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 $r = $pdo->query("SELECT wiki_members_roleAsColumnTableExtended FROM {$DB_PREFIX}rolle");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN wiki_members_roleAsColumnTableExtended VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 $r = $pdo->query("SELECT wiki_members_roleAsMasterTable FROM {$DB_PREFIX}rolle");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN wiki_members_roleAsMasterTable VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 $r = $pdo->query("SELECT wiki_members_roleAsMasterTableExtended FROM {$DB_PREFIX}rolle");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN wiki_members_roleAsMasterTableExtended VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 $r = $pdo->query("SELECT wiki_members FROM {$DB_PREFIX}rolle");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rolle ADD COLUMN wiki_members VARCHAR(128) NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 #$r = $pdo->query("UPDATE {$DB_PREFIX}rolle SET wiki_members = ':sgis:mitglieder:gewaehltenkonvent#2 Beratende Mitglieder'");
 
@@ -185,6 +228,8 @@ if ($r === false) {
                 responsible VARCHAR(254),
                 PRIMARY KEY(id)
                ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}log_property");
@@ -200,6 +245,8 @@ if ($r === false) {
                 PRIMARY KEY(id),
                 FOREIGN KEY (log_id) REFERENCES {$DB_PREFIX}log(id) ON DELETE CASCADE
               ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 # gesteuerte Objekte
@@ -215,6 +262,8 @@ if ($r === false) {
                 UNIQUE(address)
               ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.mailingliste.php';
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}mailingliste_mailman");
@@ -231,6 +280,8 @@ if ($r === false) {
                 FOREIGN KEY (mailingliste_id) REFERENCES {$DB_PREFIX}mailingliste(id) ON DELETE CASCADE,
                 UNIQUE (mailingliste_id, url, field, priority) ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.mailingliste-mailman.php';
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}gruppe");
@@ -244,6 +295,8 @@ if ($r === false) {
               ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
 
   require SGISBASE.'/lib/inc.db.gruppe.php';
+} else {
+  $r->fetchAll();
 }
 
 # Mapping Person -> Rolle -> Mailingliste, Gruppe
@@ -257,6 +310,8 @@ if ($r === false) {
                 FOREIGN KEY (gruppe_id) REFERENCES {$DB_PREFIX}gruppe(id) ON DELETE CASCADE,
                 PRIMARY KEY (rolle_id, gruppe_id) ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.gruppe-rolle.php';
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}rel_rolle_mailingliste");
@@ -268,6 +323,8 @@ if ($r === false) {
                 FOREIGN KEY (mailingliste_id) REFERENCES {$DB_PREFIX}mailingliste(id) ON DELETE CASCADE,
                 PRIMARY KEY (rolle_id, mailingliste_id) ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.rolle-mailingliste.php';
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}rel_mitgliedschaft");
@@ -288,11 +345,15 @@ if ($r === false) {
                 FOREIGN KEY (person_id) REFERENCES {$DB_PREFIX}person(id) ON DELETE CASCADE,
                 PRIMARY KEY (id) ) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
   require SGISBASE.'/lib/inc.db.mitgliedschaft.php';
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT lastCheck FROM {$DB_PREFIX}rel_mitgliedschaft");
 if ($r === false) {
   $pdo->query("ALTER TABLE {$DB_PREFIX}rel_mitgliedschaft ADD COLUMN lastCheck DATE NULL;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 # dataTables view
@@ -303,6 +364,8 @@ if ($r === false) {
        FROM {$DB_PREFIX}rel_mitgliedschaft rm
       WHERE (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE);")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 #$pdo->query("DROP VIEW {$DB_PREFIX}person_has_unimail");
@@ -313,6 +376,8 @@ if ($r === false) {
        FROM {$DB_PREFIX}person_email pe
       WHERE email LIKE '%@tu-ilmenau.de';")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person_can_login");
@@ -324,6 +389,8 @@ SELECT DISTINCT p.id as person_id, p.canLogin XOR (rm.gremium_id IS NOT NULL) as
             LEFT JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rrg.gruppe_id = g.id
             LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON p.id = rm.person_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) AND rrg.rolle_id = rm.rolle_id;")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 #$r = $pdo->query("DROP VIEW {$DB_PREFIX}person_current");
@@ -339,6 +406,8 @@ SELECT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email, ap.person_
         LEFT JOIN {$DB_PREFIX}person_has_unimail hu ON hu.person_id = p.id
 GROUP BY p.id;")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}gremium_has_members");
@@ -347,6 +416,8 @@ if ($r === false) {
 SELECT DISTINCT rm.gremium_id FROM {$DB_PREFIX}rel_mitgliedschaft rm WHERE (von IS NULL OR von <= CURRENT_DATE) AND (bis IS NULL OR bis >= CURRENT_DATE)
    ")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}gremium_has_members_in_inactive_roles");
 if ($r === false) {
@@ -354,6 +425,8 @@ if ($r === false) {
 SELECT DISTINCT rm.gremium_id FROM {$DB_PREFIX}rel_mitgliedschaft rm INNER JOIN {$DB_PREFIX}rolle r ON r.id = rm.rolle_id WHERE (NOT r.active) AND (von IS NULL OR von <= CURRENT_DATE) AND (bis IS NULL OR bis >= CURRENT_DATE)
    ")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT fullname FROM {$DB_PREFIX}gremium_current limit 1");
@@ -365,6 +438,8 @@ if ($r === false) {
            LEFT JOIN {$DB_PREFIX}gremium_has_members_in_inactive_roles gui ON gui.gremium_id = g.id
    ")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT rolle_wiki_members FROM {$DB_PREFIX}rolle_searchable");
@@ -378,6 +453,8 @@ if ($r === false) {
            INNER JOIN {$DB_PREFIX}rolle r ON r.gremium_id = g.id
    ")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 $r = $pdo->query("SELECT rolle_wiki_members FROM {$DB_PREFIX}rolle_searchable_mailingliste");
@@ -395,6 +472,8 @@ if ($r === false) {
            LEFT JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rrm.rolle_id = r.id AND rrm.mailingliste_id = m.id
    ")
   or httperror(print_r($pdo->errorInfo(),true));
+} else {
+  $r->fetchAll();
 }
 
 function dbQuote($string , $parameter_type = NULL ) {
