@@ -2,8 +2,7 @@
 global $pdo;
 global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX;
 
-#$pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8; SET lc_time_names = 'de_DE';"));
-$pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array());
+$pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8, lc_time_names = 'de_DE';"));
 
 $r = $pdo->query("SET NAMES utf8;");
 $r->fetchAll();
