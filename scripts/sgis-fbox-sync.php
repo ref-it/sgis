@@ -1,6 +1,8 @@
 #! /usr/bin/php
 <?php
 
+global $debug;
+
 # CallMonitor mit #96*5* aktiviert
 
 # Heimnetz => Übersicht => Netzwerkeinstellungen => "Zugriff für Anwendungen zulassen" aktivieren (TR-064)
@@ -10,7 +12,10 @@ $fb_pass="FIXME";
 $fb_phonebook_name = "Telefonbuch";
 $rpcKey3 = "FIXME";
 $url = "https://helfer.stura.tu-ilmenau.de/sgis/rpccontacts.php";
-$debug = False;
+$debug = false;
+
+$options = getopt("", Array("debug"));
+if (isset($options["debug"])) $debug = true;
 
 # 1. detect phonebook on fbox
 $opts = array(
@@ -18,11 +23,9 @@ $opts = array(
    'ssl' => array('verify_peer'=>false, 'verify_peer_name'=>false)
 );
 
-$client = new SoapClient(
-    null,
-    array(
+$sopts =  array(
         'location'   => "https://141.24.44.135:49443/upnp/control/x_contact",
-        #'location'   => "http://141.24.44.135:49000/upnp/control/x_contact",
+#        'location'   => "http://141.24.44.135:49000/upnp/control/x_contact",
         'uri'        => "urn:dslforum-org:service:X_AVM-DE_OnTel:1",
         'noroot'     => True,
         'login'      => $fb_user,
@@ -30,8 +33,9 @@ $client = new SoapClient(
         'trace'      => True,
         'exceptions' => 0,
         'stream_context' => stream_context_create($opts),
-    )
-);
+    );
+
+$client = new SoapClient( null, $sopts );
 $result = $client->GetPhonebookList();
 if(is_soap_fault($result)) {  print(" Fehlercode: $result->faultcode | Fehlerstring:\n       $result->faultstring\n");  exit; }
 
@@ -48,7 +52,7 @@ foreach ($phoneBookIds as $phoneBookId) {
   $sgisPhoneBookId = $phoneBookId;
 
   # detect number of contact entries
-  $xml = file_get_contents($result['NewPhonebookURL']);
+  $xml = file_get_contents($result['NewPhonebookURL'], false, stream_context_create($opts));
   try {
     $xml = @new SimpleXMLElement($xml);
   } catch (Exception $e) {
@@ -91,6 +95,7 @@ foreach ($phoneBookIds as $phoneBookId) {
 }
 
 if ($sgisPhoneBookId == -1) die("PhoneBook not found\n");
+if ($debug) echo "Found ".(count($fboxContacts))." on Fritz!Box\n";
 
 #print_r($fboxContacts);die();
 
@@ -106,6 +111,8 @@ $sgisContacts = $reply["persons"];
 foreach (array_keys($sgisContacts) as $i) {
   $sgisContacts[$i]["__fboxId"] = "";
 }
+
+if ($debug) echo "got ".(count($sgisContacts))." from SGIS\n";
 
 # 3. generate XML content
 $newXML = Array();
@@ -149,10 +156,19 @@ $fids = array_reverse($fids);
 foreach ($fids as $idx) {
   $c = $fboxContacts[$idx];
   $person_id = -1;
+#  if ($debug) print_r($c);
+
+#  if (!$c->telephony->services && $debug) echo "skip on line ".__LINE__."\n";
   if (!$c->telephony->services) continue;
   foreach ($c->telephony->services->children() as $e) {
+#    if ($e->getName() != "email" && $debug) echo "skip on line ".__LINE__."\n";
     if ($e->getName() != "email") continue;
-    $mail = (string) $e->{0};
+#var_dump($e);
+#var_dump($e->{0});
+#var_dump((string) $e);
+    $mail = (string) $e;
+#    if ($debug) echo "read mail=$mail\n";
+#    if ($debug && substr($mail, -5) != "@sgis") echo "skip on line ".__LINE__."\n";
     if (substr($mail, -5) != "@sgis") continue;
     if ($person_id != -1) {
       echo "error: multiple sgis identifier in contact\n";
@@ -163,6 +179,7 @@ foreach ($fids as $idx) {
 
     $person_id = (int) substr($mail, 0, -5);
   }
+#  if ($debug) echo "person_id = $person_id\n";
 
   if ($person_id == -1) continue;
 
@@ -186,6 +203,7 @@ foreach ($fids as $idx) {
 }
 
 # 4. create new persons
+if ($debug) echo "going to create ".(count($newXML))." new persons\n";
 foreach ($newXML as $person_id => $data) {
   if ($debug) echo "create entry for $person_id\n";
   $result = $client->SetPhonebookEntry(new SoapParam($phoneBookId, 'NewPhonebookID'), new SoapParam("", 'NewPhonebookEntryID'), new SoapParam($data, 'NewPhonebookEntryData'));
@@ -195,12 +213,13 @@ foreach ($newXML as $person_id => $data) {
 exit;
 
 function escapeForXML($str) {
-  if (!defined("ENT_XML1")) define("ENT_XML1", 0);
-  return htmlentities($str, ENT_XML1 | ENT_COMPAT | ENT_QUOTES, 'UTF-8');
+  #  Fritz!Box requires use of &auml; and alike
+  return htmlentities($str, ENT_HTML401 | ENT_COMPAT | ENT_QUOTES, 'utf-8');
 }
 
 function sgisRequest($request) {
-  global $rpcKey3, $url;
+  global $rpcKey3, $url, $debug;
+  if (!function_exists('curl_init')) echo "missing curl\n";
   if (!function_exists('curl_init')) return false;
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, $url);
@@ -210,8 +229,10 @@ function sgisRequest($request) {
 #  curl_setopt($ch, CURLOPT_VERBOSE, true);
   $output = curl_exec($ch);
   curl_close($ch);
+  if ($output === false && $debug) echo "curl_exec returned false\n";
   if ($output === false) return false;
   $output = decrypt($output, $rpcKey3);
+  if ($output === false && $debug) echo "decrypt returned false\n";
   if ($output === false) return false;
   return json_decode($output, true);
 }
