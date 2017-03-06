@@ -34,7 +34,7 @@ foreach ($rollen as $rolle) {
   }
 }
 
-function getClient($groupId, $write = false) {
+function getClientSpi($groupId, $write = false) {
   global $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file;
   $url = sprintf($sPiBase . ($write ? $sPiGroupSet : $sPiGroupGet), $groupId);
 
@@ -51,7 +51,7 @@ function getClient($groupId, $write = false) {
 
 function fetchGroupMembers($groupId) {
   try {
-    $spi = getClient($groupId);
+    $spi = getClientSpi($groupId);
     $response = $spi->send();
 
     $error = false;
@@ -96,7 +96,7 @@ function fetchGroupMembers($groupId) {
 function setGroupMembers($groupId, $members) {
   assert(is_array($members));
   try {
-    $spi = getClient($groupId, true);
+    $spi = getClientSpi($groupId, true);
     $spi->addPostParameter("users", json_encode($members));
     $response = $spi->send();
     if ($response->getStatus() != 200) {
