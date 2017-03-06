@@ -213,8 +213,14 @@ foreach ($newXML as $person_id => $data) {
 exit;
 
 function escapeForXML($str) {
+  return preg_replace_callback( '/./u', function ($m) {
+    $char = current($m);
+    $utf = iconv('UTF-8', 'UCS-4', $char);
+    return sprintf("&#x%s;", ltrim(strtoupper(bin2hex($utf)), "0"));
+  }, $str);
+
   #  Fritz!Box requires use of &auml; and alike
-  return htmlentities($str, ENT_HTML401 | ENT_COMPAT | ENT_QUOTES, 'utf-8');
+#  return htmlentities($str, ENT_HTML401 | ENT_COMPAT | ENT_QUOTES, 'utf-8');
 }
 
 function sgisRequest($request) {
