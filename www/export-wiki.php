@@ -1216,7 +1216,12 @@ require "../template/admin.tpl";
 
 global $wikiUrl;
 $url = parse_url($wikiUrl);
-$openUrl = http_build_url($url, Array(), HTTP_URL_STRIP_AUTH);
+#$openUrl = http_build_url($url, Array(), HTTP_URL_STRIP_AUTH);
+$openUrl = $url["scheme"]."://".$url["host"];
+if (isset($url["port"]))
+  $openUrl .= ":".$url["port"];
+if (isset($url["path"]))
+  $openUrl .= ":".$url["path"];
 foreach ($pages as $wiki => $data):
   if (skipWiki($wiki)) continue;
   echo "<tr>";
@@ -1235,7 +1240,12 @@ endforeach;
 
 global $wikiUrl;
 $url = parse_url($wikiUrl);
-$openUrl = http_build_url($url, Array(), HTTP_URL_STRIP_AUTH);
+#$openUrl = http_build_url($url, Array(), HTTP_URL_STRIP_AUTH);
+$openUrl = $url["scheme"]."://".$url["host"];
+if (isset($url["port"]))
+  $openUrl .= ":".$url["port"];
+if (isset($url["path"]))
+  $openUrl .= ":".$url["path"];
 foreach ($contactPersonen as $p):
   $wiki = $p["wiki"];
   if (skipWiki($wiki)) continue;
