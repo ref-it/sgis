@@ -110,9 +110,10 @@ foreach($gremien as $gremium):
   $a = [];
   $a[] = trim($gremium["beschlussAm"]." ".$gremium["beschlussDurch"]);
   if ($gremienmitgliedschaften_edit) {
-   $a[] = trim($gremium["kommentar"]);
+   $a = array_merge($a, explode("\n", $gremium["kommentar"]));
   }
   // removes all NULL, FALSE and Empty Strings but leaves 0 (zero) values
+  $a = array_map("trim", $a);
   $a = array_filter( $a, 'strlen' );
   $a = array_map("htmlspecialchars", $a);
   echo implode("<br>", $a);
