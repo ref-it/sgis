@@ -93,6 +93,7 @@ if (!function_exists("curl_strerror")) {
 }
 
 function multiCurlRequest($data, $options = array()) {
+  global $CA_file;
   $result = array();
   $pending = array_keys($data);
 
@@ -123,6 +124,8 @@ function multiCurlRequest($data, $options = array()) {
 
       curl_setopt($curlhandles[$id], CURLOPT_POST,       1);
       curl_setopt($curlhandles[$id], CURLOPT_POSTFIELDS, $cdata['post']);
+
+      curl_setopt($curlhandles[$id], CURLOPT_CAINFO, $CA_file);
 
       if (!empty($options)) {
         curl_setopt_array($curlhandles[$id], $options);
