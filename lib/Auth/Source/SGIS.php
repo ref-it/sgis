@@ -113,6 +113,16 @@ class sspmod_sgis_Auth_Source_SGIS extends sspmod_sgis_Auth_UserPassBaseCookie {
                 $mails = $query->fetchAll(PDO::FETCH_ASSOC);
                 $attributes["extra-mail"] = array_unique($mails);
 
+                $query = $pdo->prepare("SELECT DISTINCT m.address FROM {$prefix}mailingliste m");
+                $query->execute();
+                $mailinglists = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
+                $attributes["alle-mailinglists"] = array_unique($mailinglists);
+
+                $query = $pdo->prepare("SELECT DISTINCT TRIM(CONCAT_WS(' ',g.name,g.fakultaet,g.studiengang,g.studiengangabschluss)) as name FROM {$prefix}gremium g WHERE g.active");
+                $query->execute();
+                $gremien = $query->fetchAll( PDO::FETCH_COLUMN, 0 );
+                $attributes["alle-gremien"] = array_unique($gremien);
+
                 return $attributes;
         }
 
