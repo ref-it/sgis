@@ -45,7 +45,7 @@ class OC_USER_SGIS {
     {
         $this->url = OCP\Config::getAppValue('user_sgis', 'sgis_url', '');
         $this->key = OCP\Config::getAppValue('user_sgis', 'sgis_key', '');
-        $this->backend = new OC_User_Database();
+        $this->backend = new OC\User\Database();
         self::$me = $this;
     }
 
