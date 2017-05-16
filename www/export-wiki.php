@@ -10,6 +10,12 @@ if (isset($_REQUEST["autoExportPW"])) {
   requireGroup($ADMINGROUP);
 }
 
+function progress($msg) {
+  if (!isset($_REQUEST["autoExportPW"])) return;
+  echo "$msg<br>\n";
+  flush();
+}
+
 $validnonce = false;
 if (isset($_REQUEST["nonce"]) && $_REQUEST["nonce"] === $nonce) {
  $validnonce = true;
@@ -835,6 +841,7 @@ foreach ($mapping_mastertable as $wiki => $data) {
   if (isset($pages[$wiki]["new"]))
     $text = $pages[$wiki]["new"];
   ksort($data);
+  progress("read dokuwiki $wiki");
 
   $template = explode("\n",fetchWikiPage(":vorlagen:tree:{$wiki}"));
   foreach ($template as $line)
@@ -964,6 +971,7 @@ foreach ($mapping_ptable as $wiki => $data) {
     $text = $pages[$wiki]["new"];
   ksort($data);
   $alreadyPersons = [];
+  progress("read dokuwiki $wiki");
 
   $template = explode("\n",fetchWikiPage(":vorlagen:tree:{$wiki}"));
   foreach ($template as $line)
@@ -1086,6 +1094,7 @@ prof_flag("render pages: import contact from wiki");
 foreach($contactPersonen as $i => $p) {
   $wiki = $p["wiki"];
   if (skipWiki($wiki)) continue;
+  progress("read dokuwiki $wiki");
   $text = fetchWikiPage($wiki);
   // get Telefon= Mobil= Jabber=
   $matches = ["tel" => [], "xmpp" => []];
@@ -1149,10 +1158,12 @@ prof_flag("render pages: diff or post");
 foreach (array_keys($pages) as $wiki) {
   if (skipWiki($wiki)) continue;
   if (isset($_POST["commit"]) && is_array($_POST["commit"]) && in_array($wiki, $_POST["commit"]) && $validnonce) {
+    progress("write dokuwiki $wiki");
     writeWikiPage($wiki, base64_decode($_POST["text"][$wiki]));
   } elseif (isset($_POST["commit"]) && is_array($_POST["commit"]) && isset($_POST["commit"][$wiki])) {
     echo "<b class=\"msg\">CSRF Schutz.</b>";
   } elseif (!isset($_POST["commit"])) {
+    progress("read dokuwiki $wiki");
     $pages[$wiki]["old"] = explode("\n",fetchWikiPage($wiki));
     $x = new Text_Diff('auto',Array($pages[$wiki]["old"],$pages[$wiki]["new"]));
     $y = new Text_Diff_Renderer_unified();
@@ -1165,10 +1176,12 @@ foreach ($contactPersonen as $p) {
   if (skipWiki($wiki)) continue;
   if (isset($_POST["commit"]) && is_array($_POST["commit"]) && in_array($wiki, $_POST["commit"]) && $validnonce) {
     foreach ($p["remove"] as $id) {
+      progress("delete contact $id");
       dbPersonDeleteContact($id);
     }
     foreach ($p["add"] as $type => $list) {
       foreach ($list as $details) {
+        progress("add contact");
         dbPersonInsertContact($p["person_id"], $type, $details, 1, 1);
       }
     }
