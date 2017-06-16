@@ -481,7 +481,7 @@ if (isset($_POST["action"])) {
          } else {
            $newemails = [$email];
          }
-         $ret = dbPersonInsert($name,$newemails,"","","","",true);
+         $ret = dbPersonInsert($name,$newemails,"" /* rz */,"" /* usr */,"" /* pwd */,true /* canLogin */, "" /* wiki */, false);
          if ($ret !== false) {
            $person = ["id" => $ret];
            $msgs[] = "OK  Person $name <$email> wurde angelegt.";
