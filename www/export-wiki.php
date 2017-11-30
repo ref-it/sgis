@@ -874,6 +874,7 @@ foreach ($mapping_mastertable as $wiki => $data) {
     }
 
     $text[] = "===== {$section_name} =====";
+      
     $line = "^ Name ^ ";
     if ($withContactDetails) $line .= "Kontakt ^^^"; else $line .= "eMail ^";
 #    if ($withContactDetails) $line .= "Kontakt ^^"; else $line .= "eMail ^";
@@ -899,31 +900,21 @@ foreach ($mapping_mastertable as $wiki => $data) {
          $sepr = strrev($sep);
 
          $email = explode(",", $person["email"])[0];
-         $contact = [ ]; $qr = [];
+         $contact = [ ];
          if ($withContactDetails && isset($person["_contactDetails"])) {
-           $qr[] = "FN:{$person["name"]}";
-           $qr[] = "EMAIL:{$email}";
+           
            foreach ( $person["_contactDetails"] as $c) {
              if ($c["fromWiki"] && !$c["active"]) continue;
              $contact[] = contactType2Str($c["type"]).": ".escapeContactForWiki($c["details"]);
-             if (strtolower($c["type"]) == "tel") {
-               $qr[] = "TEL:".escapeContactForWiki($c["details"]);
-             }
-             if (strtolower($c["type"]) == "xmpp") {
-               $qr[] = "X-JABBER:".escapeContactForWiki($c["details"]);
-             }
+             
            }
          }
          $contact = array_unique($contact);
          sort($contact);
          $contact = implode('\\\\ ', $contact);
-         $qrcode = "";
-         if (count($qr) > 0) {
-           $qrcode = " <qrcode>BEGIN:VCARD####VERSION:2.1####".implode("####",$qr)."####END:VCARD</qrcode> ";
-         }
 
          if ($withContactDetails)
-           $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr | $sep {$contact} $sepr | $qrcode |";
+           $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr | $sep {$contact} $sepr | ";
 #           $line = "| $sep ".person2link($person)." $sepr | $sep {$email} \\\\ {$contact} $sepr | $qrcode |";
          else
            $line = "| $sep ".person2link($person)." $sepr | $sep {$email} $sepr |";
