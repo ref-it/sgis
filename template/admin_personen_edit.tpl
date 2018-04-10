@@ -150,6 +150,12 @@ foreach ([
           default:
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($person[$key]); ?>"><?php
         }
+        switch($key) {
+          case "username":
+?>
+           <i> (darf nicht geändert werden, nur Kleinbuchstaben, Zahlen, Bindestrich und Unterstrich erlaubt, muss mit einem Buchstaben beginnen) </i>
+<?php
+        }
       ?>
     </div>
   </div>

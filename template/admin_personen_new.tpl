@@ -80,6 +80,9 @@ foreach ([
         }
         switch($key) {
           case "username":
+?>
+           <i> (darf nicht geändert werden, nur Kleinbuchstaben, Zahlen, Bindestrich und Unterstrich erlaubt, muss mit einem Buchstaben beginnen) </i><br/>
+<?php
           case "password":
 ?>
            <i> (optional, wird vom Nutzer beim ersten Uni-Login vom Nutzer festgelegt)</i>
