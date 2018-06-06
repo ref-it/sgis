@@ -2,7 +2,11 @@
 global $pdo;
 global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX;
 
-$pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8, lc_time_names = 'de_DE';"));
+try {
+        $pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8, lc_time_names = 'de_DE';"));
+} catch (Exception $e) {
+        die("Datenbankverbindung fehlgeschlagen. Server überlastet? Ursache: ".$e->getMessage());
+}
 
 $r = $pdo->query("SET NAMES utf8;");
 $r->fetchAll();
