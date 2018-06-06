@@ -11,13 +11,6 @@ function escapeMeNot($d, $row) {
   return $d;
   return htmlspecialchars($d);
 }
-function trimMe($d) {
-  if (is_array($d)) {
-    return array_map("trimMe", $d);
-  } else {
-    return trim($d);
-  }
-}
 
 #debug
 #foreach ($_GET as $k => $v)

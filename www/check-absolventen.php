@@ -12,14 +12,6 @@ require_once "../lib/inc.all.php";
 requireGroup($ADMINGROUP);
 include "../template/header.tpl";
 
-
-function trimMe($d) {
-  if (is_array($d)) {
-    return array_map("trimMe", $d);
-  } else {
-    return trim($d);
-  }
-}
 ?>
 <div class="container">
 <form action="admin.php?tab=export">
@@ -55,94 +47,101 @@ function trimMe($d) {
     </div>
 
 <?php
-if(isset($_POST["nonce"])){
-    if($_POST["nonce"] == $nonce){
-        if (isset($_POST["namen"]) && isset($_POST["vornamen"])){
-            $names = trim($_POST["namen"]);
-            $vornamen = trim($_POST["vornamen"]);
-            if(!empty($names)){
-                $names = trimMe(explode(PHP_EOL,$names));
-                $vornamen = trimMe(explode(PHP_EOL,$vornamen));
-                if(count($names) === count($vornamen)){
-                    
-                    $res = [];
-                    foreach ($names as $idx => $name){
-                        $vorname = $vornamen[$idx];
-                        $vorname_split = explode(" ",$vorname);
-                        $name_split = explode(" ",$name);
-                        $sql = "SELECT ?,p.name,p.id,group_concat(DISTINCT g.id),
-                          group_concat(DISTINCT
-                            concat(g.name,IF (g.fakultaet IS NULL OR g.fakultaet = '','',concat(' ',g.fakultaet)),
-                                          IF (g.studiengang IS NULL OR g.studiengang = '','',concat(' ',g.studiengang)),
-                                          IF (g.studiengangabschluss IS NULL OR g.studiengangabschluss = '','',concat(' ',g.studiengangabschluss))))
-                          FROM sgis__person as p
-                          INNER JOIN sgis__rel_mitgliedschaft as m ON p.id = m.person_id
-                          INNER JOIN sgis__gremium as g ON g.id = m.gremium_id
-                          WHERE
-                          (".implode(" OR ",array_fill(0,count($name_split),"p.name LIKE ?")).")
-                          AND
-                          (".implode(" OR ",array_fill(0,count($vorname_split),"p.name LIKE ?")).")
-                          GROUP BY p.id";
-                        $s = $pdo->prepare($sql);
-                        $values = [$vorname." ".$name];
-                        foreach ($name_split as $nn){
-                            $values[] = "%".$nn;
-                        }
-                        foreach ($vorname_split as $vn){
-                            $values[] = "%".$vn."%";
-                        }
-                        $s->execute($values) or var_dump($s->errorInfo());
-                        $res[] = $s->fetchAll(PDO::FETCH_NUM);
-                    }
-                }else{
-                    echo "<div class='alert alert-danger'>Vor- und Nachnamen hatten nicht gleich viele Zeilen. Bitte erneut eingeben!</div>";
+
+foreach ( [ "namen", "vornamen" ] as $key ) {
+  if (!isset($_POST[$key])) continue;
+  $_POST[$key] = trimMe(explode(PHP_EOL, trim($_POST[$key])));
+}
+
+$res = [];
+if (isset($_POST["nonce"]) && $_POST["nonce"] == $nonce &&
+    isset($_POST["namen"]) && isset($_POST["vornamen"]) &&
+    !empty($_POST["namen"]) && !empty($_POST["vornamen"]) &&
+    count($_POST["namen"]) == count($_POST["vornamen"])) {
+  $names = $_POST["namen"];
+  $vornamen = $_POST["vornamen"];
+          
+  foreach ($names as $idx => $name){
+      $vorname = $vornamen[$idx];
+      $vorname_split = explode(" ",$vorname);
+      $name_split = explode(" ",$name);
+      $sql = "SELECT ?,p.name,p.id,group_concat(DISTINCT g.id),
+        group_concat(DISTINCT
+          concat(g.name,IF (g.fakultaet IS NULL OR g.fakultaet = '','',concat(' ',g.fakultaet)),
+                        IF (g.studiengang IS NULL OR g.studiengang = '','',concat(' ',g.studiengang)),
+                        IF (g.studiengangabschluss IS NULL OR g.studiengangabschluss = '','',concat(' ',g.studiengangabschluss))))
+        FROM sgis__person as p
+        INNER JOIN sgis__rel_mitgliedschaft as m ON p.id = m.person_id
+        INNER JOIN sgis__gremium as g ON g.id = m.gremium_id
+        WHERE
+        (".implode(" OR ",array_fill(0,count($name_split),"p.name LIKE ?")).")
+        AND
+        (".implode(" OR ",array_fill(0,count($vorname_split),"p.name LIKE ?")).")
+        GROUP BY p.id";
+      $s = $pdo->prepare($sql);
+      $values = [$vorname." ".$name];
+      foreach ($name_split as $nn){
+          $values[] = "%".$nn;
+      }
+      foreach ($vorname_split as $vn){
+          $values[] = "%".$vn."%";
+      }
+      $s->execute($values) or var_dump($s->errorInfo());
+      $res[] = $s->fetchAll(PDO::FETCH_NUM);
+  } // foreach names
+
+  if (empty($ret)) {
+       echo "<div class='alert alert-warning'>Keine Treffer!</div>";
+  }
+}
+
+if (!empty($res)) {
+  ?>
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="col-xs-2">Eingabe</th>
+        <th class="col-xs-2">Treffer</th>
+        <th>Gremien</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php
+      foreach ($res as $hit){
+        $i = 0;
+        foreach ($hit as $row){
+          ?>
+          <tr>
+              <?= $i === 0? "<td rowspan=".count($hit).">".htmlspecialchars($row[0])."</td>":""?>
+              <td><a target="_blank" href="admin.php?tab=person.edit&person_id=<?= htmlspecialchars($row[2])?>"><?=htmlspecialchars($row[1]);?></a></td>
+              <td><?php
+                  //var_dump($row[3]);
+                  //var_dump($row[4]);
+                  $g_names = explode(",",$row[4]);
+                  $g_string = [];
+                foreach (explode(",",$row[3]) as $idx => $id){
+                      $g_string[]= "<a target='_blank' href='admin.php?tab=gremium.edit&gremium_id=".htmlspecialchars($id)."'>".htmlspecialchars($g_names[$idx])."</a>";
                 }
-            }
+                echo htmlspecialchars(implode(", ",$g_string));
+              ?></td>
+          </tr>
+  <?php
+          $i++;
         }
-        if(!empty($res)){
-        ?>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th class="col-xs-2">Eingabe</th>
-                    <th class="col-xs-2">Treffer</th>
-                    <th>Gremien</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                foreach ($res as $hit){
-                    $i = 0;
-                    foreach ($hit as $row){
-                        ?>
-                        <tr>
-                            <?= $i === 0? "<td rowspan=".count($hit).">".$row[0]."</td>":""?>
-                            <td><a target="_blank" href="admin.php?tab=person.edit&person_id=<?= $row[2]?>"><?=$row[1];?></a></td>
-                            <td><?php
-                                //var_dump($row[3]);
-                                //var_dump($row[4]);
-                                $g_names = explode(",",$row[4]);
-                                $g_string = [];
-                              foreach (explode(",",$row[3]) as $idx => $id){
-                                    $g_string[]= "<a target='_blank' href='admin.php?tab=gremium.edit&gremium_id=$id'>{$g_names[$idx]}</a>";
-                              }
-                              echo  implode(", ",$g_string);
-                            ?></td>
-                        </tr>
-                <?php
-                        $i++;
-                    }
-                }
-                ?>
-            </tbody>
-        </table>
-        <?php
-        }else{
-             echo "<div class='alert alert-warning'>Keine Treffer!</div>";
-        }
-    }else{
-        echo "<div class='alert alert-danger'>CSFR-Schutz aktiviert. Bitte versuche es erneut, und stelle sicher das du auf keinem anderen Gerät gerade angemeldet bist.</div>";
-    }
+      }
+      ?>
+    </tbody>
+  </table>
+<?php
+}
+
+if (isset($_POST["namen"]) && isset($_POST["vornamen"]) &&
+    count($_POST["namen"]) != count($_POST["vornamen"])) {
+  echo "<div class='alert alert-danger'>Vor- und Nachnamen hatten nicht gleich viele Zeilen. Bitte erneut eingeben!</div>";
+}
+
+if (isset($_POST["nonce"]) && $_POST["nonce"] != $nonce) {
+  echo "<div class='alert alert-danger'>CSFR-Schutz aktiviert. Bitte versuche es erneut, und stelle sicher das du auf keinem anderen Gerät gerade angemeldet bist.</div>";
 }
 
 ?>

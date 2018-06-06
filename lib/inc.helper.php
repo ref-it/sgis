@@ -9,3 +9,10 @@ function contactType2Str($type) {
   return $type;
 }
 
+function trimMe($d) {
+  if (is_array($d)) {
+    return array_map("trimMe", $d);
+  } else {
+    return trim($d);
+  }
+}
