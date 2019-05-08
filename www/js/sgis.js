@@ -62,3 +62,20 @@ function clearValue(id) {
   return false;
 }
 
+
+$(document).ready(function () {
+    $("table#gremien-arbeit > tbody > tr > td > label > input.bescheinigung__checkbox-show-row").each(function () {
+        if(this.checked){
+            $(this).parents("tr").removeClass("row-unselected");
+        }else{
+            $(this).parents("tr").addClass("row-unselected");
+        }
+        $(this).on("change", function () {
+            if(this.checked){
+                $(this).parents("tr").removeClass("row-unselected");
+            }else{
+                $(this).parents("tr").addClass("row-unselected");
+            }
+        });
+    });
+});
