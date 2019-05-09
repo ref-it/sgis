@@ -26,7 +26,7 @@ if($person['image']){
 		'UPLOAD_MULTIFILE_BREAOK_ON_ERROR' => true,
 		'UPLOAD_MAX_MULTIPLE_FILES' => 1,
 		'UPLOAD_MAX_SIZE' => 5242880,
-		'UPLOAD_WHITELIST' => 'png,jpg,jpeg',
+		'UPLOAD_WHITELIST' => 'png,jpg,jpeg,jpe',
 		'UPLOAD_DISK_PATH' => realpath(dirname(__FILE__).'/../www/pimages'),
 		'MOD_XSENDFILE' => 0,
 	]);
@@ -84,7 +84,7 @@ if (isset($_POST["action"]) && ($_POST["action"] == "pwchange")) {
 				'UPLOAD_MULTIFILE_BREAOK_ON_ERROR' => true,
 				'UPLOAD_MAX_MULTIPLE_FILES' => 1,
 				'UPLOAD_MAX_SIZE' => 2621440,
-				'UPLOAD_WHITELIST' => 'png,jpg,jpeg',
+				'UPLOAD_WHITELIST' => 'png,jpg,jpeg,jpe',
 				'UPLOAD_DISK_PATH' => realpath(dirname(__FILE__).'/../www/pimages'),
 				'MOD_XSENDFILE' => 0,
 			]);

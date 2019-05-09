@@ -177,14 +177,14 @@ foreach ([
 			echo '<div class="form-control" style="height: auto;">';
 			if ($person[$key]) {
 				echo '<style>@import url("/sgis/css/image.css");</style>';
-				echo 'gesetzt<div class="pimage image_preview"><img alt="profilbild" src="'.
+				echo 'gesetzt<div class="pimage image_preview"><hr><img alt="profilbild" src="'.
 				
 				// insert image url
 				"/sgis/pimages/{$pimage->hashname}".
 				
 				'">'; 
 				
-				echo "</div><div class='croppie_button_wrapper'><button type='button' class='pimage_remove'>Remove</button></div>";
+				echo "<hr></div><div style='height: 50px;'></div><div class='croppie_button_wrapper'><button type='button' class='btn btn-danger pimage_remove'><i class='fa fa-fw fa-trash'></i> Remove</button></div>";
 				
 				echo '<script type="text/javascript">pimage="remove";</script>';
 				echo '<script type="text/javascript" src="/sgis/js/image.js"></script>';
@@ -199,7 +199,7 @@ foreach ([
 					<div class='dropzone_upload' id='pDropzone'></div>
 					<div class='croppie_wrapper_inner'></div>
 				</div>";
-				echo "<div class='croppie_button_wrapper'><button type='button' class='confirm_croppie'>Upload Now</button><button type='button' class='rotate_a_croppie'>Rotate Anticlockwise</button><button type='button' class='rotate_c_croppie'>Rotate Clockwise</button><button type='button' class='abort_croppie'>Abort</button></div>";
+				echo "<div class='croppie_button_wrapper'><button type='button' class='confirm_croppie btn btn-success'><i class='fa fa-fw fa-upload'></i> Upload Now</button><button type='button' class='btn btn-default rotate_a_croppie'><i class='fa fa-fw fa-rotate-left'></i></button><button type='button' class='btn btn-default rotate_c_croppie'><i class='fa fa-fw fa-rotate-right'></i></button><button type='button' class='btn btn-primary abort_croppie'><i class='fa fa-fw fa-ban'></i> Abort</button></div>";
 				
 				
 				echo '<script type="text/javascript">pimage="dropzone";</script>';

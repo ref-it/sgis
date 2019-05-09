@@ -1,9 +1,12 @@
  .croppie_wrapper_outer {
-	padding: 15px 0 8px;
+	padding: 0 0 8px;
+}
+.dropzone_upload{
+	margin-top: 15px;
 }
 .croppie_wrapper_inner {
 	height: 240px;
-	padding-bottom: 40px;
+	padding-bottom: 70px;
 	box-sizing: border-box;
 }
 /* ========== */
@@ -56,7 +59,7 @@
 .pimage .modal-header {
   padding: 2px 16px;
   /* background-color: #f9943e; */
-  color: white;
+  color: black;
 }
 .pimage .modal-body {padding: 2px 16px;}
 .pimage .modal-footer {
@@ -76,4 +79,22 @@
 }
 .croppie_button_wrapper button.btn{
 	margin: 5px;
+}
+/* ========== */
+.dropzone{
+    white-space: pre-line;
+	text-align: center;
+}
+.dropzone .dz-preview .dz-image {
+	border-radius: 0;
+	height: 140px;
+	width: 140px;
+	box-sizing: border-box;
+	padding: 5px;
+	border: 1px solid #eee;
+}
+.dropzone .dz-preview .dz-image img {
+	object-fit: cover;
+	height: 100%;
+	width: 100%;
 }
