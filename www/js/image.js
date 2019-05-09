@@ -9,6 +9,22 @@
 			.replace(/'/g, "&#039;");
 	}
 
+	let wOpen = false;
+	const waitModal = function (){
+		if (wOpen == false){
+			wOpen = true;
+			
+			let modal = document.createElement('div');
+			modal.id = "dzFailedModal";
+			modal.style.display = 'block';
+			modal.className = 'modal pimage';
+			modal.innerHTML = '<div class="modal-content"><div class="modal-header bg-info"><span class="close">&times;</span><h2>Bitte warten</h2></div><div class="modal-body text-center"><p></p><p><i class="fa fa-spinner fa-spin"></i></p></div><div class="modal-footer bg-info"><h3></h3></div></div>';
+			document.body.appendChild(modal);
+			let span = modal.querySelector('.pimage.modal .close');
+		}
+	}
+	
+	
 	if (typeof(pimage) != 'undefined' && pimage === 'dropzone'){
 		const cw = document.querySelector('.croppie_wrapper_inner');
 		const dzw = document.querySelector('#pDropzone');
@@ -22,7 +38,7 @@
 		let croppie = null;
 		
 		const load_dropzone = function(){
-			dzw.innerHTML = "<div class='dz0 dropzone'></div>";
+			dzw.innerHTML = "<div class='dz0 dropzone'></div><i>* Es werden nur Bilder im PNG und JPEG format unterstützt.</i>";
 			cw.innerHTML = "<div class='cp0'></div>";
 			cw.style.display = "none";
 			confirm_btn.style.display = "none";
@@ -63,10 +79,9 @@
 					modal.id = "dzFailedModal";
 					modal.style.display = 'block';
 					modal.className = 'modal pimage';
-					modal.innerHTML = '<div class="modal-content"><div class="modal-header"><span class="close">&times;</span><h2>Es ist ein Fehler aufgetreten</h2></div><div class="modal-body"><pre>'+ escapeHtml(response) + '</pre></div><div class="modal-footer"><h3></h3></div></div>';
+					modal.innerHTML = '<div class="modal-content"><div class="modal-header bg-danger"><span class="close">&times;</span><h2>Es ist ein Fehler aufgetreten</h2></div><div class="modal-body"><pre>'+ escapeHtml(response) + '</pre></div><div class="modal-footer bg-dabger"><h3></h3></div></div>';
 					document.body.appendChild(modal);
 					let span = modal.querySelector('.pimage.modal .close');
-					console.log(span);
 					span.onclick = function() { modal.parentElement.removeChild(modal); load_dropzone(); }
 					window.onclick = function(event) { if (event.target == modal) { modal.parentElement.removeChild(modal); load_dropzone(); } };
 				},
@@ -132,6 +147,9 @@
 						// Update the Dropzone file thumbnail
 						pDropzone.emit('thumbnail', file, dataURL);
 
+						dzw.style.display = "block";
+						cw.style.display = "none";
+						
 						// Tell Dropzone of the new file
 						done(blob);
 					});

@@ -55,13 +55,13 @@
 }
 .pimage .modal-header {
   padding: 2px 16px;
-  background-color: #f9943e;
+  /* background-color: #f9943e; */
   color: white;
 }
 .pimage .modal-body {padding: 2px 16px;}
 .pimage .modal-footer {
   padding: 2px 16px;
-  background-color: #f9943e;
+  /* background-color: #f9943e; */
   color: white;
 }
 /* ========== */
@@ -73,4 +73,7 @@
 	width: 100%;
 	height: 100%;
 	object-fit: contain;
+}
+.croppie_button_wrapper button.btn{
+	margin: 5px;
 }
