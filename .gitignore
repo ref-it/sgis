@@ -14,3 +14,8 @@ lib/inc.db.rolle.php
 lib/inc.db.mailingliste-mailman.php
 lib/Gremienbesetzung Studierende.csv
 www/pimages*
+autologin.log
+config/ca.pem.old
+logs/*
+template.old
+template/.selbstauskunft.tpl.kate-swp
