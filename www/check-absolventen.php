@@ -8,9 +8,14 @@
 
 global $ADMINGROUP,$pdo;
 
+//https://secure.php.net/manual/en/function.strftime.php
+$datePattern = "%B %G";
+setlocale(LC_ALL, 'de_DE.utf8');
+
 require_once "../lib/inc.all.php";
 requireGroup($ADMINGROUP);
 include "../template/header.tpl";
+
 
 ?>
 <div class="container">
@@ -48,6 +53,7 @@ include "../template/header.tpl";
 
 <?php
 
+//remove trailing and leading spaces from each line
 foreach ( [ "namen", "vornamen" ] as $key ) {
   if (!isset($_POST[$key])) continue;
   $_POST[$key] = trimMe(explode(PHP_EOL, trim($_POST[$key])));
@@ -57,83 +63,142 @@ $res = [];
 if (isset($_POST["nonce"]) && $_POST["nonce"] == $nonce &&
     isset($_POST["namen"]) && isset($_POST["vornamen"]) &&
     !empty($_POST["namen"]) && !empty($_POST["vornamen"]) &&
-    count($_POST["namen"]) == count($_POST["vornamen"])) {
-  $names = $_POST["namen"];
-  $vornamen = $_POST["vornamen"];
-          
-  foreach ($names as $idx => $name){
-      $vorname = $vornamen[$idx];
-      $vorname_split = explode(" ",$vorname);
-      $name_split = explode(" ",$name);
-      $sql = "SELECT ?,p.name,p.id,group_concat(DISTINCT g.id),
-        group_concat(DISTINCT
-          concat(g.name,IF (g.fakultaet IS NULL OR g.fakultaet = '','',concat(' ',g.fakultaet)),
-                        IF (g.studiengang IS NULL OR g.studiengang = '','',concat(' ',g.studiengang)),
-                        IF (g.studiengangabschluss IS NULL OR g.studiengangabschluss = '','',concat(' ',g.studiengangabschluss))))
-        FROM sgis__person as p
-        INNER JOIN sgis__rel_mitgliedschaft as m ON p.id = m.person_id
-        INNER JOIN sgis__gremium as g ON g.id = m.gremium_id
+    count($_POST["namen"]) == count($_POST["vornamen"])){
+    $names = $_POST["namen"];
+    $vornamen = $_POST["vornamen"];
+    $res = [];
+    foreach ($names as $idx => $name){
+        $vorname = $vornamen[$idx];
+        $vorname_split = explode(" ", $vorname);
+        $name_split = explode(" ", $name);
+        $sql = "SELECT
+        ?,
+        p.name,
+        p.id,
+        g.id,
+        concat(g.name,IF (g.fakultaet IS NULL OR g.fakultaet = '','',concat(' ',g.fakultaet)),
+                      IF (g.studiengang IS NULL OR g.studiengang = '','',concat(' ',g.studiengang)),
+                      IF (g.studiengangabschluss IS NULL OR g.studiengangabschluss = '','',concat(' ',g.studiengangabschluss))),
+        m.von,
+        m.bis,
+        r.id,
+        r.name,
+        m.id
+        FROM sgis__person AS p
+        INNER JOIN sgis__rel_mitgliedschaft AS m ON p.id = m.person_id
+        INNER JOIN sgis__rolle as r ON r.id = m.rolle_id
+        INNER JOIN sgis__gremium AS g ON g.id = m.gremium_id
         WHERE
-        (".implode(" OR ",array_fill(0,count($name_split),"p.name LIKE ?")).")
+        (" . implode(" OR ", array_fill(0, count($name_split), "p.name LIKE ?")) . ")
         AND
-        (".implode(" OR ",array_fill(0,count($vorname_split),"p.name LIKE ?")).")
-        GROUP BY p.id";
-      $s = $pdo->prepare($sql);
-      $values = [$vorname." ".$name];
-      foreach ($name_split as $nn){
-          $values[] = "%".$nn;
-      }
-      foreach ($vorname_split as $vn){
-          $values[] = "%".$vn."%";
-      }
-      $s->execute($values) or var_dump($s->errorInfo());
-      $res[] = $s->fetchAll(PDO::FETCH_NUM);
-  } // foreach names
-
-  if (empty($ret)) {
-       echo "<div class='alert alert-warning'>Keine Treffer!</div>";
-  }
-}
-
-if (!empty($res)) {
-  ?>
-  <table class="table">
-    <thead>
-      <tr>
-        <th class="col-xs-2">Eingabe</th>
-        <th class="col-xs-2">Treffer</th>
-        <th>Gremien</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php
-      foreach ($res as $hit){
-        $i = 0;
-        foreach ($hit as $row){
-          ?>
-          <tr>
-              <?= $i === 0? "<td rowspan=".count($hit).">".htmlspecialchars($row[0])."</td>":""?>
-              <td><a target="_blank" href="admin.php?tab=person.edit&person_id=<?= htmlspecialchars($row[2])?>"><?=htmlspecialchars($row[1]);?></a></td>
-              <td><?php
-                  //var_dump($row[3]);
-                  //var_dump($row[4]);
-                  $g_names = explode(",",$row[4]);
-                  $g_string = [];
-                foreach (explode(",",$row[3]) as $idx => $id){
-                      $g_string[]= "<a target='_blank' href='admin.php?tab=gremium.edit&gremium_id=".htmlspecialchars($id)."'>".htmlspecialchars($g_names[$idx])."</a>";
-                }
-                echo htmlspecialchars(implode(", ",$g_string));
-              ?></td>
-          </tr>
-  <?php
-          $i++;
+        (" . implode(" OR ", array_fill(0, count($vorname_split), "p.name LIKE ?")) . ")
+        ORDER BY p.name asc, g.name asc, r.name asc, m.von asc
+        ;";
+        $s = $pdo->prepare($sql);
+        $values = [$vorname . " " . $name];
+        foreach ($name_split as $nn){
+            $values[] = "%" . $nn;
         }
-      }
-      ?>
-    </tbody>
-  </table>
-<?php
+        foreach ($vorname_split as $vn){
+            $values[] = "%" . $vn . "%";
+        }
+        $s->execute($values) or var_dump($s->errorInfo());
+        //build result
+        
+        while (($row = $s->fetch(PDO::FETCH_NUM)) !== false){
+            $von = empty($row[5]) ? "":strftime($datePattern,strtotime($row[5]));
+            $bis = empty($row[6]) ? "":strftime($datePattern,strtotime($row[6]));
+            if(isset($res[$row[0]][$row[2]])){
+                $last = end($res[$row[0]][$row[2]]);
+                if($last["rolle-id"] === $row[7] && $last["gremien-id"] === $row[3]){
+                    //same gremium + same role; check if start and end time is close to each other
+                    if($last["bis"] === $von){
+                        //start and end are same
+                        array_pop($res[$row[0]][$row[2]]);
+                        $von = $last["von"];
+                    }
+                }
+            }
+            //  [eingabe][pers_id]
+            $res[$row[0]][$row[2]][] = [
+                "person-name" => $row[1],
+                "gremien-id" => $row[3],
+                "gremien-name" => $row[4],
+                "von" => $von,
+                "bis" => $bis,
+                "rolle-id" => $row[7],
+                "rolle-name" => $row[8],
+                "rel-id" => $row[9]
+            ];
+            
+        }
+    } // foreach names
+    //var_dump($res);
+    if (empty($res)){
+        echo "<div class='alert alert-warning'>Keine Treffer!</div>";
+    }else{ ?>
+        <table class="table">
+            <thead>
+            <tr>
+                <th class="col-xs-2">Eingabe</th>
+                <th class="col-xs-2">Treffer</th>
+                <th>Gremium</th>
+                <th>Rolle</th>
+                <th>Zeitraum</th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php
+            foreach ($res as $inputName => $hit){
+                $countAllRows = 0;
+                foreach ($hit as $rows) {
+                    $countAllRows+= count($rows);
+                }
+                //echo($countAllRows);
+                ?>
+                <tr>
+                    <?php
+                    echo "<td rowspan=" . $countAllRows . ">" . htmlspecialchars($inputName) . "</td>";
+                    foreach ($hit as $foundPID => $rows){
+                        ?>
+                        
+                        <td rowspan="<?= $countAllRows ?>">
+                            <a target="_blank"
+                               href="admin.php?tab=person.edit&person_id=<?= htmlspecialchars($foundPID) ?>"><?= htmlspecialchars($rows[0]["person-name"]); ?></a>
+                        </td>
+                        <?php
+                        $i = 0;
+                        foreach ($rows as $row){
+                            //person-name
+                            //rolle-name
+                            //gremien-id
+                            //gremien-name
+                            //von
+                            //bis
+                            $i++ !== 0 ? "<tr>" : ""; ?>
+                                <td>
+                                    <a target='_blank' href='admin.php?tab=gremium.edit&gremium_id=<?= htmlspecialchars($row['gremien-id'])?>'>
+                                        <?= htmlspecialchars($row["gremien-name"]) ?>
+                                    </a>
+                                </td>
+                                <td>
+                                    <a target='_blank' href='admin.php?tab=rel_mitgliedschaft.edit&rel_id=<?= htmlspecialchars($row['rel-id'])?>'>
+                                        <?= htmlspecialchars($row["rolle-name"]) ?>
+                                    </a>
+                                </td>
+                                <td><?= empty($row["bis"]) ? ("seit " . $row["von"]) :  ($row["von"] . " bis " . $row["bis"]) ?></td>
+                            </tr>
+                            <?php
+                            $i++;
+                        }
+                    }
+            }?>
+            </tbody>
+        </table>
+        <?php
+    }
 }
+
 
 if (isset($_POST["namen"]) && isset($_POST["vornamen"]) &&
     count($_POST["namen"]) != count($_POST["vornamen"])) {
@@ -145,8 +210,9 @@ if (isset($_POST["nonce"]) && $_POST["nonce"] != $nonce) {
 }
 
 ?>
-</div> <!-- close container -->
+</div> <!-- close container bla-->
 <?php
+
 
 include "../template/admin_footer.tpl";
 ?>
