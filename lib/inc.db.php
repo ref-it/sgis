@@ -1228,4 +1228,9 @@ function printDBDump() {
 }
 
 # vim: set expandtab tabstop=8 shiftwidth=8 :
-
+function setPersonImageId($person_id, $image_id) {
+  global $pdo, $DB_PREFIX;
+  # username needs to match ^[a-z][-a-z0-9_]*\$
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET image = ? WHERE id = ?");
+  return $query->execute(Array($image_id, $person_id)) or httperror(print_r($query->errorInfo(),true));
+}

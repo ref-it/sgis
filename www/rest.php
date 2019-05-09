@@ -290,10 +290,15 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                     SELECT
                         p.id,
                         p.name,
+                        CASE WHEN f.hashname IS NOT NULL
+							THEN CONCAT('https:\/\/helfer.stura.tu-ilmenau.de\/sgis\/pimages\/', f.hashname)
+							ELSE NULL
+						END as image,
                         m.von,
                         m.bis
                     FROM sgis__rel_mitgliedschaft AS m
                     INNER JOIN sgis__person AS p ON m.person_id = p.id
+                    LEFT JOIN sgis__fileinfo AS f ON p.image = f.id
                     WHERE
                         m.rolle_id = ?
                         AND (m.bis IS NULL
@@ -334,10 +339,15 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                         SELECT
                             p.id,
                             p.name,
+                            CASE WHEN f.hashname IS NOT NULL
+								THEN CONCAT('https:\/\/helfer.stura.tu-ilmenau.de\/sgis\/pimages\/', f.hashname)
+								ELSE NULL
+							END as image,
                             m.von,
                             m.bis
                         FROM sgis__rel_mitgliedschaft AS m
                         INNER JOIN sgis__person AS p ON m.person_id = p.id
+                        LEFT JOIN sgis__fileinfo AS f ON p.image = f.id
                         WHERE
                             m.rolle_id = ?
                             AND m.bis IS NOT NULL
