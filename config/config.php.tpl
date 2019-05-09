@@ -1,12 +1,27 @@
 <?php
 
-global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP, $rpcKey, $wikiUrl, $CA_file, $rpcKey2, $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file, $autoExportPW, $mailmanSettingModes, $rpcKey3;
+global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX, $SIMPLESAML, $SIMPLESAMLAUTHSOURCE, $AUTHGROUP, $ADMINGROUP, $rpcKey, $wikiUrl, $CA_file, $rpcKey2, $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file, $autoExportPW, $mailmanSettingModes, $rpcKey3, $REST_API_KEY, $REST_API_IPS, $REST_LOGIN_API_KEY, $REST_LOGIN_API_IPS, $REST_LOGIN_SECRET;
 global $unimail, $unildaphost, $unildapbase, $contactTypes;
 
 $DB_DSN = "FIXME";
 $DB_USERNAME = "FIXME";
 $DB_PASSWORD = "FIXME";
 $DB_PREFIX = "sgis__";
+
+require_once "../lib/database/class.DatabaseCore.php"; //load helper function set
+intbf\database\DatabaseCore::setConfig([
+	'PROVIDER'		=> 'pdo', //mylqli|pdo   ;; pdo not implenented yet
+	'HOST' 			=> 'dbhost2',
+	'NAME' 			=> 'tu-ilmenau-de_stura',
+	'USERNAME' 		=> $DB_USERNAME,
+	'PASSWORD' 		=> $DB_PASSWORD,
+	'TABLE_PREFIX' 	=> $DB_PREFIX, //(int)tertipa (b)ase (f)ramework
+	'CHARSET' 		=> 'utf8',
+	'DSN'			=> 'mysql:dbname=[DB_NAME];host=[DB_HOST];charset=[DB_CHARSET]', // required for pdo
+]);
+
+define('DB_INSTALL', false);
+
 $SIMPLESAML = dirname(dirname(dirname(__FILE__)))."/simplesamlphp";
 $SIMPLESAMLAUTHSOURCE = "FIXME";
 # permissions required by index.php
