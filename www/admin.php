@@ -11,13 +11,6 @@ function escapeMeNot($d, $row) {
   return $d;
   return htmlspecialchars($d);
 }
-function trimMe($d) {
-  if (is_array($d)) {
-    return array_map("trimMe", $d);
-  } else {
-    return trim($d);
-  }
-}
 
 #debug
 #foreach ($_GET as $k => $v)
@@ -410,13 +403,13 @@ if (isset($_POST["action"])) {
    $msgs[] = "Gruppen-Rollenzuordnung wurde eingetragen.";
   break;
   case "gremium.insert":
-   $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["wiki_members_fulltable"], $_POST["active"], $_POST["wiki_members_fulltable2"]);
+   $ret = dbGremiumInsert($_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengang_short"], $_POST["studiengang_english"], $_POST["matrikel"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["wiki_members_fulltable"], $_POST["active"], $_POST["wiki_members_fulltable2"]);
    $msgs[] = "Gremium wurde angelegt.";
    if ($ret !== false)
      $target = $_SERVER["PHP_SELF"]."?tab=gremium.edit&gremium_id=".$ret;
   break;
   case "gremium.update":
-   $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["wiki_members_fulltable"], $_POST["active"], $_POST["wiki_members_fulltable2"]);
+   $ret = dbGremiumUpdate($_POST["id"], $_POST["name"], $_POST["fakultaet"], $_POST["studiengang"], $_POST["studiengang_short"], $_POST["studiengang_english"], $_POST["matrikel"], $_POST["studiengangabschluss"], $_POST["wiki_members"], $_POST["wiki_members_table"], $_POST["wiki_members_fulltable"], $_POST["active"], $_POST["wiki_members_fulltable2"]);
    $msgs[] = "Gremium wurde geändert.";
   break;
   case "gremium.delete":

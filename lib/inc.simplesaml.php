@@ -47,6 +47,12 @@ function getUsername() {
   return NULL;
 }
 
+function getUserFullName(){
+    global $attributes;
+    requireAuth();
+    return $attributes["displayName"][0];
+}
+
 function hasGroup($group) {
   global $attributes;
 

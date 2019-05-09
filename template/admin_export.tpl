@@ -10,6 +10,7 @@
    <li class="list-group-item">OwnCloud &rArr; wird beim Login automatisch synchronisiert, Gruppen werden automatisch angelegt, Gruppenordner (und deren Eigentümer für Quota) müssen jedoch manuell erstellt und frei gegeben werden.</li>
    <li class="list-group-item"><a href="export-ods.php">Download von Personen/Mitgliedschaften als ODS</a></li>
    <li class="list-group-item">Gremienbescheinigung als PDF</li>
+      <li class="list-group-item"><a href="check-absolventen.php">Prüfe Absolventenliste auf Treffer</a></li>
   </ul>
  </div>
 </div>

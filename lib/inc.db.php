@@ -2,7 +2,11 @@
 global $pdo;
 global $DB_DSN, $DB_USERNAME, $DB_PASSWORD, $DB_PREFIX;
 
-$pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8, lc_time_names = 'de_DE';"));
+try {
+        $pdo = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8, lc_time_names = 'de_DE';"));
+} catch (Exception $e) {
+        die("Datenbankverbindung fehlgeschlagen. Server überlastet? Ursache: ".$e->getMessage());
+}
 
 $r = $pdo->query("SET NAMES utf8;");
 $r->fetchAll();
@@ -1030,19 +1034,19 @@ function dbGruppeInsertRolle($grpId, $rolleId) {
   return $query->execute(Array($grpId, $rolleId)) or httperror(print_r($query->errorInfo(),true));
 }
 
-function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
+function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $matrikel, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengangabschluss, wiki_members, wiki_members_table, wiki_members_fulltable, active, wiki_members_fulltable2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-  $ret = $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2)) or httperror(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengang_short, studiengang_english, matrikel, studiengangabschluss, wiki_members, wiki_members_table, wiki_members_fulltable, active, wiki_members_fulltable2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($name, $fakultaet, $studiengang, $studiengang_short, $studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2)) or httperror(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
   if ($ret === false)
     return $ret;
   return $pdo->lastInsertId();
 }
 
-function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
+function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $matrikel, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengangabschluss = ?, wiki_members = ?, wiki_members_table = ?, wiki_members_fulltable = ?, active = ?, wiki_members_fulltable2 = ? WHERE id = ?");
-  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2, $id)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengang_short = ?, studiengang_english = ?, matrikel = ?, studiengangabschluss = ?, wiki_members = ?, wiki_members_table = ?, wiki_members_fulltable = ?, active = ?, wiki_members_fulltable2 = ? WHERE id = ?");
+  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $matrikel, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2, $id)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function dbGremiumDelete($id) {
@@ -1224,4 +1228,9 @@ function printDBDump() {
 }
 
 # vim: set expandtab tabstop=8 shiftwidth=8 :
-
+function setPersonImageId($person_id, $image_id) {
+  global $pdo, $DB_PREFIX;
+  # username needs to match ^[a-z][-a-z0-9_]*\$
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET image = ? WHERE id = ?");
+  return $query->execute(Array($image_id, $person_id)) or httperror(print_r($query->errorInfo(),true));
+}

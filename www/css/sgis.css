@@ -61,3 +61,12 @@ table.table-showall tr.allodd { background-color: white; }
 
 .contactDetails.inactive { text-decoration: line-through; }
 
+table#gremien-arbeit > tbody > tr.row-unselected{
+    color: gray;
+}
+table#gremien-arbeit > tbody > tr.row-unselected > td > input.form-control,
+table#gremien-arbeit > tbody > tr.row-unselected > td > input[type="radio"]
+{
+    color: gray;
+    pointer-events: none;
+}
