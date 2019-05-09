@@ -1,7 +1,6 @@
 <?php
 
 $objid = (isset($obj_rel) ? "$obj-$obj_rel" : $obj);
-
 ?>
 <table id="main<?php echo $objid; ?>table" class="display" width="100%" cellspacing="0">
 
@@ -25,7 +24,6 @@ endforeach;
  <tbody>
  </tbody>
 </table>
-
 <script>
 $(function() {
     $('#main<?php echo $objid; ?>table').DataTable( {
@@ -78,7 +76,8 @@ $(function() {
 <?php if ($obj == "person"): ?>
                 var emails = full.email.split(",");
                 var p3 = $("<a/>").attr("target","_blank").attr("href","index.php?mail=" + encodeURIComponent(emails[0])).html("<i class=\"fa fa-info fa-fw\"></i>").wrap("<div>").parent().html();
-                var p = p1+" "+p2+" "+p3;
+                var p4 = $("<a/>").attr("target","_blank").attr("href","export-bescheinigung.php?pid=" + encodeURIComponent(full.id)).attr("title","Gremienbescheinigung erstellen").html("<i class=\"fa fa-list-alt fa-fw\"></i>").wrap("<div>").parent().html();
+                var p = p1+" "+p2+" "+p3+" "+p4;
 <?php elseif ($obj == "mailingliste"): ?>
                 var p3 = $("<a/>").attr("target","_blank").attr("href","export-mailingliste.php?mailingliste_id=" + encodeURIComponent(full.id)).html("<i class=\"fa fa-refresh fa-fw\"></i>").wrap("<div>").parent().html();
                 var p = p1+" "+p2+" "+p3;

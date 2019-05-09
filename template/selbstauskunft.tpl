@@ -95,6 +95,7 @@ foreach ([
   "unirzlogin" => "UniRZ-Login",
   "lastLogin" => "letztes Login",
   "canLogin" => "Login erlaubt?",
+  "image" => "Foto",
  ] as $key => $desc):
 
  if ($key == "email") {
@@ -172,6 +173,40 @@ foreach ([
             }
 ?>      </div><?php
             break;
+		  case "image":
+			echo '<div class="form-control" style="height: auto;">';
+			if ($person[$key]) {
+				echo '<style>@import url("/sgis/css/image.css");</style>';
+				echo 'gesetzt<div class="pimage image_preview"><img alt="profilbild" src="'.
+				
+				// insert image url
+				"/sgis/pimages/{$pimage->hashname}".
+				
+				'">'; 
+				
+				echo "</div><div class='croppie_button_wrapper'><button type='button' class='pimage_remove'>Remove</button></div>";
+				
+				echo '<script type="text/javascript">pimage="remove";</script>';
+				echo '<script type="text/javascript" src="/sgis/js/image.js"></script>';
+			} else {
+				echo 'nicht vorhanden';
+				echo '<script type="text/javascript" src="/sgis/js/dropzone.js"></script>';
+				echo '<script type="text/javascript" src="/sgis/js/croppie.min.js"></script>';
+				echo '<style>@import url("/sgis/css/dropzone.css");@import url("/sgis/css/croppie.css");@import url("/sgis/css/image.css");</style>';
+				
+				
+				echo "<div class='croppie_wrapper_outer'>
+					<div class='dropzone_upload' id='pDropzone'></div>
+					<div class='croppie_wrapper_inner'></div>
+				</div>";
+				echo "<div class='croppie_button_wrapper'><button type='button' class='confirm_croppie'>Upload Now</button><button type='button' class='rotate_a_croppie'>Rotate Anticlockwise</button><button type='button' class='rotate_c_croppie'>Rotate Clockwise</button><button type='button' class='abort_croppie'>Abort</button></div>";
+				
+				
+				echo '<script type="text/javascript">pimage="dropzone";</script>';
+				echo '<script type="text/javascript" src="/sgis/js/image.js"></script>';
+			}
+			echo '<font style="margin-top: 20px; display: inline-block; color: #f21;"><strong>Das Bild wird in den StuRa Diensten genutzt und gegebenenfalls auf der Stura Website, der Wahlen-Website oder der Tutoren-Website veröffentlicht. Durch den Upload des Bildes stimmst du der Veröffentlichung zu. Das Bild kann an dieser Stelle wieder entfernt werden.</strong></font></div>';
+			break;
           default:
 ?>      <div class="form-control"> <?php
             echo htmlspecialchars($val);
