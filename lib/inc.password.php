@@ -120,8 +120,38 @@ class ownPasswordLib {
 	 * @return string
 	 * @see verifyPassword
 	 */
-	public function verifyPasswordHash($password, $hash){
-		return $this->verifyPassword($password, $hash);
+	public function verifyPasswordHash($password, $hash, $person_id = null){
+		$result = $this->verifyPassword($password, $hash);
+		// check old password lib, and opionally update password
+		if (!$result && defined('CORE_SUPPORT_OLD_PASSWORDS') && CORE_SUPPORT_OLD_PASSWORDS){
+			//load lib
+			require_once SGISBASE.'/externals/password-lib/lib/PasswordLib/PasswordLib.php';
+			$oldPwObj = new \PasswordLib\PasswordLib();
+			//verify password
+			if (@$oldPwObj->verifyPasswordHash($password, $hash)){
+				$result = true;
+				if ( defined('CORE_SUPPORT_TRY_GLOBAL_PASSWORD_PERSON') && CORE_SUPPORT_TRY_GLOBAL_PASSWORD_PERSON && !isset($person_id) || !empty($person_id)){
+					global $person;
+					if (isset($person) && isset($person['id']) && !empty($person['id'])){
+						$person_id = $person['id'];
+					}
+				}
+				// update old to new password type
+				if (isset($password) && !empty($password) &&
+					isset($person_id) && !empty($person_id)){
+					$nh = $this->createPasswordHash($password);
+					if (isset($nh) && !empty($nh) ){
+						//store to database
+						global $pdo, $DB_PREFIX;
+						$query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET password = ? WHERE id = ?");
+						if (!$query->execute(Array($nh, $person_id)) ){ 
+							httperror(print_r($query->errorInfo(),true));
+						}
+					}
+				}
+			}
+		}
+		return $result;
 	}
 };
 

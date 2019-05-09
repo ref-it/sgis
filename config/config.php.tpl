@@ -21,6 +21,8 @@ intbf\database\DatabaseCore::setConfig([
 ]);
 
 define('DB_INSTALL', false);
+define('CORE_SUPPORT_OLD_PASSWORDS', false);
+define('CORE_SUPPORT_TRY_GLOBAL_PASSWORD_PERSON', false);
 
 $SIMPLESAML = dirname(dirname(dirname(__FILE__)))."/simplesamlphp";
 $SIMPLESAMLAUTHSOURCE = "FIXME";
