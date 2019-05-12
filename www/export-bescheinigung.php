@@ -707,9 +707,10 @@ if (!isset($_GET["pid"]) && empty($_POST)){
             <tbody>
             <?php foreach ($arbeit as $row){
                 $checkPatterns = ["Mitglied", "Leit", "Tutor", "Konsul", "Haushaltsverantwortlich", "Kassenverantwortlich", "Entsandt", "(Hauptd|Nebend|D)elegiert", "Semesterticket","Wahl"];
+                $checkedBlacklist = ['ehemaliger Tutor'];
                 $checked = '';
                 foreach ($checkPatterns as $checkPattern){
-                    if (preg_match("~" . $checkPattern . "~", $row["position"])){
+                    if (preg_match("~" . $checkPattern . "~", $row["position"]) && !in_array($row["position"], $checkedBlacklist, true)){
                         $checked = 'checked';
                         break;
                     }
