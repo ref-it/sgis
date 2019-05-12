@@ -112,8 +112,7 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                         studiengangabschluss,
                         studiengang_short as studiengang_kurz,
                         studiengang as studiengang_lang,
-                        studiengang_english as studiengang_englisch,
-                        matrikel as matrikel
+                        studiengang_english as studiengang_englisch
                     FROM sgis__gremium
                     WHERE
                             active = 1
@@ -159,8 +158,7 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                         studiengangabschluss,
                         studiengang_short as studiengang_kurz,
                         studiengang as studiengang_lang,
-                        studiengang_english as studiengang_englisch,
-                        matrikel as matrikel
+                        studiengang_english as studiengang_englisch
                     FROM sgis__gremium
                     WHERE
                         active = 1

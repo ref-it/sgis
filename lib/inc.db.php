@@ -113,7 +113,6 @@ if (defined('DB_INSTALL') && DB_INSTALL){
 					studiengang VARCHAR(128) NULL,
 					studiengang_english VARCHAR(128) NULL,
 					studiengang_short VARCHAR(128) NULL,
-					matrikel VARCHAR(128) NULL,
 					studiengangabschluss VARCHAR(128) NULL,
 					wiki_members VARCHAR(128) NULL,
 					wiki_members_table VARCHAR(128) NULL,
@@ -1040,19 +1039,19 @@ function dbGruppeInsertRolle($grpId, $rolleId) {
   return $query->execute(Array($grpId, $rolleId)) or httperror(print_r($query->errorInfo(),true));
 }
 
-function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $matrikel, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
+function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengang_short, studiengang_english, matrikel, studiengangabschluss, wiki_members, wiki_members_table, wiki_members_fulltable, active, wiki_members_fulltable2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengang_short, studiengang_english, studiengangabschluss, wiki_members, wiki_members_table, wiki_members_fulltable, active, wiki_members_fulltable2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   $ret = $query->execute(Array($name, $fakultaet, $studiengang, $studiengang_short, $studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2)) or httperror(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
   if ($ret === false)
     return $ret;
   return $pdo->lastInsertId();
 }
 
-function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $matrikel, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
+function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengang_short = ?, studiengang_english = ?, matrikel = ?, studiengangabschluss = ?, wiki_members = ?, wiki_members_table = ?, wiki_members_fulltable = ?, active = ?, wiki_members_fulltable2 = ? WHERE id = ?");
-  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $matrikel, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2, $id)) or httperror(print_r($query->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengang_short = ?, studiengang_english = ?, studiengangabschluss = ?, wiki_members = ?, wiki_members_table = ?, wiki_members_fulltable = ?, active = ?, wiki_members_fulltable2 = ? WHERE id = ?");
+  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2, $id)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function dbGremiumDelete($id) {
