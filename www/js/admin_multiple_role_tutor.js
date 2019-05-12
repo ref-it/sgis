@@ -417,11 +417,11 @@
 			const success_handler = function (i, success, e, f, g){
 				
 				let $wProgress = $('.wProgress');
-				$wProgress.text('Progress: '+ (parseInt(i)+1) + '/' + user_data.length );
+				$wProgress.text('Progress: '+ (parseInt(i)+1) + '/' + user_data.length + ' n' + ((_dataset_extra != null)?', e':'') );
 				
 				if (i > -1){
 					let $wProgress = $('.wProgress');
-					$wProgress.text('Progress: '+ (parseInt(i)+1) + last_caller + '/' + user_data.length );
+					$wProgress.text('Progress: '+ (parseInt(i)+1) + last_caller + '/' + user_data.length + ' n' + ((_dataset_extra != null)?', e':'') );
 					
 					let round_success = true;
 					let round_msg = null;

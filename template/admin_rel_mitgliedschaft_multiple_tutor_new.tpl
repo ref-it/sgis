@@ -42,7 +42,7 @@ for ($i = TUTOR_GREMIUM_ID_MIN; $i <= TUTOR_GREMIUM_ID_MAX; $i++ ){
 					<span style="display: inline-block; width: 60px;"></span><span style="display: inline-block; width: 130px;"><strong>ehemalig Tutor:</strong></span><i> von </i><span style="display: inline-block; width: 70px; padding: 0 5px;">04/Jahr+1</span><i> bis </i><span style="display: inline-block; width: 70px; padding: 0 5px;">04/Jahr+2</span>
 				</p>
 				<p><b>1.</b> Alte Tutoren entfernt?<br> <span class="small muted">(Geschiet automatisch, wenn ein Enddatum [bis] gesetzt wurde.)</span></p>
-				<p><b>2.</b> Neue Liste mit <a href="https://wiki.stura.tu-ilmenau.de/_media/stura/referat/erstiwoche/ewo_tutoren_vorlage.xlsx">dieser Vorlage</a> erstellt?<br> <span class="small muted">(XLSX wurde in Libreoffice (German) erstellt, keine Garantie für Microsoft Office Kompatibilität.)</span></p>
+				<p><b>2.</b> Neue Liste mit dieser Vorlage <a href="https://wiki.stura.tu-ilmenau.de/_media/stura/referat/erstiwoche/ewo_tutoren_vorlage.xlsx">(xlsx</a>|<a href="https://wiki.stura.tu-ilmenau.de/_media/stura/referat/erstiwoche/ewo_tutoren_vorlage.ods">ods)</a> erstellt?<br> <span class="small muted">(XLSX wurde in Libreoffice (German) erstellt, keine Garantie für Microsoft Office Kompatibilität.)</span></p>
 				<p><strong> Die Tabellendaten können unten eingefügt werden.</strong></p>
 			</div>
 		</div>

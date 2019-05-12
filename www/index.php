@@ -102,7 +102,7 @@ if (isset($_POST["action"]) && ($_POST["action"] == "pwchange")) {
 				
 				// create small thumb image
 				$img_path = realpath(dirname(__FILE__).'/../www/pimages').'/'.$files[0]->hashname;
-				$w = 200;
+				$w = 270;
 				
 				$info = getimagesize($img_path);
 				$mime = $files[0]->mime;

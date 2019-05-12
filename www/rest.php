@@ -288,10 +288,7 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                     SELECT
                         p.id,
                         p.name,
-                        CASE WHEN f.hashname IS NOT NULL
-							THEN CONCAT('https:\/\/helfer.stura.tu-ilmenau.de\/sgis\/pimages\/', f.hashname)
-							ELSE NULL
-						END as image,
+                        f.hashname image,
                         m.von,
                         m.bis
                     FROM sgis__rel_mitgliedschaft AS m
@@ -312,6 +309,13 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                 } else {
                     $currentMember = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     if (!$currentMember) $currentMember = [];
+                    foreach($currentMember as $k => $v){
+						$currentMember[$k]['thumb'] = ($currentMember[$k]['image'] == null)? null : "https://helfer.stura.tu-ilmenau.de/sgis/pimages/{$currentMember[$k]['image']}_thumb";
+						$currentMember[$k]['image'] = ($currentMember[$k]['image'] == null)? null : "https://helfer.stura.tu-ilmenau.de/sgis/pimages/{$currentMember[$k]['image']}";
+						$currentMember[$k]['fakultaet'] = null;
+						$currentMember[$k]['stg'] = null;
+						$currentMember[$k]['matrikel'] = null;
+                    }
                     $ret['currentMembers'] = $currentMember;
                 }
                 // if $_REQUEST["formerMembersSince"] ---------------------------------------
@@ -337,10 +341,7 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                         SELECT
                             p.id,
                             p.name,
-                            CASE WHEN f.hashname IS NOT NULL
-								THEN CONCAT('https:\/\/helfer.stura.tu-ilmenau.de\/sgis\/pimages\/', f.hashname)
-								ELSE NULL
-							END as image,
+                            f.hashname image,
                             m.von,
                             m.bis
                         FROM sgis__rel_mitgliedschaft AS m
@@ -364,6 +365,13 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                     } else {
                         $formerMember = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         if (!$formerMember) $formerMember = [];
+                        foreach($formerMember as $k => $v){
+							$formerMember[$k]['thumb'] = ($formerMember[$k]['image'] == null)? null : "https://helfer.stura.tu-ilmenau.de/sgis/pimages/{$formerMember[$k]['image']}_thumb";
+							$formerMember[$k]['image'] = ($formerMember[$k]['image'] == null)? null : "https://helfer.stura.tu-ilmenau.de/sgis/pimages/{$formerMember[$k]['image']}";
+							$formerMember[$k]['fakultaet'] = null;
+							$formerMember[$k]['stg'] = null;
+							$formerMember[$k]['matrikel'] = null;
+						}
                         $ret['formerMembers'] = $formerMember;
                     }
                 }

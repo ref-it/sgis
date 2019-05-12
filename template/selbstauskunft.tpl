@@ -108,6 +108,8 @@ foreach ([
 
  foreach ($vals as $val) {
 
+ 
+	if ($key == 'image') echo '<hr>';
 ?>
 
   <div class="form-group">
