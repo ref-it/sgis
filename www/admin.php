@@ -605,6 +605,9 @@ switch($_REQUEST["tab"]) {
   case "rel_mitgliedschaft_multiple.delete":
   require "../template/admin_rel_mitgliedschaft_multiple_delete.tpl";
   break;
+  case "rel_mitgliedschaft_multiple_tutor.new":
+  require "../template/admin_rel_mitgliedschaft_multiple_tutor_new.tpl";
+  break;
   case "rel_rolle_gruppe.new":
   require "../template/admin_rel_rolle_gruppe_new.tpl";
   break;

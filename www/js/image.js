@@ -90,8 +90,8 @@
 					modal.innerHTML = '<div class="modal-content"><div class="modal-header bg-danger"><span class="close">&times;</span><h2>Es ist ein Fehler aufgetreten</h2></div><div class="modal-body"><p></p><strong><pre>'+ text + '</pre></strong></div><div class="modal-footer bg-danger"><h3></h3></div></div>';
 					document.body.appendChild(modal);
 					let span = modal.querySelector('.pimage.modal .close');
-					span.onclick = function() { modal.parentElement.removeChild(modal); load_dropzone(); if(wModal != null){ wModal.parentElement.removeChild(wModal); wModal = null;} }
-					window.onclick = function(event) { if (event.target == modal) { modal.parentElement.removeChild(modal); load_dropzone(); } if(wModal != null){ wModal.parentElement.removeChild(wModal); wModal = null;} };
+					span.onclick = function() { modal.parentElement.removeChild(modal); load_dropzone(); if(wModal != null){ wModal.parentElement.removeChild(wModal); wModal = null; wOpen = false;} }
+					window.onclick = function(event) { if (event.target == modal) { modal.parentElement.removeChild(modal); load_dropzone(); } if(wModal != null){ wModal.parentElement.removeChild(wModal); wModal = null; wOpen = false;} };
 				},
 				success: function (file, response) {
 					location.reload(true);

@@ -88,8 +88,9 @@ endif;
 </label>
 <?php endif; ?>
 <?php if ($gremienpersonen_edit): ?>
-   <a class="btn btn-default" title="Mehrfacheintragung" href="?tab=rel_mitgliedschaft_multiple.new&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus-square"></i> Mehrfacheintragung</i></a>
-   <a class="btn btn-default" title="Mehrfachaustragung" href="?tab=rel_mitgliedschaft_multiple.delete&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-trash-o"></i> Mehrfachaustragung</a>
+   <a class="btn btn-default" title="Mehrfacheintragung je Rolle" href="?tab=rel_mitgliedschaft_multiple.new&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus-square"></i> Mehrfacheintragung je Rolle</i></a>
+   <a class="btn btn-default" title="Mehrfacheintragung Tutoren" href="?tab=rel_mitgliedschaft_multiple_tutor.new&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-plus-square"></i> Mehrfacheintragung Tutoren</i></a>
+   <a class="btn btn-default" title="Mehrfachaustragung je Rolle" href="?tab=rel_mitgliedschaft_multiple.delete&amp;rolle_id=<?php echo $rolle["id"]; ?>" target="_blank"><i class="fa fa-fw fa-trash-o"></i> Mehrfachaustragung je Rolle</a>
 <?php endif; ?>
 
   </div> </div> <!--panel -->

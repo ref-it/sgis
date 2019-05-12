@@ -1,0 +1,115 @@
+.panel > .panel-body > .data_list {
+	max-height: 300px;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+.form-horizontal .transmittdata.form-group{
+	margin: 0;
+	box-sizing: border-box;
+	vertical-align: bottom;
+	padding-left: 60px;
+	position: relative;
+}
+.form-horizontal .transmittdata.form-group .rid,
+.form-horizontal .transmittdata.form-group .umail,
+.form-horizontal .transmittdata.form-group .info{
+	line-height: 32px;
+	min-height: 34px;
+	display: inline-block;
+	border-bottom: 1px solid #ddd;
+	border-top: 1px solid #ddd;
+}
+.form-horizontal .transmittdata.form-group .rid{
+	border-left: 1px solid #ddd;
+}
+.form-horizontal .transmittdata.form-group .umail{
+	border-right: 1px solid #ddd;
+}
+.form-horizontal .transmittdata.form-group .info{
+	border: 0 none;
+}
+.form-horizontal .transmittdata.form-group .btns{
+	padding: 0 6px 0 0;
+}
+.form-horizontal .transmittdata.form-group:hover{
+	background-color: #eee;
+}
+/* counter */
+.panel > .panel-body > .data_list {
+	counter-reset: dataelms;
+}
+.form-horizontal .transmittdata.form-group{
+	counter-increment: dataelms; 
+}
+.form-horizontal .transmittdata.form-group::before{
+	position: absolute;
+	left: 3px;
+	top: 7px;
+	display: block;
+	content: counter(dataelms);
+	width: 54px;
+	boxsizing: border-box;
+}
+/* ========== */
+.pimage.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  padding-top: 100px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+.pimage .modal-content {
+  position: relative;
+  background-color: #fefefe;
+  margin: auto;
+  padding: 0;
+  border: 1px solid #888;
+  width: 80%;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 0.4s;
+  animation-name: animatetop;
+  animation-duration: 0.4s
+}
+@-webkit-keyframes animatetop {
+  from {top:-300px; opacity:0} 
+  to {top:0; opacity:1}
+}
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+.pimage .close {
+  color: white;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+.pimage .close:hover,
+.pimage .close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+.pimage .modal-header {
+  padding: 2px 16px;
+  /* background-color: #f9943e; */
+  color: black;
+}
+.pimage .modal-body {padding: 2px 16px;}
+.pimage .modal-footer {
+  padding: 2px 16px;
+  /* background-color: #f9943e; */
+  color: white;
+}
+/* ========== */
+
+
+
+
