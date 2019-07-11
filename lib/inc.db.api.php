@@ -1,5 +1,277 @@
 <?php
 
+function dbQuote($string , $parameter_type = NULL ) {
+  global $pdo;
+  if ($parameter_type === NULL)
+    return $pdo->quote($string);
+  else
+    return $pdo->quote($string, $parameter_type);
+}
+
+function logThisAction() {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");
+  $query->execute(Array($_REQUEST["action"], getUsername())) or httperror(print_r($query->errorInfo(),true));
+  $logId = $pdo->lastInsertId();
+  foreach ($_REQUEST as $key => $value) {
+    $key = "request_$key";
+    logAppend($logId, $key, $value);
+  }
+  return $logId;
+}
+
+function logAppend($logId, $key, $value) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log_property (log_id, name, value) VALUES (?, ?, ?)");
+  if (is_array($value)) $value = print_r($value, true);
+  $query->execute(Array($logId, $key, $value)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function getPersonDetailsById($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON p.id = pe.person_id WHERE p.id = ? GROUP BY p.id");
+  $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  if ($query->rowCount() == 0) return false;
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function getPersonDetailsByMail($mail) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("
+SELECT p.*, GROUP_CONCAT(DISTINCT pe1.email ORDER BY pe1.srt) as email
+  FROM {$DB_PREFIX}person p
+       LEFT JOIN {$DB_PREFIX}person_email pe1 ON p.id = pe1.person_id
+       LEFT JOIN {$DB_PREFIX}person_email pe2 ON p.id = pe2.person_id
+ WHERE pe2.email LIKE ?
+ GROUP BY p.id");
+  $query->execute(Array($mail)) or httperror(print_r($query->errorInfo(),true));
+  if ($query->rowCount() == 0) return false;
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function getPersonDetailsByUsername($username) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("
+SELECT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email
+  FROM {$DB_PREFIX}person p
+       LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id
+ WHERE username LIKE ?
+GROUP BY p.id");
+  $query->execute(Array($username)) or httperror(print_r($query->errorInfo(),true));
+  if ($query->rowCount() == 0) return false;
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function getPersonRolle($personId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT rm.id AS id, g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, g.wiki_members_fulltable as gremium_wiki_members_fulltable2, r.id as rolle_id, r.name as rolle_name, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.kommentar as kommentar, rm.lastCheck as lastCheck, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) as active FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND rm.gremium_id = g.id WHERE rm.person_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name, IFNULL(rm.bis,'9999-01-01') DESC, rm.von DESC");
+  $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getPersonGruppe($personId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT g.* FROM {$DB_PREFIX}gruppe g INNER JOIN {$DB_PREFIX}rel_rolle_gruppe r ON g.id = r.gruppe_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON (rm.rolle_id = r.rolle_id) AND ((rm.von IS NULL) OR (rm.von <= CURRENT_DATE)) AND ((rm.bis IS NULL) OR (rm.bis >= CURRENT_DATE)) WHERE rm.person_id = ? ORDER BY g.name");
+  $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getPersonMailingliste($personId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT m.* FROM {$DB_PREFIX}mailingliste m INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste r ON m.id = r.mailingliste_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.rolle_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) WHERE rm.person_id = ? ORDER BY RIGHT(m.address, LENGTH(m.address) - POSITION( '@' in m.address)), LEFT(m.address, POSITION( '@' in m.address))");
+  $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getPersonContactDetails($personId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT t.* FROM {$DB_PREFIX}person_contact t WHERE t.person_id = ? ORDER BY t.type, t.details, t.id");
+  $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function setPersonUsername($personId, $username) {
+  global $pdo, $DB_PREFIX;
+  # username needs to match ^[a-z][-a-z0-9_]*\$
+  $username  = preg_replace('/^[^a-z]*/', '', preg_replace('/[^-a-z0-9_]/', '', strtolower($username)));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET username = ? WHERE id = ?");
+  return $query->execute(Array($username, $personId)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function setPersonPassword($personId, $password) {
+  global $pdo, $DB_PREFIX, $pwObj;
+  if (empty($password)) {
+    $passwordHash = NULL;
+  } else {
+    $passwordHash = @$pwObj->createPasswordHash($password);
+  }
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET password = ? WHERE id = ?");
+  return $query->execute(Array($passwordHash, $personId)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function setPersonWebinfo($personId, $fakultaet, $stg, $matrikel) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET fakultaet = ?, stg = ?, matrikel = ? WHERE id = ?");
+  return $query->execute(Array($fakultaet, $stg, $matrikel, $personId)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function getMailinglisten() {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}mailingliste m ORDER BY RIGHT(m.address, LENGTH(m.address) - POSITION( '@' in m.address)), LEFT(m.address, POSITION( '@' in m.address))");
+  $query->execute() or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getMailinglisteById($mlId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}mailingliste m WHERE id = ?");
+  $query->execute([$mlId]) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function dbMailinglisteInsert($address, $url, $password) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT {$DB_PREFIX}mailingliste (address, url, password) VALUES ( ?, ?, ?)");
+  $ret = $query->execute(Array($address, $url, $password)) or httperror(print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
+}
+
+function dbMailinglisteUpdate($id, $address, $url, $password) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}mailingliste SET address = ?, url = ?, password = ? WHERE id = ?");
+  return $query->execute(Array($address, $url, $password, $id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbMailinglisteDelete($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}mailingliste WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function getMailinglisteMailmanByMailinglisteId($mlId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}mailingliste_mailman mm WHERE (mm.mailingliste_id IS NULL) OR (mm.mailingliste_id = ?) ORDER BY url, field, priority, mailingliste_id");
+  $query->execute([$mlId]) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getMailinglisteMailmanById($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}mailingliste_mailman mm WHERE id = ?");
+  $query->execute([$id]) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function dbMailinglisteMailmanInsert($mailingliste_id, $url, $field, $mode, $priority, $value) {
+  global $pdo, $DB_PREFIX;
+  if ($mailingliste_id == "") $mailingliste_id = NULL;
+  $query = $pdo->prepare("INSERT {$DB_PREFIX}mailingliste_mailman (mailingliste_id, url, field, mode, priority, value) VALUES ( ?, ?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($mailingliste_id, $url, $field, $mode, $priority, $value)) or httperror(print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
+}
+
+function dbMailinglisteMailmanUpdate($id, $mailingliste_id, $url, $field, $mode, $priority, $value) {
+  global $pdo, $DB_PREFIX;
+  if ($mailingliste_id == "") $mailingliste_id = NULL;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}mailingliste_mailman SET mailingliste_id = ?, url = ?, field = ?, mode = ?, priority = ?, value = ? WHERE id = ?");
+  return $query->execute(Array($mailingliste_id, $url, $field, $mode, $priority, $value, $id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbMailinglisteMailmanDelete($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}mailingliste_mailman WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function getMailinglisteRolle($mlId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, g.wiki_members_fulltable as gremium_wiki_members_fulltable2, r.id as rolle_id, r.name as rolle_name FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rm ON rm.rolle_id = r.id WHERE rm.mailingliste_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
+  $query->execute(Array($mlId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function dbMailinglisteDropRolle($mlId, $rolleId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}rel_rolle_mailingliste WHERE mailingliste_id = ? AND rolle_id = ?");
+  return $query->execute(Array($mlId, $rolleId)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbMailinglisteInsertRolle($mlId, $rolleId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rel_rolle_mailingliste (mailingliste_id, rolle_id) VALUES (?, ?)");
+  return $query->execute(Array($mlId, $rolleId)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function getGremiumById($gremiumId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT g.* FROM {$DB_PREFIX}gremium g WHERE g.id = ?");
+  $query->execute(Array($gremiumId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function getRolleByGremiumId($gremiumId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT r.* FROM {$DB_PREFIX}rolle r WHERE r.gremium_id = ?");
+  $query->execute(Array($gremiumId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getRolleById($rolleId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT r.* FROM {$DB_PREFIX}rolle r WHERE r.id = ?");
+  $query->execute(Array($rolleId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function getAlleRolle() {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, g.wiki_members_fulltable2 as gremium_wiki_members_fulltable2, g.active as gremium_active, r.id as rolle_id, r.name as rolle_name, r.active as rolle_active, r.spiGroupId as rolle_spiGroupId, r.numPlatz as rolle_numPlatz, r.wahlDurchWikiSuffix as rolle_wahlDurchWikiSuffix, r.wahlPeriodeDays as rolle_wahlPeriodeDays, r.wiki_members_roleAsColumnTable as rolle_wiki_members_roleAsColumnTable, r.wiki_members_roleAsColumnTableExtended as rolle_wiki_members_roleAsColumnTableExtended, r.wiki_members_roleAsMasterTable as rolle_wiki_members_roleAsMasterTable, r.wiki_members_roleAsMasterTableExtended as rolle_wiki_members_roleAsMasterTableExtended, r.wiki_members as rolle_wiki_members, (rm.id IS NOT NULL) as rolle_hat_mitglied FROM {$DB_PREFIX}gremium g LEFT JOIN {$DB_PREFIX}rolle r LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.rolle_id = r.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) ON g.id = r.gremium_id ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, g.id, r.name, r.id");
+  $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getAllePerson() {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email, (rm.id IS NOT NULL) AS active FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON p.id = rm.person_id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) LEFT JOIN {$DB_PREFIX}person_email pe ON p.id = pe.person_id GROUP BY p.id ORDER BY p.name");
+  $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getAllePersonCurrent() {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT p.* FROM {$DB_PREFIX}person_current p ORDER BY p.name");
+  $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function dbPersonMerge($person_id, $target_id) {
+  global $pdo, $DB_PREFIX;
+  $pdo->beginTransaction() or httperror(print_r($query->errorInfo(),true));
+
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET person_id = ? WHERE person_id = ?");
+  $query->execute([$target_id, $person_id]) or httperror(print_r($query->errorInfo(),true));
+
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person_email SET person_id = ? WHERE person_id = ?");
+  $query->execute([$target_id, $person_id]) or httperror(print_r($query->errorInfo(),true));
+
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person WHERE id = ?");
+  $query->execute([$person_id]) or httperror(print_r($query->errorInfo(),true));
+
+  $pdo->commit() or httperror(print_r($query->errorInfo(),true));
+
+  return true;
+}
+
+function dbPersonDelete($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+}
+
 function dbPersonDisable($id) {
   global $pdo, $DB_PREFIX;
   # disable logins
@@ -482,11 +754,10 @@ function printDBDump() {
   echo "}\n";
 }
 
+# vim: set expandtab tabstop=8 shiftwidth=8 :
 function setPersonImageId($person_id, $image_id) {
   global $pdo, $DB_PREFIX;
   # username needs to match ^[a-z][-a-z0-9_]*\$
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET image = ? WHERE id = ?");
   return $query->execute(Array($image_id, $person_id)) or httperror(print_r($query->errorInfo(),true));
 }
-
-# vim: set expandtab tabstop=8 shiftwidth=8 :
