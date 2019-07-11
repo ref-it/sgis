@@ -77,7 +77,7 @@ if (isset($_POST["action"])) {
      ],
    ];
    echo json_encode(
-     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}person_current", /* primary key */ "id", $columns )
+     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}person_current_mat", /* primary key */ "id", $columns )
    );
   exit;
   case "mailingliste.table":

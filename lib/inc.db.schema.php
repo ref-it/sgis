@@ -1,4 +1,9 @@
 <?php
+
+$DB_VERSION=filemtime(__FILE__);
+$r = $pdo->query("SELECT id FROM {$DB_PREFIX}version WHERE id > ".$DB_VERSION);
+if ($r !== false && count($r->fetchAll()) > 0) return;
+
 # Personen
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person");
 if ($r === false) {
@@ -397,6 +402,22 @@ if ($r === false) {
 			LEFT JOIN {$DB_PREFIX}person_has_unimail hu ON hu.person_id = p.id
 	GROUP BY p.id;")
 	or httperror(print_r($pdo->errorInfo(),true));
+
+        $pdo->query("DROP TABLE {$DB_PREFIX}person_current_mat"); # ignore error if person_current_mat does not exist
+} else {
+	$r->fetchAll();
+}
+
+#$pdo->query("DROP TABLE {$DB_PREFIX}person_current_mat"); # ignore error if person_current_mat does not exist
+
+$r = $pdo->query("SELECT * FROM {$DB_PREFIX}person_current_mat LIMIT 1");
+if ($r === false) {
+        $pdo->query("CREATE TABLE {$DB_PREFIX}person_current_mat
+	SELECT * FROM {$DB_PREFIX}person_current")
+	or httperror(print_r($pdo->errorInfo(),true));
+        $pdo->query("ALTER TABLE {$DB_PREFIX}person_current_mat ADD CONSTRAINT PRIMARY KEY (id)") or httperror(print_r($pdo->errorInfo(),true));
+        $pdo->query("ALTER TABLE {$DB_PREFIX}person_current_mat ADD INDEX (active)") or httperror(print_r($pdo->errorInfo(),true));
+        $pdo->query("ALTER TABLE {$DB_PREFIX}person_current_mat ADD INDEX (canLoginCurrent)") or httperror(print_r($pdo->errorInfo(),true));
 } else {
 	$r->fetchAll();
 }
@@ -466,5 +487,16 @@ if ($r === false) {
 } else {
 	$r->fetchAll();
 }
+
+# Version des DB Schemas
+$r = $pdo->exec("DELETE FROM {$DB_PREFIX}version");
+if ($r === false) {
+	$pdo->query("CREATE TABLE {$DB_PREFIX}version (
+					id INT NOT NULL,
+					PRIMARY KEY (id)
+				) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
+}
+$pdo->exec("INSERT INTO {$DB_PREFIX}version (id) VALUES (".$DB_VERSION.")")
+	or httperror(print_r($pdo->errorInfo(),true));
 
 # vim: set expandtab tabstop=8 shiftwidth=8 :

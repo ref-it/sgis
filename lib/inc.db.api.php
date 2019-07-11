@@ -10,21 +10,58 @@ function dbQuote($string , $parameter_type = NULL ) {
 
 function logThisAction() {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");
-  $query->execute(Array($_REQUEST["action"], getUsername())) or httperror(print_r($query->errorInfo(),true));
+#$time_start = microtime(true);
+  static $query = NULL;
+  $pdo->beginTransaction() or httperror(print_r($query->errorInfo(),true));
+  if ($query === NULL)
+    $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");
+#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
+  $username = getUsername();
+#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
+  $query->execute(Array($_REQUEST["action"], $username)) or httperror(print_r($query->errorInfo(),true));
+#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   $logId = $pdo->lastInsertId();
+#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   foreach ($_REQUEST as $key => $value) {
+#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
     $key = "request_$key";
     logAppend($logId, $key, $value);
+#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   }
+#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
+  $pdo->commit() or httperror(print_r($query->errorInfo(),true));
+#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   return $logId;
 }
 
 function logAppend($logId, $key, $value) {
   global $pdo, $DB_PREFIX;
-  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log_property (log_id, name, value) VALUES (?, ?, ?)");
+  static $query = NULL;
+  if ($query === NULL)
+    $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log_property (log_id, name, value) VALUES (?, ?, ?)");
   if (is_array($value)) $value = print_r($value, true);
   $query->execute(Array($logId, $key, $value)) or httperror(print_r($query->errorInfo(),true));
+}
+
+
+function dbRefreshPersonCurrent($personId = NULL) {
+  global $pdo, $DB_PREFIX;
+  $pdo->beginTransaction() or httperror(print_r($query->errorInfo(),true));
+  _dbRefreshPersonCurrent($personId) or httperror("failure to refresh person_current");
+  $pdo->commit() or httperror(print_r($query->errorInfo(),true));
+  return true;
+}
+
+function _dbRefreshPersonCurrent($personId = NULL) {
+  global $pdo, $DB_PREFIX;
+  if ($personId === NULL) {
+    $r1 = $pdo->exec("TRUNCATE {$DB_PREFIX}person_current_mat") or httperror(print_r($query->errorInfo(),true));
+    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX} SELECT * FROM {$DB_PREFIX}person_current_mat") or httperror(print_r($pdo->errorInfo(),true));
+  } else{
+    $r1 = $pdo->exec("DELETE FROM {$DB_PREFIX} WHERE person_id = ".((int) $personId)) or httperror(print_r($pdo->errorInfo(),true));
+    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX} SELECT * FROM {$DB_PREFIX}person_current_mat WHERE person_id = ".((int) $personId)) or httperror(print_r($pdo->errorInfo(),true));
+  }
+  return ($r1 !== false) && ($r2 !== false);
 }
 
 function getPersonDetailsById($id) {
@@ -95,7 +132,9 @@ function setPersonUsername($personId, $username) {
   # username needs to match ^[a-z][-a-z0-9_]*\$
   $username  = preg_replace('/^[^a-z]*/', '', preg_replace('/[^-a-z0-9_]/', '', strtolower($username)));
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET username = ? WHERE id = ?");
-  return $query->execute(Array($username, $personId)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($username, $personId)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
 function setPersonPassword($personId, $password) {
@@ -106,13 +145,17 @@ function setPersonPassword($personId, $password) {
     $passwordHash = @$pwObj->createPasswordHash($password);
   }
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET password = ? WHERE id = ?");
-  return $query->execute(Array($passwordHash, $personId)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($passwordHash, $personId)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
 function setPersonWebinfo($personId, $fakultaet, $stg, $matrikel) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET fakultaet = ?, stg = ?, matrikel = ? WHERE id = ?");
-  return $query->execute(Array($fakultaet, $stg, $matrikel, $personId)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($fakultaet, $stg, $matrikel, $personId)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
 function getMailinglisten() {
@@ -164,21 +207,21 @@ function getMailinglisteMailmanById($id) {
   return $query->fetch(PDO::FETCH_ASSOC);
 }
 
-function dbMailinglisteMailmanInsert($mailingliste_id, $url, $field, $mode, $priority, $value) {
+function dbMailinglisteMailmanInsert($mailinglisteId, $url, $field, $mode, $priority, $value) {
   global $pdo, $DB_PREFIX;
-  if ($mailingliste_id == "") $mailingliste_id = NULL;
+  if ($mailinglisteId == "") $mailinglisteId = NULL;
   $query = $pdo->prepare("INSERT {$DB_PREFIX}mailingliste_mailman (mailingliste_id, url, field, mode, priority, value) VALUES ( ?, ?, ?, ?, ?, ?)");
-  $ret = $query->execute(Array($mailingliste_id, $url, $field, $mode, $priority, $value)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($mailinglisteId, $url, $field, $mode, $priority, $value)) or httperror(print_r($query->errorInfo(),true));
   if ($ret === false)
     return $ret;
   return $pdo->lastInsertId();
 }
 
-function dbMailinglisteMailmanUpdate($id, $mailingliste_id, $url, $field, $mode, $priority, $value) {
+function dbMailinglisteMailmanUpdate($id, $mailinglisteId, $url, $field, $mode, $priority, $value) {
   global $pdo, $DB_PREFIX;
-  if ($mailingliste_id == "") $mailingliste_id = NULL;
+  if ($mailinglisteId == "") $mailinglisteId = NULL;
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}mailingliste_mailman SET mailingliste_id = ?, url = ?, field = ?, mode = ?, priority = ?, value = ? WHERE id = ?");
-  return $query->execute(Array($mailingliste_id, $url, $field, $mode, $priority, $value, $id)) or httperror(print_r($query->errorInfo(),true));
+  return $query->execute(Array($mailinglisteId, $url, $field, $mode, $priority, $value, $id)) or httperror(print_r($query->errorInfo(),true));
 }
 
 function dbMailinglisteMailmanDelete($id) {
@@ -248,44 +291,50 @@ function getAllePersonCurrent() {
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function dbPersonMerge($person_id, $target_id) {
+function dbPersonMerge($personId, $targetId) {
   global $pdo, $DB_PREFIX;
   $pdo->beginTransaction() or httperror(print_r($query->errorInfo(),true));
 
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET person_id = ? WHERE person_id = ?");
-  $query->execute([$target_id, $person_id]) or httperror(print_r($query->errorInfo(),true));
+  $query->execute([$targetId, $personId]) or httperror(print_r($query->errorInfo(),true));
 
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person_email SET person_id = ? WHERE person_id = ?");
-  $query->execute([$target_id, $person_id]) or httperror(print_r($query->errorInfo(),true));
+  $query->execute([$targetId, $personId]) or httperror(print_r($query->errorInfo(),true));
 
   $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person WHERE id = ?");
-  $query->execute([$person_id]) or httperror(print_r($query->errorInfo(),true));
+  $query->execute([$personId]) or httperror(print_r($query->errorInfo(),true));
+
+  _dbRefreshPersonCurrent();
 
   $pdo->commit() or httperror(print_r($query->errorInfo(),true));
 
   return true;
 }
 
-function dbPersonDelete($id) {
+function dbPersonDelete($personId) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person WHERE id = ?");
-  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
-function dbPersonDisable($id) {
+function dbPersonDisable($personId) {
   global $pdo, $DB_PREFIX;
   # disable logins
   $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET canLogin = 0 WHERE id = ?");
-  $ret1 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $ret1 = $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));
   # terminate memberships
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = subdate(current_date, 1) WHERE person_id = ? AND (bis IS NULL OR bis >= CURRENT_DATE)");
-  $ret2 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
-  $ret3 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
-  return $ret1 && $ret2 && $ret3;
+  $ret2 = $query->execute(Array($personId)) or httperror(print_r($query->errorInfo(),true));
+  $ret3 = _dbRefreshPersonCurrent($personId);
+
+  $ret4 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
+  return $ret1 && $ret2 && $ret3 && $ret4;
 }
 
-function dbPersonUpdate($id,$name,$emails,$unirzlogin,$username,$password,$canlogin,$wikiPage) {
+function dbPersonUpdate($personId,$name,$emails,$unirzlogin,$username,$password,$canlogin,$wikiPage) {
   global $pdo, $DB_PREFIX, $pwObj;
   if (empty($name)) $name = NULL;
   if (empty($unirzlogin)) $unirzlogin = NULL;
@@ -315,16 +364,16 @@ function dbPersonUpdate($id,$name,$emails,$unirzlogin,$username,$password,$canlo
 
   $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET name = ?, unirzlogin = ?, username = ?, canLogin = ?, wikiPage = ? WHERE id = ?");
-  $ret1 = $query->execute([$name, $unirzlogin, $username, $canlogin, $wikiPage, $id]) or httperror(print_r($query->errorInfo(),true));
+  $ret1 = $query->execute([$name, $unirzlogin, $username, $canlogin, $wikiPage, $personId]) or httperror(print_r($query->errorInfo(),true));
   if (empty($password)) {
     $ret2 = true;
   } else {
     $passwordHash = @$pwObj->createPasswordHash($password);
     $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET password = ? WHERE id = ?");
-    $ret2 = $query->execute(Array($passwordHash, $id)) or httperror(print_r($query->errorInfo(),true));
+    $ret2 = $query->execute(Array($passwordHash, $personId)) or httperror(print_r($query->errorInfo(),true));
   }
   $query = $pdo->prepare("SELECT srt, email FROM {$DB_PREFIX}person_email WHERE person_id = ?");
-  $ret3 = $query->execute([$id]) or httperror(print_r($query->errorInfo(),true));
+  $ret3 = $query->execute([$personId]) or httperror(print_r($query->errorInfo(),true));
   if ($ret3 !== false) {
     $tmp = $query->fetchAll(PDO::FETCH_ASSOC);
     $cemails = [];
@@ -336,20 +385,21 @@ function dbPersonUpdate($id,$name,$emails,$unirzlogin,$username,$password,$canlo
     if (!$ret3) continue;
     if (isset($emails[$i]) && ($emails[$i] == $email)) continue;
     $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person_email WHERE person_id = ? AND email = ? AND srt = ?");
-    $ret3 = $query->execute([$id, $email, $i]) or httperror(print_r($query->errorInfo(),true));
+    $ret3 = $query->execute([$personId, $email, $i]) or httperror(print_r($query->errorInfo(),true));
   }
   foreach ($emails as $i => $email) {
     if (!$ret3) continue;
     if (isset($cemails[$i]) && ($cemails[$i] == $email)) continue;
     $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person_email (person_id, srt, email) VALUE (?, ?, ?)");
-    $ret3 = $query->execute([$id, $i, $email]) or httperror(print_r($query->errorInfo(),true));
+    $ret3 = $query->execute([$personId, $i, $email]) or httperror(print_r($query->errorInfo(),true));
   }
   if (!($ret1 && $ret2 && $ret3)) {
     $pdo->rollback();
     httperror("Failed");
   }
-  $ret4 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
-  return $ret1 && $ret2 && $ret3 && $ret4;
+  $ret4 = _dbRefreshPersonCurrent($personId);
+  $ret5 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
+  return $ret1 && $ret2 && $ret3 && $ret4 && $ret5;
 }
 
 function isValidEmail($email) {
@@ -396,14 +446,14 @@ function dbPersonInsert($name,$emails,$unirzlogin,$username,$password,$canlogin,
     $pdo->rollback();
     return $ret;
   }
-  $person_id = $pdo->lastInsertId();
+  $personId = $pdo->lastInsertId();
 
   $i = 0;
   foreach ($emails as $email) {
     if ($email == "") continue;
 
     $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person_email (person_id, srt, email) VALUES (?, ?, ?)");
-    $ret = $query->execute([$person_id, $i, $email]);
+    $ret = $query->execute([$personId, $i, $email]);
     if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
     if ($ret === false) {
       $pdo->rollback();
@@ -413,15 +463,22 @@ function dbPersonInsert($name,$emails,$unirzlogin,$username,$password,$canlogin,
     $i++;
   }
 
+  $ret = _dbRefreshPersonCurrent($personId);
+  if (!$ret && !$quiet) { httperror(print_r($pdo->errorInfo(),true)); }
+  if ($ret === false) {
+    $pdo->rollback();
+    return $ret;
+  }
+
   $ret = $pdo->commit();
   if (!$ret && !$quiet) { httperror(print_r($pdo->errorInfo(),true)); }
   if ($ret === false) {
     return $ret;
   }
-  return $person_id;
+  return $personId;
 }
 
-function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar) {
+function dbPersonInsertRolle($personId,$rolleId,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar) {
   global $pdo, $DB_PREFIX;
   if (empty($von)) $von = NULL;
   if (empty($bis)) $bis = NULL;
@@ -439,13 +496,15 @@ function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschl
     }
   }
   $query = $pdo->prepare("SELECT gremium_id FROM {$DB_PREFIX}rolle WHERE id = ?");
-  $query->execute(Array($rolle_id)) or httperror (print_r($query->errorInfo(),true));
-  $gremium_id = $query->fetchColumn();
+  $query->execute(Array($rolleId)) or httperror (print_r($query->errorInfo(),true));
+  $gremiumId = $query->fetchColumn();
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rel_mitgliedschaft (person_id, rolle_id, gremium_id, von, bis, beschlussAm, beschlussDurch, lastCheck, kommentar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-  return $query->execute(Array($person_id,$rolle_id,$gremium_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($personId,$rolleId,$gremiumId,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
-function dbPersonUpdateRolle($id, $person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar) {
+function dbPersonUpdateRolle($id, $personId,$rolleId,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar) {
   global $pdo, $DB_PREFIX;
   if (empty($von)) $von = NULL;
   if (empty($bis)) $bis = NULL;
@@ -464,16 +523,27 @@ function dbPersonUpdateRolle($id, $person_id,$rolle_id,$von,$bis,$beschlussAm,$b
   }
 
   $query = $pdo->prepare("SELECT gremium_id FROM {$DB_PREFIX}rolle WHERE id = ?");
-  $query->execute(Array($rolle_id)) or httperror (print_r($query->errorInfo(),true));
-  $gremium_id = $query->fetchColumn();
+  $query->execute(Array($rolleId)) or httperror (print_r($query->errorInfo(),true));
+  $gremiumId = $query->fetchColumn();
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET person_id = ?, rolle_id = ?, gremium_id = ?, von = ?, bis = ?, beschlussAm = ?, beschlussDurch = ?, lastCheck = ?, kommentar = ? WHERE id = ?");
-  return $query->execute(Array($person_id,$rolle_id,$gremium_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar,$id)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($personId,$rolleId,$gremiumId,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar,$id)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
 function dbPersonDeleteRolle($id) {
   global $pdo, $DB_PREFIX;
+
+  $query = $pdo->prepare("SELECT person_id FROM {$DB_PREFIX}rel_mitgliedschaft WHERE id = ?");
+  $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $personId = $query->fetchAll();
+  if (count($personId) == 0) return true; # does not exist
+  $personId = $personId[0]["person_id"];
+
   $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}rel_mitgliedschaft WHERE id = ?");
-  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
 function dbPersonDisableRolle($id, $bis = NULL, $grund = "") {
@@ -481,30 +551,51 @@ function dbPersonDisableRolle($id, $bis = NULL, $grund = "") {
   if (empty($bis)) $bis = date("Y-m-d", strtotime("yesterday"));
   $grund = trim($grund);
   if (empty($grund)) $grund = NULL;
+
+  $query = $pdo->prepare("SELECT person_id FROM {$DB_PREFIX}rel_mitgliedschaft WHERE id = ?");
+  $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $personId = $query->fetchAll();
+  if (count($personId) == 0) return true; # does not exist
+  $personId = $personId[0]["person_id"];
+
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = STR_TO_DATE(?, '%Y-%m-%d'), kommentar = concat_ws('\n', kommentar, ?) WHERE id = ? AND (bis IS NULL OR bis > STR_TO_DATE(?, '%Y-%m-%d'))");
-  return $query->execute(Array($bis,$grund,$id,$bis)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($bis,$grund,$id,$bis)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
-function dbPersonInsertContact($person_id,$type,$details,$fromWiki,$active) {
+function dbPersonInsertContact($personId,$type,$details,$fromWiki,$active) {
   global $pdo, $DB_PREFIX;
   $active = ($active || $fromWiki) ? 1 : 0;
   $fromWiki = $fromWiki ? 1 : 0;
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person_contact (person_id, type, details, fromWiki, active) VALUES (?, ?, ?, ?, ?)");
-  return $query->execute(Array($person_id,$type,$details,$fromWiki,$active)) or httperror(print_r($query->errorInfo(),true));
+  return $query->execute(Array($personId,$type,$details,$fromWiki,$active)) or httperror(print_r($query->errorInfo(),true));
 }
 
-function dbPersonUpdateContact($id, $person_id,$type,$details,$fromWiki,$active) {
+function dbPersonUpdateContact($id, $personId,$type,$details,$fromWiki,$active) {
   global $pdo, $DB_PREFIX;
   $active = ($active || !$fromWiki) ? 1 : 0;
   $fromWiki = $fromWiki ? 1 : 0;
+
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person_contact SET person_id = ?, type = ?, details = ?, fromWiki = ?, active = ? WHERE id = ?");
-  return $query->execute(Array($person_id,$type,$details,$fromWiki,$active,$id)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($personId,$type,$details,$fromWiki,$active,$id)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
 function dbPersonDeleteContact($id) {
   global $pdo, $DB_PREFIX;
+
+  $query = $pdo->prepare("SELECT person_id FROM {$DB_PREFIX}person_contact WHERE id = ?");
+  $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $personId = $query->fetchAll();
+  if (count($personId) == 0) return true; # does not exist
+  $personId = $personId[0]["person_id"];
+
   $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person_contact WHERE id = ?");
-  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent($personId);
+  return $ret;
 }
 
 function getGruppeRolle($grpId) {
@@ -540,25 +631,33 @@ function dbGruppeInsert($name, $beschreibung) {
 function dbGruppeUpdate($id, $name, $beschreibung) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}gruppe SET name = ?, beschreibung = ? WHERE id = ?");
-  return $query->execute(Array($name, $beschreibung, $id)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($name, $beschreibung, $id)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent(NULL);
+  return $ret;
 }
 
 function dbGruppeDelete($id) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}gruppe WHERE id = ?");
-  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent(NULL);
+  return $ret;
 }
 
 function dbGruppeDropRolle($grpId, $rolleId) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}rel_rolle_gruppe WHERE gruppe_id = ? AND rolle_id = ?");
-  return $query->execute(Array($grpId, $rolleId)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($grpId, $rolleId)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent(NULL);
+  return $ret;
 }
 
 function dbGruppeInsertRolle($grpId, $rolleId) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rel_rolle_gruppe (gruppe_id, rolle_id) VALUES (?, ?)");
-  return $query->execute(Array($grpId, $rolleId)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($grpId, $rolleId)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent(NULL);
+  return $ret;
 }
 
 function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
@@ -591,15 +690,18 @@ function dbGremiumDisable($id) {
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = subdate(current_date, 1) WHERE gremium_id = ? AND (bis IS NULL OR bis >= CURRENT_DATE)");
   $ret2 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
   $ret3 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
-  return $ret1 && $ret2 && $ret3;
+  $ret = $ret1 && $ret2 && $ret3;;
+  dbRefreshPersonCurrent(NULL);
+  return $ret;
 }
 
-function dbGremiumInsertRolle($gremium_id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended, $wiki_members) {
+function dbGremiumInsertRolle($gremiumId, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended, $wiki_members) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name, active, spiGroupId, numPlatz, wahlDurchWikiSuffix, wahlPeriodeDays, wiki_members_roleAsColumnTable, wiki_members_roleAsColumnTableExtended, wiki_members_roleAsMasterTable, wiki_members_roleAsMasterTableExtended, wiki_members) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-  $ret = $query->execute(Array($gremium_id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended, $wiki_members)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($gremiumId, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended, $wiki_members)) or httperror(print_r($query->errorInfo(),true));
   if ($ret === false)
     return $ret;
+  dbRefreshPersonCurrent(NULL);
   return $pdo->lastInsertId();
 }
 
@@ -612,7 +714,9 @@ function dbGremiumUpdateRolle($id, $name, $active, $spiGroupId, $numPlatz, $wahl
 function dbGremiumDeleteRolle($id) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}rolle WHERE id = ?");
-  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $ret = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));;
+  dbRefreshPersonCurrent(NULL);
+  return $ret;
 }
 
 function dbGremiumDisableRolle($id) {
@@ -624,7 +728,9 @@ function dbGremiumDisableRolle($id) {
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = subdate(current_date, 1) WHERE rolle_id = ? AND (bis IS NULL OR bis >= CURRENT_DATE)");
   $ret2 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
   $ret3 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
-  return $ret1 && $ret2 && $ret3;
+  $ret = $ret1 && $ret2 && $ret3;
+  dbRefreshPersonCurrent(NULL);
+  return $ret;
 }
 
 function getRolleMailinglisten($rolleId) {
@@ -662,10 +768,10 @@ function getAllMitgliedschaft() {
   return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getMitgliedschaftById($rel_id) {
+function getMitgliedschaftById($relId) {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("SELECT rm.* FROM {$DB_PREFIX}rel_mitgliedschaft rm WHERE id = ?");
-  $query->execute([$rel_id]) or httperror(print_r($query->errorInfo(),true));
+  $query->execute([$relId]) or httperror(print_r($query->errorInfo(),true));
   return $query->fetch(PDO::FETCH_ASSOC);
 }
 
@@ -754,11 +860,11 @@ function printDBDump() {
   echo "}\n";
 }
 
-function setPersonImageId($person_id, $image_id) {
+function setPersonImageId($personId, $imageId) {
   global $pdo, $DB_PREFIX;
   # username needs to match ^[a-z][-a-z0-9_]*\$
   $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET image = ? WHERE id = ?");
-  return $query->execute(Array($image_id, $person_id)) or httperror(print_r($query->errorInfo(),true));
+  return $query->execute(Array($imageId, $personId)) or httperror(print_r($query->errorInfo(),true));
 }
 
 # vim: set expandtab tabstop=8 shiftwidth=8 :
