@@ -1,0 +1,492 @@
+<?php
+
+function dbPersonDisable($id) {
+  global $pdo, $DB_PREFIX;
+  # disable logins
+  $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET canLogin = 0 WHERE id = ?");
+  $ret1 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  # terminate memberships
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = subdate(current_date, 1) WHERE person_id = ? AND (bis IS NULL OR bis >= CURRENT_DATE)");
+  $ret2 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $ret3 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
+  return $ret1 && $ret2 && $ret3;
+}
+
+function dbPersonUpdate($id,$name,$emails,$unirzlogin,$username,$password,$canlogin,$wikiPage) {
+  global $pdo, $DB_PREFIX, $pwObj;
+  if (empty($name)) $name = NULL;
+  if (empty($unirzlogin)) $unirzlogin = NULL;
+  if (empty($username)) $username = NULL;
+  if (empty($wikiPage)) $wikiPage = NULL;
+
+  $numEmail = 0; $tmp = [];
+  foreach ($emails as $i => $email) {
+    $email = strtolower(trim($email));
+    $emails[$i] = $email;
+
+    if ($email == "") continue;
+
+    $numEmail++;
+    if (!isValidEmail($email)) {
+      httperror("Ungültige eMail-Adresse: ".htmlspecialchars($email));
+      return false;
+    }
+
+    $tmp[] = $email;
+  }
+  if ($numEmail == 0) {
+    httperror("Ungültige eMail-Adresse");
+    return false;
+  }
+  $emails = array_unique($tmp);
+
+  $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET name = ?, unirzlogin = ?, username = ?, canLogin = ?, wikiPage = ? WHERE id = ?");
+  $ret1 = $query->execute([$name, $unirzlogin, $username, $canlogin, $wikiPage, $id]) or httperror(print_r($query->errorInfo(),true));
+  if (empty($password)) {
+    $ret2 = true;
+  } else {
+    $passwordHash = @$pwObj->createPasswordHash($password);
+    $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET password = ? WHERE id = ?");
+    $ret2 = $query->execute(Array($passwordHash, $id)) or httperror(print_r($query->errorInfo(),true));
+  }
+  $query = $pdo->prepare("SELECT srt, email FROM {$DB_PREFIX}person_email WHERE person_id = ?");
+  $ret3 = $query->execute([$id]) or httperror(print_r($query->errorInfo(),true));
+  if ($ret3 !== false) {
+    $tmp = $query->fetchAll(PDO::FETCH_ASSOC);
+    $cemails = [];
+    foreach ($tmp as $r) {
+      $cemails[$r["srt"]] = $r["email"];
+    }
+  }
+  foreach ($cemails as $i => $email) {
+    if (!$ret3) continue;
+    if (isset($emails[$i]) && ($emails[$i] == $email)) continue;
+    $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person_email WHERE person_id = ? AND email = ? AND srt = ?");
+    $ret3 = $query->execute([$id, $email, $i]) or httperror(print_r($query->errorInfo(),true));
+  }
+  foreach ($emails as $i => $email) {
+    if (!$ret3) continue;
+    if (isset($cemails[$i]) && ($cemails[$i] == $email)) continue;
+    $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person_email (person_id, srt, email) VALUE (?, ?, ?)");
+    $ret3 = $query->execute([$id, $i, $email]) or httperror(print_r($query->errorInfo(),true));
+  }
+  if (!($ret1 && $ret2 && $ret3)) {
+    $pdo->rollback();
+    httperror("Failed");
+  }
+  $ret4 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
+  return $ret1 && $ret2 && $ret3 && $ret4;
+}
+
+function isValidEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL)
+        && preg_match('/@.+\./', $email);
+}
+
+function dbPersonInsert($name,$emails,$unirzlogin,$username,$password,$canlogin,$wikiPage, $quiet=false) {
+  global $pdo, $DB_PREFIX, $pwObj;
+  if (empty($name)) $name = NULL;
+  if (empty($unirzlogin)) $unirzlogin = NULL;
+  if (empty($username)) $username = NULL;
+  if (empty($password)) { $passwordHash = NULL;  } else { $passwordHash = @$pwObj->createPasswordHash($password); }
+  if (empty($wikiPage)) $wikiPage = NULL;
+  if (!is_array($emails)) $emails = [$emails];
+  $numEmail = 0;
+  foreach ($emails as $i => $email) {
+    $email = strtolower(trim($email));
+    $emails[$i] = $email;
+    if ($email == "") continue;
+    $numEmail++;
+    if (!isValidEmail($email)) {
+      httperror("Ungültige eMail-Adresse");
+      return false;
+    }
+  }
+  if ($numEmail == 0) {
+    httperror("Ungültige eMail-Adresse");
+    return false;
+  }
+  $emails = array_unique($emails);
+
+  $ret = $pdo->beginTransaction();
+  if (!$ret && !$quiet) { httperror(print_r($pdo->errorInfo(),true)); }
+  if ($ret === false) {
+    httperror("DB ERROR: CANNOT START TRANSACTION");
+    return $ret;
+  }
+
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person (name, unirzlogin, username, password, canLogin, wikiPage) VALUES (?, ?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($name, $unirzlogin, $username, $passwordHash, $canlogin, $wikiPage));
+  if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
+  if ($ret === false) {
+    $pdo->rollback();
+    return $ret;
+  }
+  $person_id = $pdo->lastInsertId();
+
+  $i = 0;
+  foreach ($emails as $email) {
+    if ($email == "") continue;
+
+    $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person_email (person_id, srt, email) VALUES (?, ?, ?)");
+    $ret = $query->execute([$person_id, $i, $email]);
+    if (!$ret && !$quiet) { httperror(print_r($query->errorInfo(),true)); }
+    if ($ret === false) {
+      $pdo->rollback();
+      return $ret;
+    }
+
+    $i++;
+  }
+
+  $ret = $pdo->commit();
+  if (!$ret && !$quiet) { httperror(print_r($pdo->errorInfo(),true)); }
+  if ($ret === false) {
+    return $ret;
+  }
+  return $person_id;
+}
+
+function dbPersonInsertRolle($person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar) {
+  global $pdo, $DB_PREFIX;
+  if (empty($von)) $von = NULL;
+  if (empty($bis)) $bis = NULL;
+  if (empty($beschlussAm)) $beschlussAm = NULL;
+  if (empty($beschlussDurch)) $beschlussDurch = NULL;
+  if (empty($lastCheck)) $lastCheck = NULL;
+  if (empty($kommentar)) $kommentar = NULL;
+  if ($von !== NULL && $bis !== NULL) {
+    $query = $pdo->prepare("SELECT cast(? AS DATE) <= cast(? AS DATE) AS valid");
+    $query->execute(Array($von, $bis)) or httperror (print_r($query->errorInfo(),true));
+    $validDates = (bool) $query->fetchColumn();
+    if (!$validDates) {
+      httperror("Ungültige Bereichsangabe (von > bis)");
+      return false;
+    }
+  }
+  $query = $pdo->prepare("SELECT gremium_id FROM {$DB_PREFIX}rolle WHERE id = ?");
+  $query->execute(Array($rolle_id)) or httperror (print_r($query->errorInfo(),true));
+  $gremium_id = $query->fetchColumn();
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rel_mitgliedschaft (person_id, rolle_id, gremium_id, von, bis, beschlussAm, beschlussDurch, lastCheck, kommentar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  return $query->execute(Array($person_id,$rolle_id,$gremium_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbPersonUpdateRolle($id, $person_id,$rolle_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar) {
+  global $pdo, $DB_PREFIX;
+  if (empty($von)) $von = NULL;
+  if (empty($bis)) $bis = NULL;
+  if (empty($beschlussAm)) $beschlussAm = NULL;
+  if (empty($beschlussDurch)) $beschlussDurch = NULL;
+  if (empty($lastCheck)) $lastCheck = NULL;
+  if (empty($kommentar)) $kommentar = NULL;
+  if ($von !== NULL && $bis !== NULL) {
+    $query = $pdo->prepare("SELECT cast(? as DATE) <= cast(? as DATE) AS valid");
+    $query->execute(Array($von, $bis)) or httperror (print_r($query->errorInfo(),true));
+    $validDates = (bool) $query->fetchColumn();
+    if (!$validDates) {
+      httperror("Ungültige Bereichsangabe (von > bis)");
+      return false;
+    }
+  }
+
+  $query = $pdo->prepare("SELECT gremium_id FROM {$DB_PREFIX}rolle WHERE id = ?");
+  $query->execute(Array($rolle_id)) or httperror (print_r($query->errorInfo(),true));
+  $gremium_id = $query->fetchColumn();
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET person_id = ?, rolle_id = ?, gremium_id = ?, von = ?, bis = ?, beschlussAm = ?, beschlussDurch = ?, lastCheck = ?, kommentar = ? WHERE id = ?");
+  return $query->execute(Array($person_id,$rolle_id,$gremium_id,$von,$bis,$beschlussAm,$beschlussDurch,$lastCheck,$kommentar,$id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbPersonDeleteRolle($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}rel_mitgliedschaft WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbPersonDisableRolle($id, $bis = NULL, $grund = "") {
+  global $pdo, $DB_PREFIX;
+  if (empty($bis)) $bis = date("Y-m-d", strtotime("yesterday"));
+  $grund = trim($grund);
+  if (empty($grund)) $grund = NULL;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = STR_TO_DATE(?, '%Y-%m-%d'), kommentar = concat_ws('\n', kommentar, ?) WHERE id = ? AND (bis IS NULL OR bis > STR_TO_DATE(?, '%Y-%m-%d'))");
+  return $query->execute(Array($bis,$grund,$id,$bis)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbPersonInsertContact($person_id,$type,$details,$fromWiki,$active) {
+  global $pdo, $DB_PREFIX;
+  $active = ($active || $fromWiki) ? 1 : 0;
+  $fromWiki = $fromWiki ? 1 : 0;
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}person_contact (person_id, type, details, fromWiki, active) VALUES (?, ?, ?, ?, ?)");
+  return $query->execute(Array($person_id,$type,$details,$fromWiki,$active)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbPersonUpdateContact($id, $person_id,$type,$details,$fromWiki,$active) {
+  global $pdo, $DB_PREFIX;
+  $active = ($active || !$fromWiki) ? 1 : 0;
+  $fromWiki = $fromWiki ? 1 : 0;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person_contact SET person_id = ?, type = ?, details = ?, fromWiki = ?, active = ? WHERE id = ?");
+  return $query->execute(Array($person_id,$type,$details,$fromWiki,$active,$id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbPersonDeleteContact($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}person_contact WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function getGruppeRolle($grpId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT g.id AS gremium_id, g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, g.wiki_members as gremium_wiki_members, g.wiki_members_table as gremium_wiki_members_table, g.wiki_members_fulltable as gremium_wiki_members_fulltable, g.wiki_members_fulltable2 as gremium_wiki_members_fulltable2, r.id as rolle_id, r.name as rolle_name FROM {$DB_PREFIX}gremium g INNER JOIN {$DB_PREFIX}rolle r ON g.id = r.gremium_id INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rg ON rg.rolle_id = r.id WHERE rg.gruppe_id = ? ORDER BY g.name, g.fakultaet, g.studiengang, g.studiengangabschluss, r.name");
+  $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getGruppeById($grpId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}gruppe WHERE id = ?");
+  $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function getAlleGruppe() {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}gruppe ORDER BY name");
+  $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function dbGruppeInsert($name, $beschreibung) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT {$DB_PREFIX}gruppe (name, beschreibung) VALUES ( ?, ?)");
+  $ret = $query->execute(Array($name, $beschreibung)) or httperror(print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
+}
+
+function dbGruppeUpdate($id, $name, $beschreibung) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gruppe SET name = ?, beschreibung = ? WHERE id = ?");
+  return $query->execute(Array($name, $beschreibung, $id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbGruppeDelete($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}gruppe WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbGruppeDropRolle($grpId, $rolleId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}rel_rolle_gruppe WHERE gruppe_id = ? AND rolle_id = ?");
+  return $query->execute(Array($grpId, $rolleId)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbGruppeInsertRolle($grpId, $rolleId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rel_rolle_gruppe (gruppe_id, rolle_id) VALUES (?, ?)");
+  return $query->execute(Array($grpId, $rolleId)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbGremiumInsert($name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT {$DB_PREFIX}gremium (name, fakultaet, studiengang, studiengang_short, studiengang_english, studiengangabschluss, wiki_members, wiki_members_table, wiki_members_fulltable, active, wiki_members_fulltable2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($name, $fakultaet, $studiengang, $studiengang_short, $studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2)) or httperror(__FILE__.":".__LINE__." ".print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
+}
+
+function dbGremiumUpdate($id, $name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET name = ?, fakultaet = ?, studiengang = ?, studiengang_short = ?, studiengang_english = ?, studiengangabschluss = ?, wiki_members = ?, wiki_members_table = ?, wiki_members_fulltable = ?, active = ?, wiki_members_fulltable2 = ? WHERE id = ?");
+  return $query->execute(Array($name, $fakultaet, $studiengang, $studiengang_short,$studiengang_english, $studiengangabschluss, $wiki_members, $wiki_members_table, $wiki_members_fulltable, $active, $wiki_members_fulltable2, $id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbGremiumDelete($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}gremium WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbGremiumDisable($id) {
+  global $pdo, $DB_PREFIX;
+  $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}gremium SET active = 0 WHERE id = ?");
+  $ret1 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  # terminate memberships
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = subdate(current_date, 1) WHERE gremium_id = ? AND (bis IS NULL OR bis >= CURRENT_DATE)");
+  $ret2 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $ret3 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
+  return $ret1 && $ret2 && $ret3;
+}
+
+function dbGremiumInsertRolle($gremium_id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended, $wiki_members) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}rolle (gremium_id, name, active, spiGroupId, numPlatz, wahlDurchWikiSuffix, wahlPeriodeDays, wiki_members_roleAsColumnTable, wiki_members_roleAsColumnTableExtended, wiki_members_roleAsMasterTable, wiki_members_roleAsMasterTableExtended, wiki_members) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  $ret = $query->execute(Array($gremium_id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended, $wiki_members)) or httperror(print_r($query->errorInfo(),true));
+  if ($ret === false)
+    return $ret;
+  return $pdo->lastInsertId();
+}
+
+function dbGremiumUpdateRolle($id, $name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended, $wiki_members) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rolle SET name = ?, active = ?, spiGroupId = ?, numPlatz = ?, wahlDurchWikiSuffix = ?, wahlPeriodeDays = ?, wiki_members_roleAsColumnTable = ?, wiki_members_roleAsColumnTableExtended = ?, wiki_members_roleAsMasterTable = ?, wiki_members_roleAsMasterTableExtended = ?, wiki_members = ? WHERE id = ?");
+  return $query->execute(Array($name, $active, $spiGroupId, $numPlatz, $wahlDurchWikiSuffix, $wahlPeriodeDays, $wiki_members_roleAsColumnTable, $wiki_members_roleAsColumnTableExtended, $wiki_members_roleAsMasterTable, $wiki_members_roleAsMasterTableExtended, $wiki_members, $id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbGremiumDeleteRolle($id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("DELETE FROM {$DB_PREFIX}rolle WHERE id = ?");
+  return $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+function dbGremiumDisableRolle($id) {
+  global $pdo, $DB_PREFIX;
+  $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rolle SET active = 0 WHERE id = ?");
+  $ret1 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  # terminate memberships
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}rel_mitgliedschaft SET bis = subdate(current_date, 1) WHERE rolle_id = ? AND (bis IS NULL OR bis >= CURRENT_DATE)");
+  $ret2 = $query->execute(Array($id)) or httperror(print_r($query->errorInfo(),true));
+  $ret3 = $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
+  return $ret1 && $ret2 && $ret3;
+}
+
+function getRolleMailinglisten($rolleId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT m.* FROM {$DB_PREFIX}mailingliste m INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rm ON rm.mailingliste_id = m.id WHERE rm.rolle_id = ? ORDER BY RIGHT(m.address, LENGTH(m.address) - POSITION( '@' in m.address)), LEFT(m.address, POSITION( '@' in m.address))");
+  $query->execute(Array($rolleId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getRolleGruppen($rolleId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT grp.* FROM {$DB_PREFIX}gruppe grp INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rgrp ON rgrp.gruppe_id = grp.id WHERE rgrp.rolle_id = ? ORDER BY grp.name");
+  $query->execute(Array($rolleId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getRollePersonen($rolleId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email, rp.id AS rel_id, rp.von, rp.bis, rp.beschlussAm, rp.beschlussDurch, rp.lastCheck, rp.kommentar, ((rp.von <= CURRENT_DATE OR rp.von IS NULL) AND (rp.bis >= CURRENT_DATE OR rp.bis IS NULL)) AS active FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rp ON rp.person_id = p.id WHERE rp.rolle_id = ? GROUP BY rp.id ORDER BY name");
+  $query->execute(Array($rolleId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getActiveMitgliedschaftByMail($email, $rolleId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT rm.* FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id WHERE email = ? AND rm.rolle_id = ? AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) ORDER BY rm.id");
+  $query->execute(Array($email, $rolleId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getAllMitgliedschaft() {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT g.name as gremium_name, g.fakultaet as gremium_fakultaet, g.studiengang as gremium_studiengang, g.studiengangabschluss as gremium_studiengangabschluss, r.name as rolle_name, email as person_email, p.name as person_name, p.username as person_username, rm.von as von, rm.bis as bis, rm.beschlussAm as beschlussAm, rm.beschlussDurch as beschlussDurch, rm.lastCheck, rm.kommentar as kommentar, ((rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE)) AS aktiv FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id INNER JOIN {$DB_PREFIX}gremium g ON g.id = rm.gremium_id INNER JOIN {$DB_PREFIX}rolle r ON r.id = rm.rolle_id ORDER BY g.name, g.id, r.name, r.id, RIGHT(email, LENGTH(email) - POSITION( '@' in email)), LEFT(email, POSITION( '@' in email))");
+  $query->execute() or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getMitgliedschaftById($rel_id) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT rm.* FROM {$DB_PREFIX}rel_mitgliedschaft rm WHERE id = ?");
+  $query->execute([$rel_id]) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetch(PDO::FETCH_ASSOC);
+}
+
+function getMailinglistePerson($mlId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT pe.email FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}person_email_primary pe ON p.id = pe.person_id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rm.rolle_id = rrm.rolle_id AND rrm.mailingliste_id = ? ORDER BY email");
+  $query->execute(Array($mlId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_COLUMN);
+}
+
+function getMailinglistePersonDetails($mlId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY srt) as email FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email_primary pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_mailingliste rrm ON rm.rolle_id = rrm.rolle_id AND rrm.mailingliste_id = ? GROUP BY p.name, p.id");
+  $query->execute(Array($mlId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+# deprecated
+function getGruppePerson($grpId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT pe.email FROM {$DB_PREFIX}person p INNER JOIN {$DB_PREFIX}person_email_primary pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rm.rolle_id = rrg.rolle_id AND rrg.gruppe_id = ? ORDER BY email");
+  $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_COLUMN);
+}
+
+function getGruppePersonDetails($grpId) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("SELECT DISTINCT p.*, GROUP_CONCAT(DISTINCT pe.email ORDER BY pe.srt) as email FROM {$DB_PREFIX}person p LEFT JOIN {$DB_PREFIX}person_email pe ON pe.person_id = p.id INNER JOIN {$DB_PREFIX}rel_mitgliedschaft rm ON rm.person_id = p.id AND (rm.von IS NULL OR rm.von <= CURRENT_DATE) AND (rm.bis IS NULL OR rm.bis >= CURRENT_DATE) INNER JOIN {$DB_PREFIX}rel_rolle_gruppe rrg ON rm.rolle_id = rrg.rolle_id AND rrg.gruppe_id = ? GROUP BY p.id ORDER BY email");
+  $query->execute(Array($grpId)) or httperror(print_r($query->errorInfo(),true));
+  return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getDBDump() {
+  global $pdo, $DB_PREFIX;
+  $tables = Array("person" => "id",
+                  "person_email" => "person_id, email",
+                  "gruppe" => "id",
+                  "gremium" => "id",
+                  "log" => "id",
+                  "log_property" => "id",
+                  "mailingliste" => "id",
+                  "rel_mitgliedschaft" => "id",
+                  "rel_rolle_gruppe" => "rolle_id, gruppe_id",
+                  "rel_rolle_mailingliste" => "rolle_id, mailingliste_id",
+                  "rolle" => "id",
+                 );
+  $ret = Array();
+  ksort($tables);
+  foreach ($tables as $t => $s) {
+    $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}{$t} ORDER BY {$s}");
+    $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+    $ret[$t] = $query->fetchAll(PDO::FETCH_ASSOC);
+  }
+  #ksort($ret);
+  return $ret;
+}
+
+function printDBDump() {
+  global $pdo, $DB_PREFIX;
+  $tables = Array("person" => "id",
+                  "person_email" => "person_id, email",
+                  "gruppe" => "id",
+                  "gremium" => "id",
+                  "log" => "id",
+                  "log_property" => "id",
+                  "mailingliste" => "id",
+                  "rel_mitgliedschaft" => "id",
+                  "rel_rolle_gruppe" => "rolle_id, gruppe_id",
+                  "rel_rolle_mailingliste" => "rolle_id, mailingliste_id",
+                  "rolle" => "id",
+                 );
+  ksort($tables);
+  echo "{\n";
+  foreach ($tables as $t => $s) {
+    $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}{$t} ORDER BY {$s}");
+    $query->execute(Array()) or httperror(print_r($query->errorInfo(),true));
+    echo "    \"$t\": [\n";
+    while (($row = $query->fetch(PDO::FETCH_ASSOC)) !== false) {
+      $rows = explode("\n", json_encode($row, JSON_PRETTY_PRINT).",");
+      foreach ($rows as $row) {
+        echo "        $row\n";
+      }
+    }
+    echo "    ],\n";
+  }
+  echo "}\n";
+}
+
+function setPersonImageId($person_id, $image_id) {
+  global $pdo, $DB_PREFIX;
+  # username needs to match ^[a-z][-a-z0-9_]*\$
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET image = ? WHERE id = ?");
+  return $query->execute(Array($image_id, $person_id)) or httperror(print_r($query->errorInfo(),true));
+}
+
+# vim: set expandtab tabstop=8 shiftwidth=8 :
