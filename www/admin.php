@@ -1,10 +1,13 @@
 <?php
-
+#$time_start = microtime(true);
 global $attributes, $logoutUrl, $ADMINGROUP, $nonce;
-ob_start('ob_gzhandler');
+
+#ob_start('ob_gzhandler'); # disabled, slows down too much
 
 require_once "../lib/inc.all.php";
+#header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
 requireGroup($ADMINGROUP);
+#header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
 
 # 2016-11-15 somehow this is now escaped automatically
 function escapeMeNot($d, $row) {
@@ -31,7 +34,12 @@ if (isset($_POST["action"])) {
   $msgs[] = "Formular veraltet - CSRF Schutz aktiviert.";
   $logId = false;
  } else {
-  $logId = logThisAction();
+  #header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
+  $logId = false;
+  if (substr($_POST["action"], -6) != ".table") {
+    $logId = logThisAction();
+  }
+  ##header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
   if (strpos($_POST["action"],"insert") !== false ||
       strpos($_POST["action"],"update") !== false ||
       strpos($_POST["action"],"delete") !== false) {
@@ -39,10 +47,12 @@ if (isset($_POST["action"])) {
       $_REQUEST[$k] = trimMe($v);
     }
   }
+  #header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
 
   switch ($_POST["action"]):
   case "person.table":
    header("Content-Type: text/json; charset=UTF-8");
+  #header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
    $columns = [
      [ 'db' => 'id',                 'dt' => 'id' ],
      [ 'db' => 'email',              'dt' => 'email',    'formatter' => 'escapeMeNot' ],
@@ -76,9 +86,10 @@ if (isset($_POST["action"])) {
        }
      ],
    ];
-   echo json_encode(
-     SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}person_current_mat", /* primary key */ "id", $columns )
-   );
+#header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
+    $ret = SSP::simple( $_POST, ["dsn" => $DB_DSN, "user" => $DB_USERNAME, "pass" => $DB_PASSWORD], "{$DB_PREFIX}person_current_mat", /* primary key */ "id", $columns );
+    echo json_encode($ret);
+#header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
   exit;
   case "mailingliste.table":
    header("Content-Type: text/json; charset=UTF-8");
@@ -527,7 +538,9 @@ if (isset($_POST["action"])) {
    }
   break;
   default:
-   logAppend($logId, "__result", "invalid action");
+   if ($logId !== false) {
+     logAppend($logId, "__result", "invalid action");
+   }
    die("Aktion nicht bekannt.");
   endswitch;
  } /* switch */
