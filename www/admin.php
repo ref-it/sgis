@@ -1,6 +1,6 @@
 <?php
 $time_start = microtime(true);
-global $attributes, $logoutUrl, $ADMINGROUP, $nonce;
+global $attributes, $logoutUrl, $ADMINGROUP, $nonce, $dbDeferRefresh;
 
 #ob_start('ob_gzhandler'); # disabled, slows down too much
 
@@ -34,12 +34,12 @@ if (isset($_POST["action"])) {
   $msgs[] = "Formular veraltet - CSRF Schutz aktiviert.";
   $logId = false;
  } else {
-  #header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
+  header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
   $logId = false;
   if (substr($_POST["action"], -6) != ".table") {
     $logId = logThisAction();
   }
-  ##header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
+  header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
   if (strpos($_POST["action"],"insert") !== false ||
       strpos($_POST["action"],"update") !== false ||
       strpos($_POST["action"],"delete") !== false) {
@@ -47,7 +47,7 @@ if (isset($_POST["action"])) {
       $_REQUEST[$k] = trimMe($v);
     }
   }
-  #header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
+  header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
 
   switch ($_POST["action"]):
   case "person.table":
@@ -229,7 +229,6 @@ if (isset($_POST["action"])) {
    $msgs[] = "Mailinglisten-Rollenzuordnung wurde eingetragen.";
   break;
   case "person.duplicate":
-
    $tmp = getAllePerson();
    $personen = [];
    foreach ($tmp as $p) {
@@ -306,9 +305,12 @@ if (isset($_POST["action"])) {
    $msgs[] = "Person wurde deaktiviert.";
   break;
   case "person.update":
+   $dbDeferRefresh = true;
+header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
    $ret = dbPersonUpdate($_POST["id"],trim($_POST["name"]),$_POST["email"],trim($_POST["unirzlogin"]),trim($_POST["username"]),$_POST["password"],$_POST["canlogin"],$_POST["wikiPage"]);
    $msgs[] = "Person wurde aktualisiert.";
 
+header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
    foreach ($_POST["_contactDetails_id"] as $i => $id) {
      if ($id < 0 && (trim($_POST["_contactDetails_details"][$i]) != "")) {
        $ret1 = dbPersonInsertContact($_POST["id"],trim($_POST["_contactDetails_type"][$i]),trim($_POST["_contactDetails_details"][$i]),$_POST["_contactDetails_fromWiki"][$i],$_POST["_contactDetails_active"][$i]);
@@ -327,10 +329,16 @@ if (isset($_POST["action"])) {
        $needReload = true;
      }
      $ret = $ret && $ret1;
+header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
    }
+header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
+   $dbDeferRefresh = false;
+   dbRefreshPersonCurrent($_POST["id"]);
+header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
 
   break;
   case "person.insert":
+   $dbDeferRefresh = true;
    $quiet = isset($_FILES["csv"]) && !empty($_FILES["csv"]["tmp_name"]);
    $ret = true;
    if (!empty($_POST["email"]) || !$quiet) {
@@ -366,6 +374,8 @@ if (isset($_POST["action"])) {
        fclose($handle);
      }
    }
+   $dbDeferRefresh = false;
+   dbRefreshPersonCurrent($quiet ? NULL : $personId);
   break;
   case "rolle_person.insert":
    if ($_POST["person_id"] < 0) {
@@ -458,6 +468,7 @@ if (isset($_POST["action"])) {
      $ret = false;
      $msgs[] = "Keine Rolle ausgewählt.";
    } else {
+     $dbDeferRefresh = true;
      $emails = explode("\n", $_REQUEST["email"]);
      foreach ($emails as $email) {
        $email = strtolower(trim($email));
@@ -509,11 +520,14 @@ if (isset($_POST["action"])) {
        } else {
          $msgs[] = "IGN Person-Rollen-Zuordnung für $email wurde übersprungen.";
        }
-     }
+     } // foreach
+     $dbDeferRefresh = false;
+     dbRefreshPersonCurrent(NULL);
      $ret = true;
    }
   break;
   case "rolle_person.bulkdisable":
+   $dbDeferRefresh = true;
    if (is_array($_REQUEST["email"])) {
      $_REQUEST["email"] = implode("\n", $_REQUEST["email"]);
    }
@@ -536,6 +550,8 @@ if (isset($_POST["action"])) {
        $msgs[] = "Person-Rollen-Zuordnung für $email wurde beendet.";
      }
    }
+   $dbDeferRefresh = false;
+   dbRefreshPersonCurrent(NULL);
   break;
   default:
    if ($logId !== false) {

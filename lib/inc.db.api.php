@@ -1,4 +1,8 @@
-<?php
+<?
+
+global $dbDeferRefresh;
+
+$dbDeferRefresh = false;
 
 function dbQuote($string , $parameter_type = NULL ) {
   global $pdo;
@@ -11,7 +15,7 @@ function dbQuote($string , $parameter_type = NULL ) {
 function logThisAction() {
   global $pdo, $DB_PREFIX;
   static $query = NULL;
-  $pdo->beginTransaction() or httperror(print_r($query->errorInfo(),true));
+  $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
   if ($query === NULL)
     $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");
   $username = getUsername();
@@ -21,7 +25,7 @@ function logThisAction() {
     $key = "request_$key";
     logAppend($logId, $key, $value);
   }
-  $pdo->commit() or httperror(print_r($query->errorInfo(),true));
+  $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
   return $logId;
 }
 
@@ -36,22 +40,32 @@ function logAppend($logId, $key, $value) {
 
 
 function dbRefreshPersonCurrent($personId = NULL) {
-  global $pdo, $DB_PREFIX;
-  $pdo->beginTransaction() or httperror(print_r($query->errorInfo(),true));
+  global $pdo, $DB_PREFIX, $dbDeferRefresh;
+
+  if ($dbDeferRefresh) return true;
+  $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
   _dbRefreshPersonCurrent($personId) or httperror("failure to refresh person_current");
-  $pdo->commit() or httperror(print_r($query->errorInfo(),true));
+  $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
   return true;
 }
 
 function _dbRefreshPersonCurrent($personId = NULL) {
-  global $pdo, $DB_PREFIX;
+  global $pdo, $DB_PREFIX, $dbDeferRefresh;
+  if ($dbDeferRefresh) return true;
+global $time_start;
+static $i = 0;
+$i++;
+header("X-Trace-".basename(__FILE__)."-".__LINE__."-$i: ".round((microtime(true) - $time_start)*1000,2)."ms");
   if ($personId === NULL) {
-    $r1 = $pdo->exec("TRUNCATE {$DB_PREFIX}person_current_mat") or httperror(print_r($query->errorInfo(),true));
-    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX} SELECT * FROM {$DB_PREFIX}person_current_mat") or httperror(print_r($pdo->errorInfo(),true));
+    $r1 = $pdo->exec("TRUNCATE {$DB_PREFIX}person_current_mat") or httperror(print_r($pdo->errorInfo(),true));
+header("X-Trace-".basename(__FILE__)."-".__LINE__."-$i: ".round((microtime(true) - $time_start)*1000,2)."ms");
+    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX}person_current_mat SELECT * FROM {$DB_PREFIX}person_current") or httperror(print_r($pdo->errorInfo(),true));
   } else{
-    $r1 = $pdo->exec("DELETE FROM {$DB_PREFIX} WHERE person_id = ".((int) $personId)) or httperror(print_r($pdo->errorInfo(),true));
-    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX} SELECT * FROM {$DB_PREFIX}person_current_mat WHERE person_id = ".((int) $personId)) or httperror(print_r($pdo->errorInfo(),true));
+    $r1 = $pdo->exec("DELETE FROM {$DB_PREFIX}person_current_mat WHERE id = ".((int) $personId)) or httperror(print_r($pdo->errorInfo(),true));
+header("X-Trace-".basename(__FILE__)."-".__LINE__."-$i: ".round((microtime(true) - $time_start)*1000,2)."ms");
+    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX}person_current_mat SELECT * FROM {$DB_PREFIX}person_current WHERE id = ".((int) $personId)) or httperror(print_r($pdo->errorInfo(),true));
   }
+header("X-Trace-".basename(__FILE__)."-".__LINE__."-$i: ".round((microtime(true) - $time_start)*1000,2)."ms");
   return ($r1 !== false) && ($r2 !== false);
 }
 
