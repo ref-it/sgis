@@ -26,6 +26,8 @@ function getClient() {
   global $wikiUrl, $CA_file;
   static $wikiClient;
   if (!$wikiClient) {
+    require_once SGISBASE.'/lib/inc.sni.php';
+    require_once 'XML/RPC2/Client.php';
     $request = new HTTP_Request2_SNI();
     $request->setConfig("ssl_cafile", $CA_file);
     $wikiClient = XML_RPC2_Client::create($wikiUrl."/lib/exe/xmlrpc.php", Array("httpRequest" => $request, "backend" => "php"));

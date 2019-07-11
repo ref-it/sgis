@@ -1,6 +1,8 @@
 <?php
 
-require_once 'Net/LDAP2.php';
+function load_ldap2() {
+  require_once 'Net/LDAP2.php';
+}
 
 function verify_tui_mail($email) {
   global $unimail, $unildaphost, $unildapbase;
@@ -14,6 +16,7 @@ function verify_tui_mail($email) {
   if (!$found) return false;
 
   if ($ds === false) {
+    load_ldap2();
     $ds = Net_LDAP2::connect(array("host" => $unildaphost));
   }
   if (Net_LDAP2::isError($ds)) {
@@ -37,6 +40,7 @@ function verify_tui_mail($email) {
 function verify_tui_mail_many($emails) {
   global $unimail, $unildaphost, $unildapbase;
 
+  load_ldap2();
   $ds = Net_LDAP2::connect(array("host" => $unildaphost));
   if (Net_LDAP2::isError($ds)) {
     die($ds->getMessage()); // this will tell you what went wrong!

@@ -10,27 +10,18 @@ function dbQuote($string , $parameter_type = NULL ) {
 
 function logThisAction() {
   global $pdo, $DB_PREFIX;
-#$time_start = microtime(true);
   static $query = NULL;
   $pdo->beginTransaction() or httperror(print_r($query->errorInfo(),true));
   if ($query === NULL)
     $query = $pdo->prepare("INSERT INTO {$DB_PREFIX}log (action, responsible) VALUES (?, ?)");
-#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   $username = getUsername();
-#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   $query->execute(Array($_REQUEST["action"], $username)) or httperror(print_r($query->errorInfo(),true));
-#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   $logId = $pdo->lastInsertId();
-#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   foreach ($_REQUEST as $key => $value) {
-#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
     $key = "request_$key";
     logAppend($logId, $key, $value);
-#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   }
-#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   $pdo->commit() or httperror(print_r($query->errorInfo(),true));
-#echo "<!-- ".basename(__FILE__).":".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms -->\n";
   return $logId;
 }
 

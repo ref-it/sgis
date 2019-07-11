@@ -38,6 +38,7 @@ function getClientSpi($groupId, $write = false) {
   global $sPiBase, $sPiGroupSet, $sPiGroupGet, $sPiUser, $sPiPassword, $sPiCA_file;
   $url = sprintf($sPiBase . ($write ? $sPiGroupSet : $sPiGroupGet), $groupId);
 
+  require_once SGISBASE.'/lib/inc.sni.php';
   $request = new HTTP_Request2_SNI();
   $request->setConfig("ssl_cafile", $sPiCA_file);
   $request->setUrl($url);

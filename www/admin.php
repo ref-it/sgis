@@ -1,5 +1,5 @@
 <?php
-#$time_start = microtime(true);
+$time_start = microtime(true);
 global $attributes, $logoutUrl, $ADMINGROUP, $nonce;
 
 #ob_start('ob_gzhandler'); # disabled, slows down too much
