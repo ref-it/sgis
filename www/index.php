@@ -180,6 +180,32 @@ if (isset($_POST["action"]) && ($_POST["action"] == "pwchange")) {
 			die();
 		}
 	}
+} else if (isset($_POST["action"]) && ($_POST["action"] == "webinfo.change")) {
+	if (!isset($_REQUEST["nonce"]) || $_REQUEST["nonce"] !== $nonce) {
+		http_response_code(403);
+		echo "<b class=\"msg\">Formular nicht frisch - CSRF Schutz.</b><br>\n";
+		die();
+	} else {
+		// validate input
+		$pinfo = [
+			'fakultaet' => (
+				(  	mb_strlen((isset($_POST['fakultaet'])? $_POST['fakultaet'] : '')) == 2 
+				&& 	preg_match('/^(EI|IA|MB|MN|WM)$/', (isset($_POST['fakultaet'])? $_POST['fakultaet'] : '') ) )? $_POST['fakultaet'] : NULL),
+			'stg' => (
+				(  	mb_strlen((isset($_POST['stg'])? $_POST['stg'] : '')) >  2 
+				&&	mb_strlen((isset($_POST['stg'])? $_POST['stg'] : '')) <= 127 
+				&& 	preg_match('/^([a-z]|[A-Z]|[0-9]|( |\-)([a-z]|[A-Z]|[0-9])){1,127}$/', (isset($_POST['stg'])? $_POST['stg'] : '') ) )? trim($_POST['stg']) : NULL),
+			'matrikel' => filter_var((isset($_POST['matrikel'] ))? $_POST['matrikel'] : NULL, FILTER_VALIDATE_INT, array("options" => array("min_range"=>2000, "max_range"=>9999, 'default' => NULL))),
+		];
+		
+		// update userdata
+		setPersonWebinfo(intval($person['id']), $pinfo['fakultaet'], $pinfo['stg'], $pinfo['matrikel']);
+		foreach($pinfo as $k => $v){
+			if(array_key_exists($k, $person)){
+				$person[$k] = $v;
+			}
+		}
+	}
 } else if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	http_response_code(404);
 	echo "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">

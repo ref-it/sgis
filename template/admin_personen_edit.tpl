@@ -137,11 +137,18 @@ foreach ([
 ?>         <div class="form-control"><?php echo htmlspecialchars($person[$key]); ?></div><?php
             break;
           case "email":
-           $vals = explode(",", $person[$key]);
-           $vals[] = "";
-           foreach ($vals as $val) {
-?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>[]" value="<?php echo htmlspecialchars($val); ?>"><?php
-           }
+			echo '<div class="row">';
+			$vals = explode(",", $person[$key]);
+			$vals[] = "";
+			foreach ($vals as $val) { ?>
+				<div class="col-sm-8">
+					<input class="form-control col-11" type="text" name="<?php echo htmlspecialchars($key); ?>[]" value="<?php echo htmlspecialchars($val); ?>">
+				</div>
+				<?php if ($val != ''){ ?>
+					<a class="col-sm-3 btn btn-default" href="/sgis/index.php?mail=<?= urlencode($val) ?>">Selbstauskunft</a>
+				<?php } else { echo '<div class="col-sm-2"></div>'; } ?><?php
+			} ?><?php
+			echo '</div>';
             break;
           case "wikiPage":
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($person[$key]); ?>" placeholder=":person:name"><?php

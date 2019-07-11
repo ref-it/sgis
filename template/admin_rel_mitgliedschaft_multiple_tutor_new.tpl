@@ -3,7 +3,7 @@
 define('TUTOR_GREMIUM_ID_MIN', 410);
 define('TUTOR_GREMIUM_ID_MAX', 437);
 define('TUTOR_ROLLE_ID_MIN', 1030);
-define('TUTOR_ROLLE_ID_MAX', 1069);
+define('TUTOR_ROLLE_ID_MAX', 1079);
 define('OLD_TUTOR_ROLE_ID', 1071);
 
 $gremium_list = [];

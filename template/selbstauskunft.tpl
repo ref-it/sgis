@@ -96,6 +96,9 @@ foreach ([
   "lastLogin" => "letztes Login",
   "canLogin" => "Login erlaubt?",
   "image" => "Foto",
+  "fakultaet" => "Öffentliche Info",
+  "stg" => "",
+  "matrikel" => "",
  ] as $key => $desc):
 
  if ($key == "email") {
@@ -103,7 +106,9 @@ foreach ([
  } elseif ($key == "_contactDetails") {
    $vals = [""];
  } else {
-   $vals = [$person[$key]];
+	if (isset($person[$key])){
+		$vals = [$person[$key]];
+	}
  }
 
  foreach ($vals as $val) {
@@ -175,7 +180,7 @@ foreach ([
             }
 ?>      </div><?php
             break;
-		  case "image":
+		case "image":
 			echo '<div class="form-control" style="height: auto;">';
 			if ($person[$key]) {
 				echo '<style>@import url("/sgis/css/image.css");</style>';
@@ -207,9 +212,71 @@ foreach ([
 				echo '<script type="text/javascript">pimage="dropzone";</script>';
 				echo '<script type="text/javascript" src="/sgis/js/image.js"></script>';
 			}
-			echo '<font style="margin-top: 20px; display: inline-block; color: #f21;"><strong>Das Bild wird in den StuRa Diensten genutzt und gegebenenfalls auf der Stura Website, der Wahlen-Website oder der Tutoren-Website veröffentlicht. Durch den Upload des Bildes stimmst du der Veröffentlichung zu. Das Bild kann an dieser Stelle wieder entfernt werden.</strong></font></div>';
+			echo '<font style="margin-top: 20px; display: inline-block;"><strong style="color: #f21">Das Bild wird in den StuRa Diensten genutzt und gegebenenfalls auf der Stura Website, der Wahlen-Website oder der Tutoren-Website veröffentlicht. Durch den Upload des Bildes stimmst du der Veröffentlichung zu. Das Bild kann an dieser Stelle wieder entfernt werden.</strong><br><i>Durch Optimierungen wie Caching benötigen Änderungen am Bild bis zu einem Tag, um auf der Website dargestellt zu werden.</i></font></div>';
 			break;
-          default:
+		case "fakultaet": ?>
+			<div class="form-control" style="height: auto;">
+				<font style="display: inline-block;"><strong style="color: #f21">Die folgenden Daten werden in den StuRa Diensten genutzt und gegebenenfalls auf der Stura Website, der Wahlen-Website oder der Tutoren-Website veröffentlicht. Durch das Eintragen stimmst du der Veröffentlichung zu. Fülle diese Felder auf keinen Fall aus, wenn du dieser Veröffentlichung nicht zustimmst. Durch die Nichtangabe entstehen keine Nachteile. Die Informationen können an dieser Stelle wieder entfernt werden.</strong><br><i>Durch Optimierungen wie Caching werden Änderungen an dieser Stelle ggf. erst mit einer Verzögerung von bis zu einem Tag auf den Websiten übernommen.</i></font>
+				<div style="margin-top: 30px">
+				
+					<form action="/sgis/index.php<?= (isset($_REQUEST["mail"]) && !empty($_REQUEST["mail"]) && hasGroup($ADMINGROUP))? '?mail='.urlencode($mail) : '' ?>" method="POST" class="form-horizontal webinfo" role="form">
+
+						<div class="form-group">
+							<label class="control-label col-sm-2" for="username">Fakultät:</label>
+							<div class="col-sm-10">
+								<select name='fakultaet'><?php
+									foreach([
+										['v' => '', 'n' => 'Nicht gesetzt', 't' => 'nicht gesetzt'],
+										['v' => 'EI', 'n' => 'EI', 't' => 'Fakultät für Elektrotechnik und Informationstechnik'],
+										['v' => 'IA', 'n' => 'IA', 't' => 'Fakultät für Informatik und Automatisierung'],
+										['v' => 'MB', 'n' => 'MB', 't' => 'Fakultät für Maschinenbau'],
+										['v' => 'MN', 'n' => 'MN', 't' => 'Fakultät für Mathematik und Naturwissenschaften'],
+										['v' => 'WM', 'n' => 'WM', 't' => 'Fakultät für Wirtschaftswissenschaften und Medien'],
+									] as $v){
+										echo "<option title='{$v['t']}' value='{$v['v']}' ".((empty($person['fakultaet'])&&$v['v']=='' || $person['fakultaet'] == $v['v'] )?'selected="selected"':'').">{$v['n']}</option>";
+									}
+									?>
+								</select>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label class="control-label col-sm-2" for="password2"><nobr>Studiengang:</nobr></label>
+							<div class="col-sm-10">
+								<input class="form-control" type="text" name="stg" value="<?= (empty($person['stg']))? '' : htmlspecialchars($person['stg']) ?>" placeholder="Studiengang"/>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="control-label col-sm-2" for="password">Matrikel:</label>
+							<div class="col-sm-10">
+								<input class="form-control" type="number" min="1999" step="1" name="matrikel" value="<?= (empty($person['matrikel']))? '' : intval($person['matrikel']) ?>" placeholder="Matrikel">
+							</div>
+						</div>
+
+						<input type="hidden" name="action" value="webinfo.change"/>
+						<?php if(isset($_REQUEST["mail"]) && !empty($_REQUEST["mail"]) && hasGroup($ADMINGROUP)) {
+							echo '<input type="hidden" name="mail" value="'.htmlspecialchars($mail).'"/>';
+						} ?>
+						<input type="hidden" name="nonce" value="<?php echo htmlspecialchars($nonce);?>"/>
+
+						<div class="pull-right">
+							<input type="submit" name="submit" value="Speichern" class="btn btn-primary"/>
+							<input type="reset" name="reset" value="Abbruch" class="btn btn-danger"/>
+						</div>
+						<div style="clear: both;"></div>
+					</form>
+				</div>
+			
+			</div><?php
+			break;
+		case "stg":
+			
+			break;
+		case "matrikel":
+			
+			break;
+		default:
 ?>      <div class="form-control"> <?php
             echo htmlspecialchars($val);
 ?>      </div><?php

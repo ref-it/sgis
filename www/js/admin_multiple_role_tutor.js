@@ -6,6 +6,8 @@
 	const date_current = $('input[name="von"]').val()
 	const action_url = $('input#url').val();
 	
+	const max_running = 5; // maximum parallel post requests
+	
 	let _dataset = null;
 	let _dataset_extra = null;
 	
@@ -334,22 +336,176 @@
 		}
 	};
 	
+	// waitmodal
+	
 	let wOpen = false;
 	let wModal = null;
+	let wProgressBar = null;
 	const waitModal = function (){
 		if (wOpen == false){
 			wOpen = true;
-			
 			wModal = document.createElement('div');
 			wModal.id = "dzFailedModal";
 			wModal.style.display = 'block';
 			wModal.className = 'modal pimage';
-			wModal.innerHTML = '<div class="modal-content"><div class="modal-header bg-info"><span class="close">&times;</span><h3>Bitte warten</h3></div><div class="modal-body text-center"><p></p><p><i class="fa fa-spinner fa-spin fa-fw fa-2x"></i></p><div class="wProgress text-left"></div></div><div class="modal-footer bg-info"><h3></h3></div></div>';
+			wModal.innerHTML = '<div class="modal-content"><div class="modal-header bg-info"><h3>Bitte warten</h3></div><div class="modal-body text-center"><p></p><p><i class="fa fa-spinner fa-spin fa-fw fa-2x"></i></p><div class="text-center"><progress class="progressbar" value="0" max="100"></progress></div><div class="wProgress text-center"></div></div><div class="modal-footer bg-info"><h3></h3></div></div>';
 			document.body.appendChild(wModal);
-			let span = wModal.querySelector('.pimage.modal .close');
+			wProgressBar = wModal.querySelector('progress.progressbar');
 		}
 	}
 	
+	const submit_cleanup = function(){
+		// hide wait modal
+		if(wModal != null){
+			wModal.parentElement.removeChild(wModal); wProgressBar= null; wModal = null; wOpen = false;
+		}
+	};
+	
+	const ajax_worker = function(dset){
+		console.log('------submit - '+ dset.rolle_id + ' -----------')
+		console.log(dset);
+		
+		//parse dataset
+		let data = new FormData();
+		for (prop in dset){
+			if (prop != 'caller_type' && dset.hasOwnProperty(prop)){
+				data.append(prop, dset[prop]);
+			}
+		}
+		let flag = dset.caller_type;
+		
+		$.ajax({
+			type: 'POST',
+			url: action_url,
+			data: data,
+			cache: false,
+			contentType: false,
+			processData: false,
+			error: function (e) {
+				handle_result_step(dset, e, false, flag);
+			},
+			success: function (e) {
+				handle_result_step(dset, e, true, flag); 
+			}
+		});
+	};
+	
+	const handle_result_step = function(dataset, response, success, flag){
+		// visible content
+		let $wProgress = $('.wProgress');
+		$wProgress.text('Progress: '+ (progress) + ' ('+dataset.rolle_id + ' ' + flag + ') /' + datalength + ' n' + ((_dataset_extra != null)?', e':'') );		
+		// progress
+		progress++;
+		wProgressBar.value = progress;
+		// running
+		running--;
+		// success
+		let round_success = success;
+		let round_msg = null;
+					
+		if (round_success && !response.ret){
+			round_success = false;
+			round_msg = response.msgs;
+		}
+		success_all = success_all && round_success;
+		// add to result array
+		if (!round_success){
+			resultl.push({success: false, rid: dataset.rolle_id, mail: dataset.email, err: round_msg});
+		} else if (round_msg==null && response.msgs.length != 0){
+			resultl.push({success: true, rid: dataset.rolle_id, mail: dataset.email, err: response.msgs});
+		}
+	};
+	
+	let resultl, progress, datalength, running, success_all;
+	let is_running = false;
+
+	const run_requests = function(dlist){
+		if (!is_running){
+			is_running = true;
+			// init values
+			resultl = [];
+			progress = 0;
+			datalength = dlist.length;
+			running = 0;
+			success_all = true;
+			//update ui elements
+			wProgressBar.max = datalength;
+			let $wProgress = $('.wProgress');
+			$wProgress.text('Progress: '+ (0) + '/' + datalength + ' n' + ((_dataset_extra != null)?', e':'') );
+
+			let interv = null;
+			let idx = 0;
+			let loopfunc = function(){
+				// limit by max_running
+				if (running < max_running && idx < datalength){
+				// run new workers
+				ajax_worker(dlist[idx]);
+				idx++;
+				running++;
+				}
+				// check if is done
+				if (progress == datalength && running == 0){
+					//stop interval 
+					clearInterval(interv);
+					interv = null;
+					is_running = false;
+					submit_cleanup();
+					present_results();
+				}
+			};
+			interv = setInterval(loopfunc, 40);
+		}
+	};
+  
+	const present_results = function(){
+		let modal = document.createElement('div');
+		modal.id = "dzFailedModal";
+		modal.style.display = 'block';
+		modal.className = 'modal pimage';
+		
+		if (success_all) {
+			modal.innerHTML = '<div class="modal-content"><div class="modal-header bg-success"><span class="close">&times;</span><h2>Tutoren eintragen - erfolgreich</h2></div><div class="modal-body"><p></p><strong>Es ist kein Fehler aufgetreten.'+((resultl.length) > 0? '<br><br><button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseTutorLog" aria-expanded="false" aria-controls="collapseTutorLog">Show Log</button><br><br><div class="collapse" id="collapseTutorLog"><pre>'+ escapeHtml(JSON.stringify(resultl, null, 2)) +'</pre></div>'  : '')+'</strong></div><div class="modal-footer bg-success"><h3></h3></div></div>';
+		} else {
+			modal.innerHTML = '<div class="modal-content"><div class="modal-header bg-danger"><span class="close">&times;</span><h2>Tutoren eintragen - Fehler</h2></div><div class="modal-body"><p></p><strong>Folgende Einträge haben einen Fehler erzeugt:<br><pre>'+ escapeHtml(JSON.stringify(resultl, null, 2)) +'</pre></strong></div><div class="modal-footer bg-danger"><h3></h3></div></div>';
+		}
+		
+		document.body.appendChild(modal);
+		let span = modal.querySelector('.pimage.modal .close');
+		span.onclick = function() { modal.parentElement.removeChild(modal); }
+		window.onclick = function(event) { if (event.target == modal) { modal.parentElement.removeChild(modal); }  };
+	};
+  
+	// submit
+	$btn_submit.on('click', function(){
+		if (check_content()){
+			// show wait modal
+			waitModal();
+			// create datalist
+			let tmplist = [];
+			for(let i = 0; i < user_data.length; i++){
+				// normal dset
+				let dset = $.extend({}, _dataset);
+				dset.rolle_id = user_data[i].rid;
+				dset.caller_type = 'n';
+				dset.email = user_data[i].umail;
+				tmplist.push(dset);
+				// extra dset
+				if (_dataset_extra != null){
+					let dset2 = $.extend({}, _dataset_extra);
+					dset2.caller_type = 'e';
+					dset2.email = user_data[i].umail;
+					tmplist.push(dset2);
+				}
+			}
+			// submit data
+			run_requests(tmplist);
+		} else {
+			$btn_submit.hide();
+		}
+	});
+	
+	
+	/*
 	const sumbit_dataset = function (dset, callback){
 		console.log('------submit - '+ dset.rolle_id + ' -----------')
 		console.log(dset);
@@ -389,11 +545,15 @@
 			// show wait modal
 			waitModal();
 			
+			
+			
+			
+			
 			let success_all = true;
 			let error_list = [];
 			const callback_last = function(){				
 				// hide wait modal
-				if(wModal != null){ wModal.parentElement.removeChild(wModal); wModal = null; wOpen = false;}
+				submit_cleanup(); 
 				
 				let modal = document.createElement('div');
 				modal.id = "dzFailedModal";
@@ -403,7 +563,7 @@
 				if (success_all) {
 					modal.innerHTML = '<div class="modal-content"><div class="modal-header bg-success"><span class="close">&times;</span><h2>Tutoren eintragen - erfolgreich</h2></div><div class="modal-body"><p></p><strong>Es ist kein Fehler aufgetreten.'+((error_list.length) > 0? '<br><br><button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseTutorLog" aria-expanded="false" aria-controls="collapseTutorLog">Show Log</button><br><br><div class="collapse" id="collapseTutorLog"><pre>'+ escapeHtml(JSON.stringify(error_list, null, 2)) +'</pre></div>'  : '')+'</strong></div><div class="modal-footer bg-success"><h3></h3></div></div>';
 				} else {
-					modal.innerHTML = '<div class="modal-content"><div class="modal-header bg-danger"><span class="close">&times;</span><h2>Tutoren eintragen - Fehler</h2></div><div class="modal-body"><p></p><strong>Folgende einträge haben einen Fehler erzeugt:<br><pre>'+ escapeHtml(JSON.stringify(error_list, null, 2)) +'</pre></strong></div><div class="modal-footer bg-danger"><h3></h3></div></div>';
+					modal.innerHTML = '<div class="modal-content"><div class="modal-header bg-danger"><span class="close">&times;</span><h2>Tutoren eintragen - Fehler</h2></div><div class="modal-body"><p></p><strong>Folgende Einträge haben einen Fehler erzeugt:<br><pre>'+ escapeHtml(JSON.stringify(error_list, null, 2)) +'</pre></strong></div><div class="modal-footer bg-danger"><h3></h3></div></div>';
 				}
 				
 				document.body.appendChild(modal);
@@ -484,5 +644,5 @@
 		}
 	});
 
-	
+	*/
 })();

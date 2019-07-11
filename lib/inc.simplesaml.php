@@ -11,6 +11,7 @@ function getUserMail() {
 function requireAuth() {
   global $SIMPLESAML, $SIMPLESAMLAUTHSOURCE;
   global $attributes, $logoutUrl;
+  global $ADMINGROUP, $AUTHGROUP;
 
   require_once($SIMPLESAML.'/lib/_autoload.php');
   $as = new SimpleSAML_Auth_Simple($SIMPLESAMLAUTHSOURCE);
@@ -24,6 +25,12 @@ function requireAuth() {
 
   $attributes = $as->getAttributes();
   $logoutUrl = $as->getLogoutURL();
+
+  if (isset($attributes["user"]) && count($attributes["user"]) > 0 && $attributes["user"][0] == "admin") {
+    $attributes["groups"][] = "backend-admin";
+    $attributes["groups"] = array_merge($attributes["groups"], explode(",", $ADMINGROUP));
+    $attributes["groups"] = array_merge($attributes["groups"], explode(",", $AUTHGROUP));
+  }
 }
 
 function requireGroup($group) {
@@ -44,6 +51,8 @@ function getUsername() {
     return $attributes["eduPersonPrincipalName"][0];
   if (isset($attributes["mail"]) && isset($attributes["mail"][0])) 
     return $attributes["mail"][0];
+  if (isset($attributes["user"]) && isset($attributes["mail"][0])) 
+    return $attributes["user"][0];
   return NULL;
 }
 
@@ -55,6 +64,10 @@ function getUserFullName(){
 
 function hasGroup($group) {
   global $attributes;
+
+  if (!isset($attributes["groups"])) {
+    return false;
+  }
 
   if (!is_array($attributes["groups"])) {
     return false;

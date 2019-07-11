@@ -58,6 +58,9 @@
 					var fchal = document.getElementsByName('nonce')[0];
 					obj[fchal.getAttribute("name")] = fchal.value;
 					obj.action = 'pimage.upload';
+					if ($('form.webinfo input[name="mail"]').length > 0){
+						obj.mail = $('form.webinfo input[name="mail"]').val();
+					}
 					return obj;
 				},
 				uploadMultiple: false,
@@ -182,8 +185,11 @@
 			waitModal();
 			let dataset = {};
 			var fchal = document.getElementsByName('nonce')[0];
-				dataset[fchal.getAttribute("name")] = fchal.value;
-				dataset.action = 'pimage.remove';
+			dataset[fchal.getAttribute("name")] = fchal.value;
+			dataset.action = 'pimage.remove';
+			if ($('form.webinfo input[name="mail"]').length > 0){
+				dataset.mail = $('form.webinfo input[name="mail"]').val();
+			}
 			$.ajax({
 				type: 'POST',
 				url: '/sgis/index.php',

@@ -593,6 +593,12 @@ function setPersonPassword($personId, $password) {
   return $query->execute(Array($passwordHash, $personId)) or httperror(print_r($query->errorInfo(),true));
 }
 
+function setPersonWebinfo($personId, $fakultaet, $stg, $matrikel) {
+  global $pdo, $DB_PREFIX;
+  $query = $pdo->prepare("UPDATE {$DB_PREFIX}person SET fakultaet = ?, stg = ?, matrikel = ? WHERE id = ?");
+  return $query->execute(Array($fakultaet, $stg, $matrikel, $personId)) or httperror(print_r($query->errorInfo(),true));
+}
+
 function getMailinglisten() {
   global $pdo, $DB_PREFIX;
   $query = $pdo->prepare("SELECT * FROM {$DB_PREFIX}mailingliste m ORDER BY RIGHT(m.address, LENGTH(m.address) - POSITION( '@' in m.address)), LEFT(m.address, POSITION( '@' in m.address))");

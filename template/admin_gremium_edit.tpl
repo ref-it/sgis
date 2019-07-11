@@ -28,7 +28,6 @@ foreach ([
   "studiengang" => "Studiengang",
   "studiengang_short" => "Studiengang (kurz) (Tutor)",
   "studiengang_english" => "Studiengang (Englisch) (Tutor)",
-  "matrikel" => "Matrikel (Tutor)",
   "studiengangabschluss" => "Abschluss (Bachelor, Master, ...)",
   "wiki_members" => "Wiki-Seite für alle Mitglieder",
   "wiki_members_table" => "Wiki-Seite für aktuelle Mitglieder (Tabellenform)",
@@ -62,10 +61,11 @@ foreach ([
           case "id":
 ?>         <div class="form-control"><?php echo htmlspecialchars($gremium[$key]); ?></div><?php
             break;
-          default:
+          default: if (isset($gremium[$key])){
 ?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($gremium[$key]); ?>"><?php
+			} 
         }
-      ?>
+      ?> 
     </div>
   </div>
 

@@ -288,6 +288,9 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                     SELECT
                         p.id,
                         p.name,
+                        p.fakultaet as department,
+                        p.stg as courseOfStudy,
+                        p.matrikel as immatriculationYear,
                         f.hashname image,
                         m.von,
                         m.bis
@@ -312,9 +315,6 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                     foreach($currentMember as $k => $v){
 						$currentMember[$k]['thumb'] = ($currentMember[$k]['image'] == null)? null : "https://helfer.stura.tu-ilmenau.de/sgis/pimages/{$currentMember[$k]['image']}_thumb";
 						$currentMember[$k]['image'] = ($currentMember[$k]['image'] == null)? null : "https://helfer.stura.tu-ilmenau.de/sgis/pimages/{$currentMember[$k]['image']}";
-						$currentMember[$k]['fakultaet'] = null;
-						$currentMember[$k]['stg'] = null;
-						$currentMember[$k]['matrikel'] = null;
                     }
                     $ret['currentMembers'] = $currentMember;
                 }
@@ -341,6 +341,9 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                         SELECT
                             p.id,
                             p.name,
+							p.fakultaet as department,
+							p.stg as courseOfStudy,
+							p.matrikel as immatriculationYear,
                             f.hashname image,
                             m.von,
                             m.bis
@@ -368,9 +371,6 @@ if (isset($_SERVER['HTTP_SGIS_API_KEY']) && ($_SERVER['HTTP_SGIS_API_KEY'] === $
                         foreach($formerMember as $k => $v){
 							$formerMember[$k]['thumb'] = ($formerMember[$k]['image'] == null)? null : "https://helfer.stura.tu-ilmenau.de/sgis/pimages/{$formerMember[$k]['image']}_thumb";
 							$formerMember[$k]['image'] = ($formerMember[$k]['image'] == null)? null : "https://helfer.stura.tu-ilmenau.de/sgis/pimages/{$formerMember[$k]['image']}";
-							$formerMember[$k]['fakultaet'] = null;
-							$formerMember[$k]['stg'] = null;
-							$formerMember[$k]['matrikel'] = null;
 						}
                         $ret['formerMembers'] = $formerMember;
                     }
