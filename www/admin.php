@@ -51,6 +51,7 @@ if (isset($_POST["action"])) {
 
   switch ($_POST["action"]):
   case "person.table":
+   dbRefreshPersonCurrentIfNeeded(); # View contains reference to CURRENT_TIMESTAMP (von-bis Tagesangabe), muss daher tgl. aktualisiert werden
    header("Content-Type: text/json; charset=UTF-8");
   #header("X-Trace-".basename(__FILE__)."-".__LINE__.": ".round((microtime(true) - $time_start)*1000,2)."ms");
    $columns = [

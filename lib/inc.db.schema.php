@@ -4,6 +4,18 @@ $DB_VERSION=filemtime(__FILE__);
 $r = $pdo->query("SELECT id FROM {$DB_PREFIX}version WHERE id > ".$DB_VERSION);
 if ($r !== false && count($r->fetchAll()) > 0) return;
 
+# Systemproperties
+$r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}sysprop");
+if ($r === false) {
+	$pdo->query("CREATE TABLE {$DB_PREFIX}sysprop (
+					`key` VARCHAR(128),
+					value VARCHAR(256) NULL,
+					PRIMARY KEY (`key`)
+				) ENGINE=INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;") or httperror(print_r($pdo->errorInfo(),true));
+} else {
+	$r->fetchAll();
+}
+
 # Personen
 $r = $pdo->query("SELECT COUNT(*) FROM {$DB_PREFIX}person");
 if ($r === false) {
@@ -418,6 +430,7 @@ if ($r === false) {
         $pdo->query("ALTER TABLE {$DB_PREFIX}person_current_mat ADD CONSTRAINT PRIMARY KEY (id)") or httperror(print_r($pdo->errorInfo(),true));
         $pdo->query("ALTER TABLE {$DB_PREFIX}person_current_mat ADD INDEX (active)") or httperror(print_r($pdo->errorInfo(),true));
         $pdo->query("ALTER TABLE {$DB_PREFIX}person_current_mat ADD INDEX (canLoginCurrent)") or httperror(print_r($pdo->errorInfo(),true));
+        $pdo->query("INSERT INTO {$DB_PREFIX}sysprop (`key`, `value`) VALUES ('person_current_mat', CURDATE())") or httperror(print_r($pdo->errorInfo(),true));
 } else {
 	$r->fetchAll();
 }

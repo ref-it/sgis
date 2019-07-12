@@ -39,6 +39,17 @@ function logAppend($logId, $key, $value) {
 }
 
 
+function dbRefreshPersonCurrentIfNeeded() {
+  global $pdo, $DB_PREFIX, $dbDeferRefresh;
+  $pdo->beginTransaction() or httperror(print_r($pdo->errorInfo(),true));
+  $r = $pdo->query("SELECT * FROM `{$DB_PREFIX}sysprop` WHERE `key` = 'person_current_mat' AND `value` >= CURDATE()");
+  if ($r === false) httperror(print_r($pdo->errorInfo(),true));
+  if (count($r->fetchAll()) == 0)
+    _dbRefreshPersonCurrent();
+  $pdo->commit() or httperror(print_r($pdo->errorInfo(),true));
+  return true;
+}
+
 function dbRefreshPersonCurrent($personId = NULL) {
   global $pdo, $DB_PREFIX, $dbDeferRefresh;
 
@@ -52,21 +63,21 @@ function dbRefreshPersonCurrent($personId = NULL) {
 function _dbRefreshPersonCurrent($personId = NULL) {
   global $pdo, $DB_PREFIX, $dbDeferRefresh;
   if ($dbDeferRefresh) return true;
-global $time_start;
-static $i = 0;
-$i++;
-header("X-Trace-".basename(__FILE__)."-".__LINE__."-$i: ".round((microtime(true) - $time_start)*1000,2)."ms");
   if ($personId === NULL) {
-    $r1 = $pdo->exec("TRUNCATE {$DB_PREFIX}person_current_mat") or httperror(print_r($pdo->errorInfo(),true));
-header("X-Trace-".basename(__FILE__)."-".__LINE__."-$i: ".round((microtime(true) - $time_start)*1000,2)."ms");
-    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX}person_current_mat SELECT * FROM {$DB_PREFIX}person_current") or httperror(print_r($pdo->errorInfo(),true));
+    $r1 = $pdo->exec("DELETE FROM {$DB_PREFIX}person_current_mat");
+    if ($r1 === false) httperror(print_r($pdo->errorInfo(),true));
+    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX}person_current_mat SELECT * FROM {$DB_PREFIX}person_current");
+    if ($r2 === false) httperror(print_r($pdo->errorInfo(),true));
+    $r3 = $pdo->exec("UPDATE {$DB_PREFIX}sysprop SET value = CURDATE() where `key` = 'person_current_mat'");
+    if ($r3 === false) httperror(print_r($pdo->errorInfo(),true));
   } else{
-    $r1 = $pdo->exec("DELETE FROM {$DB_PREFIX}person_current_mat WHERE id = ".((int) $personId)) or httperror(print_r($pdo->errorInfo(),true));
-header("X-Trace-".basename(__FILE__)."-".__LINE__."-$i: ".round((microtime(true) - $time_start)*1000,2)."ms");
-    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX}person_current_mat SELECT * FROM {$DB_PREFIX}person_current WHERE id = ".((int) $personId)) or httperror(print_r($pdo->errorInfo(),true));
+    $r1 = $pdo->exec("DELETE FROM {$DB_PREFIX}person_current_mat WHERE id = ".((int) $personId));
+    if ($r1 === false) httperror(print_r($pdo->errorInfo(),true));
+    $r2 = $pdo->exec("INSERT INTO {$DB_PREFIX}person_current_mat SELECT * FROM {$DB_PREFIX}person_current WHERE id = ".((int) $personId));
+    if ($r2 === false) httperror(print_r($pdo->errorInfo(),true));
+    $r3 = true;
   }
-header("X-Trace-".basename(__FILE__)."-".__LINE__."-$i: ".round((microtime(true) - $time_start)*1000,2)."ms");
-  return ($r1 !== false) && ($r2 !== false);
+  return ($r1 !== false) && ($r2 !== false) && ($r3 !== false);
 }
 
 function getPersonDetailsById($id) {
