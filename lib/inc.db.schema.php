@@ -430,6 +430,7 @@ if ($r === false) {
         $pdo->query("ALTER TABLE {$DB_PREFIX}person_current_mat ADD CONSTRAINT PRIMARY KEY (id)") or httperror(print_r($pdo->errorInfo(),true));
         $pdo->query("ALTER TABLE {$DB_PREFIX}person_current_mat ADD INDEX (active)") or httperror(print_r($pdo->errorInfo(),true));
         $pdo->query("ALTER TABLE {$DB_PREFIX}person_current_mat ADD INDEX (canLoginCurrent)") or httperror(print_r($pdo->errorInfo(),true));
+        $pdo->query("DELETE FROM {$DB_PREFIX}sysprop WHERE `key` = 'person_current_mat'") or httperror(print_r($pdo->errorInfo(),true));
         $pdo->query("INSERT INTO {$DB_PREFIX}sysprop (`key`, `value`) VALUES ('person_current_mat', CURDATE())") or httperror(print_r($pdo->errorInfo(),true));
 } else {
 	$r->fetchAll();
