@@ -61,8 +61,8 @@ foreach ([
           case "id":
 ?>         <div class="form-control"><?php echo htmlspecialchars($gremium[$key]); ?></div><?php
             break;
-          default: if (isset($gremium[$key])){
-?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($gremium[$key]); ?>"><?php
+          default: if (array_key_exists($key, $gremium)){
+?>         <input class="form-control" type="text" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars(isset($gremium[$key])? $gremium[$key]: ''); ?>"><?php
 			} 
         }
       ?> 
