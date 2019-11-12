@@ -1,0 +1,163 @@
+--- /home/michael/web/tu-ilmenau.de/helfer.stura/simplesamlphp-1.14.8/modules/multiauth/lib/Auth/Source/MultiAuth.php	2016-08-23 13:02:33.000000000 +0200
++++ MultiAuth.php	2016-10-05 14:55:46.000000000 +0200
+@@ -3,27 +3,28 @@
+ /**
+  * Authentication source which let the user chooses among a list of
+  * other authentication sources
++ * SGIS: store selected source in a persistent cookie
+  *
+  * @author Lorenzo Gil, Yaco Sistemas S.L.
+  * @package SimpleSAMLphp
+  */
+ 
+-class sspmod_multiauth_Auth_Source_MultiAuth extends SimpleSAML_Auth_Source {
++class sspmod_sgis_Auth_Source_MultiAuth extends SimpleSAML_Auth_Source {
+ 
+ 	/**
+ 	 * The key of the AuthId field in the state.
+ 	 */
+-	const AUTHID = 'sspmod_multiauth_Auth_Source_MultiAuth.AuthId';
++	const AUTHID = 'sspmod_sgis_Auth_Source_MultiAuth.AuthId';
+ 
+ 	/**
+ 	 * The string used to identify our states.
+ 	 */
+-	const STAGEID = 'sspmod_multiauth_Auth_Source_MultiAuth.StageId';
++	const STAGEID = 'sspmod_sgis_Auth_Source_MultiAuth.StageId';
+ 
+ 	/**
+ 	 * The key where the sources is saved in the state.
+ 	 */
+-	const SOURCESID = 'sspmod_multiauth_Auth_Source_MultiAuth.SourceId';
++	const SOURCESID = 'sspmod_sgis_Auth_Source_MultiAuth.SourceId';
+ 
+ 	/**
+ 	 * The key where the selected source is saved in the session.
+@@ -36,6 +37,22 @@ class sspmod_multiauth_Auth_Source_Multi
+ 	private $sources;
+ 
+ 	/**
++	 * Storage for authsource config option remember.source.enabled
++	 * selectsource.php pages/templates use this option to present users with a checkbox
++	 * to save their choice for the next login request.
++	 * @var bool
++	 */
++	protected $rememberSourceEnabled = FALSE;
++
++	/**
++	 * Storage for authsource config option remember.source.checked
++	 * selectsource.php pages/templates use this option
++	 * to default the remember source checkbox to checked or not.
++	 * @var bool
++	 */
++	protected $rememberSourceChecked = FALSE;
++
++	/**
+ 	 * Constructor for this authentication source.
+ 	 *
+ 	 * @param array $info	 Information about this authentication source.
+@@ -87,6 +104,35 @@ class sspmod_multiauth_Auth_Source_Multi
+ 				'css_class' => $css_class,
+ 			);
+ 		}
++
++		// Get the remember source config options
++		if (isset($config['remember.source.enabled'])) {
++			$this->rememberSourceEnabled = (string) $config['remember.source.enabled'];
++			unset($config['remember.source.enabled']);
++		}
++		if (isset($config['remember.source.checked'])) {
++			$this->rememberSourceChecked = (bool) $config['remember.source.checked'];
++			unset($config['remember.source.checked']);
++		}
++
++    $this->config = $config;
++
++	}
++
++	/**
++	 * Getter for the authsource config option remember.source.enabled
++	 * @return bool
++	 */
++	public function getRememberSourceEnabled() {
++		return $this->rememberSourceEnabled;
++	}
++
++	/**
++	 * Getter for the authsource config option remember.source.checked
++	 * @return bool
++	 */
++	public function getRememberSourceChecked() {
++		return $this->rememberSourceChecked;
+ 	}
+ 
+ 	/**
+@@ -112,7 +158,7 @@ class sspmod_multiauth_Auth_Source_Multi
+ 
+ 		/* Redirect to the select source page. We include the identifier of the
+ 		saved state array as a parameter to the login form */
+-		$url = SimpleSAML_Module::getModuleURL('multiauth/selectsource.php');
++		$url = SimpleSAML_Module::getModuleURL('sgis/selectsource.php');
+ 		$params = array('AuthState' => $id);
+ 
+ 		// Allowes the user to specify the auth souce to be used
+@@ -151,6 +197,9 @@ class sspmod_multiauth_Auth_Source_Multi
+ 		$session = SimpleSAML_Session::getSessionFromRequest();
+ 		$session->setData(self::SESSION_SOURCE, $state[self::AUTHID], $authId);
+ 
++    $state["multiAuth::LoginCompletedHandler"][] = $state["LoginCompletedHandler"];
++#    $state["LoginCompletedHandler"] = Array("sspmod_sgis_Auth_Source_MultiAuth", "multiLoginCompleted");
++
+ 		try {
+ 			$as->authenticate($state);
+ 		} catch (SimpleSAML_Error_Exception $e) {
+@@ -159,9 +208,27 @@ class sspmod_multiauth_Auth_Source_Multi
+ 			$e = new SimpleSAML_Error_UnserializableException($e);
+ 			SimpleSAML_Auth_State::throwException($state, $e);
+ 		}
++
+ 		SimpleSAML_Auth_Source::completeAuth($state);
+ 	}
+ 
++  public function multiLoginCompleted($state) {
++    // get myself
++		$authId = $state[self::AUTHID];
++		$as = SimpleSAML_Auth_Source::getById($authId);
++    $config = $as->config;
++    $nextHandler = array_pop($state["multiAuth::LoginCompletedHandler"]);
++
++#    $pc = new SimpleSAML_Auth_ProcessingChain($config, [], 'idp');
++
++#    $state['ReturnCall'] = ["SimpleSAML_Auth_Source","loginCompleted"];
++    $state['LoginCompletedHandler'] = $nextHandler;
++
++#    $pc->processState($state);
++
++    SimpleSAML_Auth_Source::loginCompleted($state);
++  }
++
+ 	/**
+ 	 * Log out from this authentication source.
+ 	 *
+@@ -173,10 +240,21 @@ class sspmod_multiauth_Auth_Source_Multi
+ 	public function logout(&$state) {
+ 		assert('is_array($state)');
+ 
++		if ($this->rememberSourceEnabled) {
++			$sessionHandler = SimpleSAML_SessionHandler::getSessionHandler();
++			$params = $sessionHandler->getCookieParams();
++			$params['expire'] = time();
++			$params['expire'] += -300;
++			setcookie($this->getAuthId() . '-source', "", $params['expire'], $params['path'], $params['domain'], $params['secure'], $params['httponly']);
++		}
++
+ 		/* Get the source that was used to authenticate */
+ 		$session = SimpleSAML_Session::getSessionFromRequest();
+ 		$authId = $session->getData(self::SESSION_SOURCE, $this->authId);
+ 
++    if ($authId === NULL) /* maybe session expired */
++      return;
++
+ 		$source = SimpleSAML_Auth_Source::getById($authId);
+ 		if ($source === NULL) {
+ 			throw new Exception('Invalid authentication source during logout: ' . $source);

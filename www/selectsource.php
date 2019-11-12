@@ -1,9 +1,11 @@
 <?php
 
+use SimpleSAML\SessionHandler;
+
 /**
  * This page shows a list of authentication sources. When the user selects
  * one of them if pass this information to the
- * sspmod_sgis_Auth_Source_MultiAuth class and call the
+ * \SimpleSAML\Module\sgis\Auth\Source\MultiAuth class and call the
  * delegateAuthentication method on it.
  *
  * @author Lorenzo Gil, Yaco Sistemas S.L.
@@ -12,67 +14,90 @@
 
 // Retrieve the authentication state
 if (!array_key_exists('AuthState', $_REQUEST)) {
-	throw new SimpleSAML_Error_BadRequest('Missing AuthState parameter.');
+    throw new \SimpleSAML\Error\BadRequest('Missing AuthState parameter.');
 }
 $authStateId = $_REQUEST['AuthState'];
-$state = SimpleSAML_Auth_State::loadState($authStateId, sspmod_sgis_Auth_Source_MultiAuth::STAGEID);
+$state = \SimpleSAML\Auth\State::loadState($authStateId, \SimpleSAML\Module\sgis\Auth\Source\MultiAuth::STAGEID);
 
-if (array_key_exists("SimpleSAML_Auth_Source.id", $state)) {
-	$authId = $state["SimpleSAML_Auth_Source.id"];
-	$as = SimpleSAML_Auth_Source::getById($authId);
+if (array_key_exists("\SimpleSAML\Auth\Source.id", $state)) {
+    $authId = $state["\SimpleSAML\Auth\Source.id"];
+    $as = \SimpleSAML\Auth\Source::getById($authId);
 } else {
-	$as = NULL;
+    $as = null;
 }
 
-$source = NULL;
-$isSourceFromReq = false;
+$source = null;
 if (array_key_exists('source', $_REQUEST)) {
-	$source = $_REQUEST['source'];
+    $source = $_REQUEST['source'];
 } else {
-	foreach ($_REQUEST as $k => $v) {
-		$k = explode('-', $k, 2);
-		if (count($k) === 2 && $k[0] === 'src') {
-			$source = base64_decode($k[1]);
-      $isSourceFromReq = true;
-		}
-	}
+    foreach ($_REQUEST as $k => $v) {
+        $k = explode('-', $k, 2);
+        if (count($k) === 2 && $k[0] === 'src') {
+            $source = base64_decode($k[1]);
+        }
+    }
 }
-if ($as->getRememberSourceEnabled() && $source === NULL && array_key_exists($as->getAuthId() . '-source', $_COOKIE)) {
-	$source = $_COOKIE[$as->getAuthId() . '-source'];
+if ($as !== null && $as->getRememberSourceEnabled() && $source === NULL && array_key_exists($as->getAuthId() . '-source', $_COOKIE)) {
+    $source = $_COOKIE[$as->getAuthId() . '-source'];
+    $as->setPreviousSource($source);
+    \SimpleSAML\Module\sgis\Auth\Source\MultiAuth::delegateAuthentication($source, $state);
 }
-if ($source !== NULL && $as->getRememberSourceEnabled() && $isSourceFromReq) {
-	$sessionHandler = SimpleSAML_SessionHandler::getSessionHandler();
-	$params = $sessionHandler->getCookieParams();
-	$params['expire'] = time();
-	$params['expire'] += (isset($_REQUEST['remember_source']) && $_REQUEST['remember_source'] == 'Yes' ? 31536000 : -300);
-	setcookie($as->getAuthId() . '-source', $source, $params['expire'], $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+if ($as !== null && $source !== NULL && $as->getRememberSourceEnabled()) {
+    $sessionHandler = SessionHandler::getSessionHandler();
+    $params = $sessionHandler->getCookieParams();
+    $params['expire'] = time();
+    $params['expire'] += (isset($_REQUEST['remember_source']) && $_REQUEST['remember_source'] == 'Yes' ? 31536000 : -300);
+    setcookie($as->getAuthId() . '-source', $source, $params['expire'], $params['path'], $params['domain'], $params['secure'], $params['httponly']);
 }
-if (count($state[sspmod_sgis_Auth_Source_MultiAuth::SOURCESID]) == 1) {
-  $source = $state[sspmod_sgis_Auth_Source_MultiAuth::SOURCESID][0]['source'];
-}
-
-if ($source !== NULL) {
-	if ($as !== NULL) {
-		$as->setPreviousSource($source);
-	}
-	sspmod_sgis_Auth_Source_MultiAuth::delegateAuthentication($source, $state);
+if ($source !== null) {
+    if ($as !== null) {
+        $as->setPreviousSource($source);
+    }
+    \SimpleSAML\Module\sgis\Auth\Source\MultiAuth::delegateAuthentication($source, $state);
 }
 
-if (array_key_exists('sgis:preselect', $state)) {
-	$source = $state['sgis:preselect'];
-	sspmod_sgis_Auth_Source_MultiAuth::delegateAuthentication($source, $state);
+if (array_key_exists('multiauth:preselect', $state)) {
+    $source = $state['multiauth:preselect'];
+    \SimpleSAML\Module\sgis\Auth\Source\MultiAuth::delegateAuthentication($source, $state);
 }
 
-$globalConfig = SimpleSAML_Configuration::getInstance();
-$t = new SimpleSAML_XHTML_Template($globalConfig, 'sgis:selectsource.php');
+$globalConfig = \SimpleSAML\Configuration::getInstance();
+$t = new \SimpleSAML\XHTML\Template($globalConfig, 'sgis:selectsource.php');
+
+$defaultLanguage = $globalConfig->getString('language.default', 'en');
+$language = $t->getTranslator()->getLanguage()->getLanguage();
+
+$sources = $state[\SimpleSAML\Module\sgis\Auth\Source\MultiAuth::SOURCESID];
+if (count($sources) == 1) {
+    $sourceKey = array_shift(array_keys($sources));
+    $source = $sources[$sourceKey]['source'];
+    \SimpleSAML\Module\sgis\Auth\Source\MultiAuth::delegateAuthentication($source, $state);
+}
+foreach ($sources as $key => $source) {
+    $sources[$key]['source64'] = base64_encode($sources[$key]['source']);
+    if (isset($sources[$key]['text'][$language])) {
+        $sources[$key]['text'] = $sources[$key]['text'][$language];
+    } else {
+        $sources[$key]['text'] = $sources[$key]['text'][$defaultLanguage];
+    }
+
+    if (isset($sources[$key]['help'][$language])) {
+        $sources[$key]['help'] = $sources[$key]['help'][$language];
+    } else {
+        $sources[$key]['help'] = $sources[$key]['help'][$defaultLanguage];
+    }
+}
+
 $t->data['authstate'] = $authStateId;
-$t->data['sources'] = $state[sspmod_sgis_Auth_Source_MultiAuth::SOURCESID];
-if ($as !== NULL) {
-	$t->data['preferred'] = $as->getPreviousSource();
+$t->data['sources'] = $sources;
+$t->data['selfUrl'] = $_SERVER['PHP_SELF'];
+
+if ($as !== null) {
+    $t->data['preferred'] = $as->getPreviousSource();
 } else {
-	$t->data['preferred'] = NULL;
+    $t->data['preferred'] = null;
 }
-$t->data['rememberSourceEnabled'] = $as->getRememberSourceEnabled();
-$t->data['rememberSourceChecked'] = $as->getRememberSourceChecked();
+$t->data['rememberSourceEnabled'] = ($as !== null && $as->getRememberSourceEnabled());
+$t->data['rememberSourceChecked'] = ($as !== null && $as->getRememberSourceChecked());
 $t->show();
 exit();
