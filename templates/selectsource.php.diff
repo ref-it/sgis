@@ -1,15 +1,21 @@
---- templates/selectsource.php.orig	2016-10-05 14:58:42.000000000 +0200
-+++ templates/selectsource.php	2016-10-05 14:59:04.000000000 +0200
-@@ -27,5 +27,13 @@ foreach($this->data['sources'] as $sourc
+--- selectsource.php.orig	2019-11-12 11:57:28.000000000 +0100
++++ selectsource.php	2019-11-12 11:57:04.000000000 +0100
+@@ -21,10 +21,18 @@ foreach ($this->data['sources'] as $sour
+     $name = 'src-'.base64_encode($source['source']);
+     echo '<input type="submit" name="'.htmlspecialchars($name).'"'.$autofocus.' '.
+         'id="button-'.htmlspecialchars($source['source']).'" '.
+-        'value="'.htmlspecialchars($this->t($source['text'])).'" />';
++        'value="'.htmlspecialchars($source['text']).'" />';
+     echo '</li>';
  }
  ?>
- </ul>
+     </ul>
 +<?php
 +if ($this->data['rememberSourceEnabled']) {
-+	echo str_repeat("\t", 4);
-+	echo '<input type="checkbox" id="remember_source" tabindex="4" name="remember_source" value="Yes" ';
-+	echo ($this->data['rememberSourceChecked'] ? 'checked="Yes" /> ' : '/> ');
-+	echo $this->t('{sgis:sgis:remember_source}');
++   	echo str_repeat("\t", 4);
++    echo '<input type="checkbox" id="remember_source" tabindex="4" name="remember_source" value="Yes" ';
++    echo ($this->data['rememberSourceChecked'] ? 'checked="Yes" /> ' : '/> ');
++    echo $this->t('{sgis:sgis:remember_source}');
 +}
 +?>
  </form>

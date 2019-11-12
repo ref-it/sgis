@@ -1,0 +1,12 @@
+--- selectsource.twig.orig	2019-11-12 11:58:12.000000000 +0100
++++ selectsource.twig	2019-11-12 12:00:49.000000000 +0100
+@@ -19,5 +19,9 @@
+             </li>
+         {% endfor %}
+         </ul>
++{% if rememberSourceEnabled %}
++        <input type="checkbox" id="remember_source" tabindex="4" name="remember_source" value="Yes" {% if rememberSourceChecked %} checked="Yes" {% endif %}
++        {{ '{sgis:sgis:remember_source}'|trans }}
++{% endif %}
+     </form>
+ {% endblock %}
